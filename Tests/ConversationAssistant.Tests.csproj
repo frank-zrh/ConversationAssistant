@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.17.2" />
+    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.51.0" />
+    <PackageReference Include="MSTest" Version="4.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\ConversationAssistant.Core.csproj" />
+    <Compile Include="..\App\Speech\AzureSpeechSessionFactory.cs" Link="AzureSpeechSessionFactory.cs" />
+    <Compile Include="..\App\Speech\AzureSpeechDiagnostics.cs" Link="AzureSpeechDiagnostics.cs" />
+    <Compile Include="..\App\Authentication\SpeechEntraIdentity.cs" Link="SpeechEntraIdentity.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="MeetingCopilot.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

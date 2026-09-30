@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ConversationAssistant.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ConversationAssistant.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

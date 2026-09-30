@@ -1,0 +1,71 @@
+namespace ConversationAssistant.Core.Models;
+
+public enum ConversationUiState
+{
+    Idle, Starting, Listening, SpeechDetected, QuestionDetected, Thinking, Answering,
+    Paused, Offline, Error
+}
+
+public enum ConversationLanguage { Auto, English, Chinese }
+public enum AnswerStyle { Concise, Balanced, Detailed }
+public enum QuestionSensitivity { Low, Medium, High }
+public enum QuestionStatus { Pending, Processing, Completed, Ignored, Failed, Cancelled }
+
+public sealed class ConversationSettings
+{
+    public ConversationLanguage Language { get; set; } = ConversationLanguage.Chinese;
+    public ConversationLanguage AnswerLanguage { get; set; } = ConversationLanguage.Auto;
+    public AnswerStyle AnswerStyle { get; set; } = AnswerStyle.Concise;
+    public QuestionSensitivity Sensitivity { get; set; } = QuestionSensitivity.Medium;
+    public string? InputDeviceId { get; set; }
+    public TimeSpan ContextWindowDuration { get; set; } = TimeSpan.FromMinutes(3);
+    public int MaxContextCharacters { get; set; } = 4000;
+    public bool AutomaticQuestions { get; set; } = true;
+
+    // V1 never writes conversation content or audio to disk.
+    public bool StoreAudio => false;
+    public bool StoreTranscript => false;
+    public bool ClearAfterConversation => true;
+    public bool WebGrounding => false;
+}
+
+public sealed record TranscriptSegment(
+    Guid Id, DateTimeOffset TimestampStart, DateTimeOffset TimestampEnd,
+    string Text, string Source, bool IsFinal);
+
+public sealed record SpeechText(string Text, DateTimeOffset Start, DateTimeOffset End);
+public sealed record AudioDevice(string Id, string Name);
+public sealed record QuestionDetectionResult(
+    bool IsQuestion, double Confidence, string QuestionText,
+    string TriggerReason, DateTimeOffset Timestamp, string ContextPrefix = "");
+public sealed record WorkIqAnswer(string Text, IReadOnlyList<string> Sources, string? ConversationId);
+
+public sealed class QuestionRequest
+{
+    public Guid Id { get; } = Guid.NewGuid();
+    public required string Question { get; init; }
+    public required string ContextUsed { get; init; }
+    public required DateTimeOffset Timestamp { get; init; }
+    public bool IsManual { get; init; }
+    public Guid? TranscriptSegmentId { get; init; }
+    private readonly TaskCompletionSource _explicitRequest =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    internal Task ExplicitRequest => _explicitRequest.Task;
+    internal void RequestExplicitly() => _explicitRequest.TrySetResult();
+    public QuestionStatus Status { get; internal set; } = QuestionStatus.Pending;
+    public string Answer { get; internal set; } = "";
+    public IReadOnlyList<string> Sources { get; internal set; } = [];
+    public string? Error { get; internal set; }
+}
+
+public sealed class ConversationSession
+{
+    public Guid SessionId { get; } = Guid.NewGuid();
+    public DateTimeOffset StartTime { get; internal set; } = DateTimeOffset.Now;
+    public DateTimeOffset? EndTime { get; internal set; }
+    public string? WorkIqConversationId { get; internal set; }
+    public required ConversationSettings Settings { get; init; }
+    public List<TranscriptSegment> TranscriptSegments { get; } = [];
+    public List<QuestionDetectionResult> DetectedQuestions { get; } = [];
+    public List<QuestionRequest> Answers { get; } = [];
+}

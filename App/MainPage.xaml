@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="ConversationAssistant_App.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Page.Resources>
+        <Style x:Key="TranscriptCardStyle" TargetType="Button">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Foreground" Value="#1F2937" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="UseSystemFocusVisuals" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              HorizontalContentAlignment="Stretch" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+      <Grid Padding="16" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="6*" />
+            <ColumnDefinition Width="5*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.ColumnSpan="2" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="5">
+                <TextBlock Text="Conversation Assistant" FontSize="24" FontWeight="SemiBold" />
+                <StackPanel Orientation="Horizontal" Spacing="14">
+                    <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusBrush}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding ListeningText}" Opacity=".7" />
+                    <TextBlock Text="{Binding TimerText}" FontFamily="Consolas" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Speech language" VerticalAlignment="Center" />
+                    <ComboBox x:Name="LanguagePicker" Width="175" SelectedIndex="0"
+                              IsEnabled="{Binding CanChangeSpeechLanguage}"
+                              SelectionChanged="Language_Changed"
+                              ToolTipService.ToolTip="Pause listening before switching language; Resume applies the new model.">
+                        <ComboBoxItem Content="中文 (zh-CN)" />
+                        <ComboBoxItem Content="English" />
+                    </ComboBox>
+                    <ToggleSwitch AutomationProperties.Name="Auto Ask Work IQ"
+                                  OnContent="Auto Ask: On" OffContent="Auto Ask: Off"
+                                  ToolTipService.ToolTip="Automatically submit final spoken questions and action requests."
+                                  IsOn="{Binding Settings.AutomaticQuestions, Mode=TwoWay}" />
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" MaxWidth="320">
+                <TextBlock Text="{Binding AuthText}" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="{Binding SignInButtonText}" IsEnabled="{Binding CanSignIn}"
+                          Click="SignIn_Click" />
+                  <Button Content="Settings" Click="Settings_Click" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button Content="Start Conversation" IsEnabled="{Binding CanStart}" Click="Start_Click" />
+            <Button Grid.Column="1" Content="End Conversation" IsEnabled="{Binding CanEnd}" Click="End_Click" />
+            <Button Grid.Column="2" Content="Pause Listening" IsEnabled="{Binding CanPause}" Click="Pause_Click" />
+            <Button Grid.Column="3" Content="Resume" IsEnabled="{Binding CanResume}" Click="Resume_Click" />
+            <TextBox x:Name="AskBox" Grid.Column="4" PlaceholderText="Ask manually... (Ctrl+Enter)"
+                     KeyDown="AskBox_KeyDown" />
+            <Button Grid.Column="5" Content="Ask" Click="Ask_Click" />
+        </Grid>
+        <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Text="{Binding LastError}"
+                   Foreground="IndianRed" TextWrapping="Wrap" MaxLines="3" />
+
+        <Border Grid.Row="1" Margin="0,0,8,0" CornerRadius="12"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+            <Grid Padding="16" RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="LIVE TRANSCRIPT" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Content="Copy" Click="CopyTranscript_Click" />
+                    <Button Grid.Column="2" Content="Clear" Click="ClearTranscript_Click" />
+                    <Button Grid.Column="3" Content="{Binding ScrollText}" Click="Scroll_Click" />
+                </Grid>
+                <ScrollViewer x:Name="TranscriptScroll" Grid.Row="1"
+                              VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding TranscriptItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource TranscriptCardStyle}"
+                                        Margin="0,0,0,10"
+                                        Background="{Binding CardBackground}"
+                                        BorderBrush="{Binding SelectionBorder}"
+                                        BorderThickness="{Binding SelectionThickness}"
+                                        AutomationProperties.Name="{Binding AutomationLabel}"
+                                        AutomationProperties.HelpText="Left-click to ask or view the answer. Right-click to edit in Ask."
+                                        ToolTipService.ToolTip="Left-click to ask or view the answer. Right-click to edit in Ask."
+                                        Click="TranscriptCard_Click"
+                                        RightTapped="TranscriptCard_RightTapped">
+                                    <StackPanel Spacing="7">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Time}" Opacity=".75" FontSize="12"
+                                                       Foreground="#1F2937" FontFamily="Consolas" />
+                                            <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="12"
+                                                       Foreground="#374151" HorizontalAlignment="Right"
+                                                       TextWrapping="Wrap" />
+                                        </Grid>
+                                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="16"
+                                                   Foreground="#1F2937" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                <TextBlock Grid.Row="2" Text="{Binding PartialText}" Opacity=".65"
+                           TextWrapping="Wrap" FontStyle="Italic" />
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="1" Margin="8,0,0,0" CornerRadius="12"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+            <Grid x:Name="AssistantLayout" Padding="12" RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ComboBox Header="ASSISTANT · ANSWER HISTORY" ItemsSource="{Binding Answers}"
+                          HorizontalAlignment="Stretch"
+                          PlaceholderText="Select a question"
+                          SelectedItem="{Binding SelectedAnswer, Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Question}" MaxWidth="330"
+                                       TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6">
+                    <Button Content="Copy Answer" Click="CopyAnswer_Click" />
+                    <Button Content="Retry" Click="Retry_Click" />
+                    <Button Content="Dismiss" Click="Dismiss_Click" />
+                    <Button x:Name="AnswerViewButton" Content="查看原文" Click="AnswerView_Click" />
+                </StackPanel>
+                <Grid Grid.Row="1" RowSpacing="6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding SelectedAnswer.Status}" Opacity=".7" />
+                        <TextBlock x:Name="AnswerRenderStatus" TextWrapping="Wrap" Opacity=".7"
+                                   Visibility="Collapsed" />
+                    </StackPanel>
+                    <ScrollViewer x:Name="AnswerFallback" Grid.Row="1"
+                                  VerticalScrollBarVisibility="Auto">
+                        <TextBlock x:Name="AnswerFallbackText" Text="Select a question to view its answer."
+                                   IsTextSelectionEnabled="True"
+                                   TextWrapping="Wrap" />
+                    </ScrollViewer>
+                    <WebView2 x:Name="AnswerWebView" Grid.Row="1" Opacity="0"
+                              IsHitTestVisible="False" />
+                    <TextBlock Grid.Row="2" Text="{Binding SelectedAnswer.Error}" TextWrapping="Wrap"
+                               Foreground="IndianRed" />
+                </Grid>
+                <Grid.Resources>
+                    <Flyout x:Key="SettingsFlyout">
+                    <ScrollViewer MaxHeight="380" Width="360">
+                        <StackPanel Spacing="12" Padding="4,10">
+                            <TextBlock Text="{Binding ModelStatus}" TextWrapping="Wrap" />
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="SPEECH TO TEXT 服务" FontWeight="SemiBold" />
+                                <ComboBox Header="识别服务" HorizontalAlignment="Stretch"
+                                          IsEnabled="{Binding CanEditSpeechSettings}"
+                                          SelectedIndex="{Binding SpeechProviderIndex, Mode=TwoWay}">
+                                    <ComboBoxItem Content="Azure Speech · Entra ID（在线）" />
+                                    <ComboBoxItem Content="Whisper（离线）" />
+                                </ComboBox>
+                                <TextBox Header="Azure AI Services / Speech Endpoint"
+                                         IsEnabled="{Binding CanEditSpeechSettings}"
+                                         Text="{Binding SpeechServiceUri, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="https://your-resource.cognitiveservices.azure.com/"
+                                         InputScope="Url" />
+                                <TextBlock Text="{Binding SpeechEndpointPreview}" TextWrapping="Wrap" Opacity=".7" />
+                                <TextBlock Text="认证方式：Microsoft Entra ID。不再使用或发送 Key。"
+                                           TextWrapping="Wrap" />
+                                <TextBox Header="Tenant ID（必填：资源所属目录）"
+                                             IsEnabled="{Binding CanEditSpeechSettings}"
+                                             Text="{Binding SpeechTenantId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             PlaceholderText="Azure 订阅所在目录的 GUID" />
+                                 <TextBlock Text="在 Azure 门户查看该资源所属订阅的目录 ID。它可能不同于当前 Work IQ/M365 的租户；跨目录时该帐号需要资源目录的来宾资格和 Speech 角色。"
+                                            TextWrapping="Wrap" Opacity=".7" />
+                                <TextBox Header="Client ID（可选，生产推荐）"
+                                             IsEnabled="{Binding CanEditSpeechSettings}"
+                                             Text="{Binding SpeechClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             PlaceholderText="租户批准的公共客户端应用 GUID" />
+                                <TextBlock Text="Client ID 留空时使用 Azure SDK 开发客户端，可能被组织限制。生产请使用批准的桌面应用注册（http://localhost 回调，无客户端密码）。"
+                                           TextWrapping="Wrap" Opacity=".7" />
+                                <CheckBox IsChecked="{Binding CloudAudioConsent, Mode=TwoWay}"
+                                          IsEnabled="{Binding CanEditSpeechSettings}">
+                                    <TextBlock Text="允许将麦克风音频发送到配置的 Azure Speech 资源（需要联网，可能计费）。"
+                                               TextWrapping="Wrap" />
+                                </CheckBox>
+                                <Button Content="保存 Speech 设置" Click="SaveSpeechSettings_Click"
+                                        IsEnabled="{Binding CanEditSpeechSettings}" />
+                                <Button Content="{Binding SpeechConnectionButtonText}" Click="TestSpeechConnection_Click"
+                                        IsEnabled="{Binding CanEditSpeechSettings}" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding SpeechSettingsStatus}" TextWrapping="Wrap" />
+                            <TextBlock Text="更改帐号或服务前请先 End Conversation。当前帐号需有资源的 Cognitive Services Speech User 角色；取得令牌不代表资源授权成功。"
+                                       TextWrapping="Wrap" Opacity=".7" />
+                            <Button Content="Open microphone privacy settings" Click="MicSettings_Click"
+                                    HorizontalAlignment="Left" />
+                            <TextBlock Text="Input device" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ComboBox Width="275" ItemsSource="{Binding AudioDevices}"
+                                          SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
+                                          DisplayMemberPath="Name" />
+                                <Button Content="Refresh" Click="RefreshDevices_Click" />
+                            </StackPanel>
+                            <TextBlock Text="Question / request sensitivity" />
+                            <ComboBox x:Name="SensitivityPicker" SelectedIndex="1" SelectionChanged="Sensitivity_Changed">
+                                <ComboBoxItem Content="Low" />
+                                <ComboBoxItem Content="Medium" />
+                                <ComboBoxItem Content="High" />
+                            </ComboBox>
+                            <TextBlock Text="Context window" />
+                            <ComboBox x:Name="ContextPicker" SelectedIndex="1" SelectionChanged="Context_Changed">
+                                <ComboBoxItem Content="Short (1 min)" />
+                                <ComboBoxItem Content="Medium (3 min)" />
+                                <ComboBoxItem Content="Long (5 min)" />
+                            </ComboBox>
+                            <TextBlock Text="Answer style" />
+                            <ComboBox x:Name="StylePicker" SelectedIndex="0" SelectionChanged="Style_Changed">
+                                <ComboBoxItem Content="Concise" />
+                                <ComboBoxItem Content="Balanced" />
+                                <ComboBoxItem Content="Detailed" />
+                            </ComboBox>
+                            <TextBlock Text="Answer language" />
+                            <ComboBox x:Name="AnswerLanguagePicker" SelectedIndex="0" SelectionChanged="AnswerLanguage_Changed">
+                                <ComboBoxItem Content="Auto" />
+                                <ComboBoxItem Content="English" />
+                                <ComboBoxItem Content="Chinese" />
+                            </ComboBox>
+                            <TextBlock Text="Enterprise grounding: Work IQ (on). Web grounding control is unavailable in the CLI."
+                                       TextWrapping="Wrap" />
+                            <ToggleSwitch Header="Store audio" IsOn="False" IsEnabled="False" />
+                            <ToggleSwitch Header="Store transcript" IsOn="False" IsEnabled="False" />
+                            <ToggleSwitch Header="Clear after conversation" IsOn="True" IsEnabled="False" />
+                        </StackPanel>
+                    </ScrollViewer>
+                    </Flyout>
+                </Grid.Resources>
+            </Grid>
+        </Border>
+
+      </Grid>
+</Page>
