@@ -1,5 +1,7 @@
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
+using ConversationAssistant.Core.Localization;
+using ConversationAssistant.Core.Models;
 using Ganss.Xss;
 using Markdig;
 
@@ -17,12 +19,13 @@ public sealed class AnswerMarkdownFormatter
         .UseAdvancedExtensions().Build();
 
     public RenderedAnswer Format(string markdown,
-        IReadOnlyDictionary<string, string>? approvedImages = null)
+        IReadOnlyDictionary<string, string>? approvedImages = null,
+        ConversationLanguage language = ConversationLanguage.English)
     {
         ArgumentNullException.ThrowIfNull(markdown);
+        var texts = UiText.For(language);
         if (markdown.Length > MaximumAnswerCharacters)
-            throw new ArgumentOutOfRangeException(nameof(markdown),
-                "Work IQ answer exceeds the safe rendering limit; use Copy Answer to inspect the full response.");
+            throw new ArgumentOutOfRangeException(nameof(markdown), texts["ErrorRenderLimit"]);
 
         var sanitizer = new HtmlSanitizer();
         sanitizer.AllowedTags.Clear();
@@ -44,7 +47,7 @@ public sealed class AnswerMarkdownFormatter
         foreach (var image in document.QuerySelectorAll("img").ToArray())
         {
             var source = image.GetAttribute("src") ?? "";
-            var alt = image.GetAttribute("alt") ?? "Image";
+            var alt = image.GetAttribute("alt") ?? texts["Image"];
             if (IsSafeDataImage(source)) continue;
             if (IsSafeRemoteUri(source, allowMail: false, out var approvedUri) &&
                 approvedImages?.TryGetValue(approvedUri!.AbsoluteUri, out var data) == true &&
@@ -57,16 +60,16 @@ public sealed class AnswerMarkdownFormatter
             var replacement = document.CreateElement("span");
             if (IsSafeRemoteUri(source, allowMail: false, out var uri))
             {
-                replacement.TextContent = $"Image: {alt}  ";
+                replacement.TextContent = texts.Format("ImagePrefix", alt);
                 var link = document.CreateElement("a");
                 link.SetAttribute("href", uri!.AbsoluteUri);
-                link.TextContent = $"Open image from {uri.Host}";
+                link.TextContent = texts.Format("ImageOpenHost", uri.Host);
                 replacement.AppendChild(link);
                 remoteImages[uri.AbsoluteUri] = alt;
             }
             else
             {
-                replacement.TextContent = $"Image unavailable: {alt}";
+                replacement.TextContent = texts.Format("ImageUnavailable", alt);
             }
             image.Parent?.ReplaceChild(replacement, image);
         }

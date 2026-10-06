@@ -1,7 +1,6 @@
 using ConversationAssistant.Core.Context;
 using ConversationAssistant.Core.Conversation;
 using ConversationAssistant.Core.Models;
-using ConversationAssistant.Core.QuestionDetection;
 using ConversationAssistant.Core.Settings;
 using ConversationAssistant.Core.Speech;
 using ConversationAssistant.Core.Transcript;
@@ -95,7 +94,7 @@ public sealed class AzureSpeechPipelineTests
     }
 
     [TestMethod]
-    public async Task AzureFinalSpeechFeedsWorkIqAndConnectionLossStopsCaptureUntilResume()
+    public async Task AzureFinalSpeechStaysLocalUntilRequestedAndConnectionLossStopsCaptureUntilResume()
     {
         var settings = new FakeSettings(Config());
         var factory = new FakeSessionFactory();
@@ -103,12 +102,14 @@ public sealed class AzureSpeechPipelineTests
         var audio = new FakeAudio();
         var work = new FakeWork();
         var manager = new ConversationSessionManager(audio, azure, new FakeAuth(), new FakeNetwork(),
-            work, new TranscriptEngine(), new QuestionDetector(), new ContextBuilder(new PromptBuilder()));
+            work, new TranscriptEngine(), new ContextBuilder(new PromptBuilder()));
         manager.StartConversation(new ConversationSettings());
         var first = factory.Sessions.Single();
         first.EmitPartial("如何配置");
         Assert.AreEqual(0, work.Calls);
         first.EmitFinal("我们有二十个环境，如何配置DLP策略？");
+        Assert.AreEqual(0, work.Calls);
+        manager.AskFromTranscript(manager.TranscriptSegments.Single().Id);
         await WaitFor(() => work.Calls == 1);
         Assert.IsTrue(manager.IsListening);
         first.EmitFailure();

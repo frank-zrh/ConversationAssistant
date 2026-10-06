@@ -1,13 +1,17 @@
+using ConversationAssistant.Core.Localization;
+using ConversationAssistant.Core.Models;
+
 namespace ConversationAssistant.Core.WorkIQ;
 
 public static class AnswerHtmlPage
 {
-    public static string Build(RenderedAnswer answer, long revision = 0)
+    public static string Build(RenderedAnswer answer, long revision = 0,
+        ConversationLanguage language = ConversationLanguage.English)
     {
         ArgumentNullException.ThrowIfNull(answer);
         return $$"""
             <!doctype html>
-            <html lang="en">
+            <html lang="{{UiText.For(language).LanguageTag}}">
             <head>
               <meta charset="utf-8">
               <meta name="mc-render-id" content="{{revision}}">

@@ -8,6 +8,43 @@ namespace ConversationAssistant.Tests;
 public sealed class AnswerRenderingTests
 {
     [TestMethod]
+    public void RapidAnswerChangesNavigateSeriallyAndCoalesceToLatestDocument()
+    {
+        var queue = new AnswerRenderQueue();
+        queue.Enqueue(1, "<p>First answer</p>");
+        var first = queue.StartNext();
+        Assert.IsNotNull(first);
+        queue.Enqueue(2, "<p>Intermediate selection</p>");
+        queue.Enqueue(3, "<p>Latest selection</p>");
+        Assert.IsNull(queue.StartNext());
+        Assert.AreSame(first, queue.Active);
+        Assert.IsTrue(queue.Complete(first.Revision));
+        var next = queue.StartNext();
+        Assert.IsNotNull(next);
+        Assert.AreEqual(3L, next.Revision);
+        Assert.AreEqual("<p>Latest selection</p>", next.Html);
+        Assert.IsFalse(queue.Complete(first.Revision));
+        Assert.AreSame(next, queue.Active);
+        Assert.IsTrue(queue.Complete(next.Revision));
+        Assert.IsNull(queue.StartNext());
+    }
+
+    [TestMethod]
+    public void ClearingRenderQueueDropsPendingDocumentsAndIgnoresLateCompletion()
+    {
+        var queue = new AnswerRenderQueue();
+        queue.Enqueue(1, "<p>Old answer</p>");
+        queue.StartNext();
+        queue.Enqueue(2, "<p>Pending answer</p>");
+        queue.Clear();
+        Assert.IsNull(queue.Active);
+        Assert.IsNull(queue.StartNext());
+        Assert.IsFalse(queue.Complete(1));
+        queue.Enqueue(3, "<p>New answer</p>");
+        Assert.AreEqual(3L, queue.StartNext()!.Revision);
+    }
+
+    [TestMethod]
     public void LocalWebViewNavigationIsAllowedOnlyForAppRequestedHtml()
     {
         Assert.IsTrue(AnswerNavigationPolicy.IsAppHtmlDocument(

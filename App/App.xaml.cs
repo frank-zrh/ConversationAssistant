@@ -1,6 +1,5 @@
 using ConversationAssistant.Core.Context;
 using ConversationAssistant.Core.Conversation;
-using ConversationAssistant.Core.QuestionDetection;
 using ConversationAssistant.Core.Settings;
 using ConversationAssistant.Core.Speech;
 using ConversationAssistant.Core.Transcript;
@@ -42,7 +41,6 @@ public partial class App : Application
             provider.GetRequiredService<AzureSpeechRecognitionService>(),
             provider.GetRequiredService<OfflineWhisperSpeechRecognitionService>()));
         services.AddSingleton<ITranscriptEngine, TranscriptEngine>();
-        services.AddSingleton<IQuestionDetector, QuestionDetector>();
         services.AddSingleton<PromptBuilder>();
         services.AddSingleton<IContextBuilder, ContextBuilder>();
         services.AddSingleton<WorkIqProcess>();

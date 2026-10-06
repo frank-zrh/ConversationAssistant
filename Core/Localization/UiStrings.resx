@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>Conversation Assistant</value></data>
+  <data name="ListeningLanguage" xml:space="preserve"><value>Listening language</value></data>
+  <data name="ChineseSpeech" xml:space="preserve"><value>Chinese (zh-CN)</value></data>
+  <data name="EnglishSpeech" xml:space="preserve"><value>English (en-US)</value></data>
+  <data name="Chinese" xml:space="preserve"><value>Chinese</value></data>
+  <data name="English" xml:space="preserve"><value>English</value></data>
+  <data name="AutomaticLanguage" xml:space="preserve"><value>Auto</value></data>
+  <data name="LanguageHint" xml:space="preserve"><value>Pause listening to change language. The interface updates immediately; Resume applies the new speech language.</value></data>
+  <data name="AutoAnalysis" xml:space="preserve"><value>Automatically analyze with Work IQ</value></data>
+  <data name="AutoAnalysisOn" xml:space="preserve"><value>Auto analyze: On</value></data>
+  <data name="AutoAnalysisOff" xml:space="preserve"><value>Auto analyze: Off</value></data>
+  <data name="AutoAnalysisHint" xml:space="preserve"><value>Send the complete transcript to discover questions after 7 new utterances or 5 minutes with new content. Answers are requested only when you choose a question.</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="StartConversation" xml:space="preserve"><value>Start Conversation</value></data>
+  <data name="EndConversation" xml:space="preserve"><value>End Conversation</value></data>
+  <data name="PauseListening" xml:space="preserve"><value>Pause Listening</value></data>
+  <data name="Resume" xml:space="preserve"><value>Resume</value></data>
+  <data name="ManualQuestionPlaceholder" xml:space="preserve"><value>Ask manually... (Ctrl+Enter)</value></data>
+  <data name="Ask" xml:space="preserve"><value>Ask</value></data>
+  <data name="LiveTranscript" xml:space="preserve"><value>LIVE TRANSCRIPT</value></data>
+  <data name="CopyTranscript" xml:space="preserve"><value>Copy</value></data>
+  <data name="ClearTranscript" xml:space="preserve"><value>Clear</value></data>
+  <data name="PauseScrolling" xml:space="preserve"><value>Pause scrolling</value></data>
+  <data name="ResumeScrolling" xml:space="preserve"><value>Resume scrolling</value></data>
+  <data name="TranscriptCardHint" xml:space="preserve"><value>Left-click to ask or view the answer. Right-click to edit in the question box.</value></data>
+  <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · QUESTIONS</value></data>
+  <data name="AnalyzeConversation" xml:space="preserve"><value>Analyze All Chat</value></data>
+  <data name="QuestionsEmpty" xml:space="preserve"><value>Discovered questions will appear here. Choose a question when you want assistance; answers are not requested automatically.</value></data>
+  <data name="SuggestedQuestionHint" xml:space="preserve"><value>Click for assistance, view an existing reply, or retry a failed request.</value></data>
+  <data name="AnswersHeader" xml:space="preserve"><value>WORK IQ · ANSWER HISTORY</value></data>
+  <data name="SelectQuestion" xml:space="preserve"><value>Select a question</value></data>
+  <data name="CopyAnswer" xml:space="preserve"><value>Copy Answer</value></data>
+  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="Dismiss" xml:space="preserve"><value>Dismiss</value></data>
+  <data name="ViewOriginal" xml:space="preserve"><value>View Original</value></data>
+  <data name="FormattedView" xml:space="preserve"><value>Formatted View</value></data>
+  <data name="SpeechSection" xml:space="preserve"><value>SPEECH TO TEXT</value></data>
+  <data name="SpeechProvider" xml:space="preserve"><value>Recognition service</value></data>
+  <data name="AzureProvider" xml:space="preserve"><value>Azure Speech · Entra ID (online)</value></data>
+  <data name="WhisperProvider" xml:space="preserve"><value>Whisper (offline)</value></data>
+  <data name="Endpoint" xml:space="preserve"><value>Azure AI Services / Speech endpoint</value></data>
+  <data name="AuthenticationMethod" xml:space="preserve"><value>Authentication: Microsoft Entra ID. Resource keys are not used or sent.</value></data>
+  <data name="TenantId" xml:space="preserve"><value>Tenant ID (required: resource directory)</value></data>
+  <data name="TenantPlaceholder" xml:space="preserve"><value>Directory GUID of the Azure subscription</value></data>
+  <data name="TenantHelp" xml:space="preserve"><value>Find the resource subscription's directory ID in the Azure portal. It may differ from the Work IQ/M365 tenant. Cross-tenant accounts need membership or guest access and a Speech role in the resource directory.</value></data>
+  <data name="ClientId" xml:space="preserve"><value>Client ID (optional; recommended for production)</value></data>
+  <data name="ClientPlaceholder" xml:space="preserve"><value>Tenant-approved public client application GUID</value></data>
+  <data name="ClientHelp" xml:space="preserve"><value>Leaving Client ID empty uses the Azure SDK development client, which your organization may restrict. For production, use an approved desktop app registration (http://localhost redirect; no client secret).</value></data>
+  <data name="AudioConsent" xml:space="preserve"><value>Allow microphone audio to be sent to the configured Azure Speech resource (internet required; charges may apply).</value></data>
+  <data name="SaveSpeechSettings" xml:space="preserve"><value>Save Speech Settings</value></data>
+  <data name="TestSpeechConnection" xml:space="preserve"><value>Test Saved Connection (No Recording)</value></data>
+  <data name="TestingSpeechConnection" xml:space="preserve"><value>Testing Connection...</value></data>
+  <data name="IdentityHelp" xml:space="preserve"><value>End the conversation before changing accounts or services. The account needs the Cognitive Services Speech User role on the resource; obtaining a token does not prove resource authorization.</value></data>
+  <data name="MicrophonePrivacy" xml:space="preserve"><value>Open Microphone Privacy Settings</value></data>
+  <data name="InputDevice" xml:space="preserve"><value>Input device</value></data>
+  <data name="DefaultMicrophone" xml:space="preserve"><value>Default microphone</value></data>
+  <data name="RefreshDevices" xml:space="preserve"><value>Refresh</value></data>
+  <data name="ContextWindow" xml:space="preserve"><value>Manual question context (does not limit full-chat analysis)</value></data>
+  <data name="ShortContext" xml:space="preserve"><value>Short (1 min)</value></data>
+  <data name="MediumContext" xml:space="preserve"><value>Medium (3 min)</value></data>
+  <data name="LongContext" xml:space="preserve"><value>Long (5 min)</value></data>
+  <data name="AnswerStyle" xml:space="preserve"><value>Answer style</value></data>
+  <data name="Concise" xml:space="preserve"><value>Concise</value></data>
+  <data name="Balanced" xml:space="preserve"><value>Balanced</value></data>
+  <data name="Detailed" xml:space="preserve"><value>Detailed</value></data>
+  <data name="AnswerLanguage" xml:space="preserve"><value>Answer language</value></data>
+  <data name="GroundingNote" xml:space="preserve"><value>Enterprise grounding: Work IQ (on). Web grounding control is unavailable in the CLI.</value></data>
+  <data name="StoreAudio" xml:space="preserve"><value>Store audio</value></data>
+  <data name="StoreTranscript" xml:space="preserve"><value>Store transcript</value></data>
+  <data name="ClearAfterConversation" xml:space="preserve"><value>Clear after conversation</value></data>
+  <data name="On" xml:space="preserve"><value>On</value></data>
+  <data name="Off" xml:space="preserve"><value>Off</value></data>
+  <data name="StatusIdle" xml:space="preserve"><value>● Idle</value></data>
+  <data name="StatusListening" xml:space="preserve"><value>● Listening</value></data>
+  <data name="StatusStartingAzure" xml:space="preserve"><value>◌ Connecting to Azure Speech...</value></data>
+  <data name="StatusStartingOffline" xml:space="preserve"><value>◌ Loading offline model...</value></data>
+  <data name="StatusSpeechDetected" xml:space="preserve"><value>● Speech detected</value></data>
+  <data name="StatusQuestionDetected" xml:space="preserve"><value>● Question or request detected</value></data>
+  <data name="StatusThinking" xml:space="preserve"><value>◌ Thinking with Work IQ</value></data>
+  <data name="StatusAnswering" xml:space="preserve"><value>● Answer ready</value></data>
+  <data name="StatusPaused" xml:space="preserve"><value>● Paused</value></data>
+  <data name="StatusOffline" xml:space="preserve"><value>● Work IQ offline · transcript continues</value></data>
+  <data name="StatusError" xml:space="preserve"><value>● Error</value></data>
+  <data name="MicrophoneAzure" xml:space="preserve"><value>Microphone on · Azure online</value></data>
+  <data name="MicrophoneWhisper" xml:space="preserve"><value>Microphone on · local Whisper</value></data>
+  <data name="MicrophoneOff" xml:space="preserve"><value>Microphone off</value></data>
+  <data name="SignIn" xml:space="preserve"><value>Microsoft Sign In</value></data>
+  <data name="SigningIn" xml:space="preserve"><value>Signing in...</value></data>
+  <data name="AuthAzureInProgress" xml:space="preserve"><value>Signing in to Azure Entra and Work IQ; separate consent may be required.</value></data>
+  <data name="AuthWorkInProgress" xml:space="preserve"><value>Signing in and checking Work IQ...</value></data>
+  <data name="AuthWorkReady" xml:space="preserve"><value>Work IQ ✓</value></data>
+  <data name="AuthWorkNotSignedIn" xml:space="preserve"><value>Work IQ not signed in</value></data>
+  <data name="AuthLocalSpeech" xml:space="preserve"><value>local speech</value></data>
+  <data name="AuthEntraReady" xml:space="preserve"><value>Azure Entra token ready</value></data>
+  <data name="AuthEntraNotSignedIn" xml:space="preserve"><value>Azure Entra not signed in</value></data>
+  <data name="SettingsDirty" xml:space="preserve"><value>Settings changed; save to apply.</value></data>
+  <data name="EndpointDirty" xml:space="preserve"><value>Endpoint changed; please save.</value></data>
+  <data name="TenantDirty" xml:space="preserve"><value>Resource Tenant ID changed. Save and sign in again; tokens from the old tenant cannot be reused.</value></data>
+  <data name="ClientDirty" xml:space="preserve"><value>Application settings changed. Save and sign in again.</value></data>
+  <data name="EndpointHelp" xml:space="preserve"><value>Root endpoints for Azure AI Services multi-service and standalone Speech resources are supported.</value></data>
+  <data name="EndpointPreview" xml:space="preserve"><value>SDK connection address: {0}</value></data>
+  <data name="EndpointInvalid" xml:space="preserve"><value>Enter a valid Azure AI Services / Speech endpoint.</value></data>
+  <data name="ModelSettingsReadFailed" xml:space="preserve"><value>Unable to read Speech settings. Re-enter the endpoint and Entra settings, then save.</value></data>
+  <data name="ModelAzure" xml:space="preserve"><value>Azure AI Speech · Microsoft Entra ID (no resource key). Shares the sign-in entry point with Work IQ; tokens remain separate.</value></data>
+  <data name="ModelWhisper" xml:space="preserve"><value>Whisper offline transcription (Chinese/English). Audio is processed locally and is not sent to Azure.</value></data>
+  <data name="SettingsReadyAzure" xml:space="preserve"><value>Endpoint saved. Sign in with Microsoft for Entra authorization, then test the resource connection.</value></data>
+  <data name="SettingsMissingAzure" xml:space="preserve"><value>Save the resource endpoint, resource Tenant ID and audio consent before signing in with Microsoft.</value></data>
+  <data name="SettingsReadyWhisper" xml:space="preserve"><value>Using local Whisper. The sign-in button only handles Work IQ.</value></data>
+  <data name="SettingsEndFirst" xml:space="preserve"><value>End the conversation before changing service settings.</value></data>
+  <data name="SettingsBusy" xml:space="preserve"><value>End the conversation or wait for the current settings operation to finish.</value></data>
+  <data name="SettingsSaveFirst" xml:space="preserve"><value>Save the current settings before testing the connection.</value></data>
+  <data name="SettingsTesting" xml:space="preserve"><value>Testing the resource connection with the signed-in Entra identity and endpoint; no audio is recorded.</value></data>
+  <data name="SettingsConnectionSuccess" xml:space="preserve"><value>Connected to Azure (no recording). This does not test actual transcription quality.</value></data>
+  <data name="SettingsEncryptionError" xml:space="preserve"><value>Windows could not encrypt the configuration. Settings were not saved.</value></data>
+  <data name="AnalysisIdle" xml:space="preserve"><value>Chat is recorded without per-utterance questions. Analyze it, then choose a question for assistance.</value></data>
+  <data name="AnalysisPending" xml:space="preserve"><value>Queued to analyze all {0} transcript entries.</value></data>
+  <data name="AnalysisProcessing" xml:space="preserve"><value>Work IQ is analyzing all {0} transcript entries...</value></data>
+  <data name="AnalysisCompletedEmpty" xml:space="preserve"><value>Analysis complete; no new questions found. Existing questions and answers are unchanged.</value></data>
+  <data name="AnalysisCompletedNew" xml:space="preserve"><value>Analysis complete: {0} new questions. Choose a question for information.</value></data>
+  <data name="AnalysisFailed" xml:space="preserve"><value>Analysis failed; chat is retained. Retry manually; requests will not repeat every second.</value></data>
+  <data name="AnalysisCancelled" xml:space="preserve"><value>Analysis cancelled.</value></data>
+  <data name="AnalysisPendingCount" xml:space="preserve"><value>{0} pending</value></data>
+  <data name="AnalysisScheduleOn" xml:space="preserve"><value>{0} pending · send all chat after 7 new entries or 5 minutes</value></data>
+  <data name="AnalysisScheduleOff" xml:space="preserve"><value>{0} pending · auto analysis is off; send all chat manually</value></data>
+  <data name="QuestionStatusPending" xml:space="preserve"><value>Queued</value></data>
+  <data name="QuestionStatusProcessing" xml:space="preserve"><value>Processing</value></data>
+  <data name="QuestionStatusCompleted" xml:space="preserve"><value>Completed</value></data>
+  <data name="QuestionStatusIgnored" xml:space="preserve"><value>Ignored</value></data>
+  <data name="QuestionStatusFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="QuestionStatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="TranscriptCompleted" xml:space="preserve"><value>Answered · click to view</value></data>
+  <data name="TranscriptPending" xml:space="preserve"><value>Waiting for reply · queued</value></data>
+  <data name="TranscriptProcessing" xml:space="preserve"><value>Getting a reply</value></data>
+  <data name="TranscriptFailed" xml:space="preserve"><value>Request failed · click to retry</value></data>
+  <data name="TranscriptCancelled" xml:space="preserve"><value>Cancelled · click to ask again</value></data>
+  <data name="TranscriptUnanswered" xml:space="preserve"><value>No reply yet · click to ask</value></data>
+  <data name="SuggestionUnasked" xml:space="preserve"><value>Click for Work IQ assistance</value></data>
+  <data name="AnswerSelect" xml:space="preserve"><value>Select a question to view its answer.</value></data>
+  <data name="AnswerPending" xml:space="preserve"><value>Question queued for Work IQ.</value></data>
+  <data name="AnswerProcessing" xml:space="preserve"><value>Thinking with Work IQ...</value></data>
+  <data name="AnswerFailed" xml:space="preserve"><value>Work IQ could not answer. See the error below, then retry.</value></data>
+  <data name="AnswerCancelled" xml:space="preserve"><value>This question was cancelled.</value></data>
+  <data name="AnswerIgnored" xml:space="preserve"><value>This question was ignored.</value></data>
+  <data name="AnswerEmpty" xml:space="preserve"><value>Work IQ returned an empty answer. Retry this question.</value></data>
+  <data name="AdditionalSources" xml:space="preserve"><value>ADDITIONAL SOURCES</value></data>
+  <data name="RenderUnavailable" xml:space="preserve"><value>Rich text is unavailable; showing the original reply.</value></data>
+  <data name="RenderFormatting" xml:space="preserve"><value>Formatting the reply; the original remains readable.</value></data>
+  <data name="RenderFailed" xml:space="preserve"><value>Rich-text rendering failed; showing the original reply.</value></data>
+  <data name="RenderSlow" xml:space="preserve"><value>Rich text is loading slowly; showing the original reply.</value></data>
+  <data name="RenderTruncated" xml:space="preserve"><value>[Display truncated. Copy Answer preserves the full response.]</value></data>
+  <data name="DialogImageTitle" xml:space="preserve"><value>Show referenced image?</value></data>
+  <data name="DialogLinkTitle" xml:space="preserve"><value>Open source link?</value></data>
+  <data name="DialogImageWarning" xml:space="preserve"><value>Confirm this URL contains no private data before requesting the image.</value></data>
+  <data name="DialogLinkWarning" xml:space="preserve"><value>This opens the source outside Conversation Assistant.</value></data>
+  <data name="LoadInline" xml:space="preserve"><value>Load Inline</value></data>
+  <data name="OpenImageBrowser" xml:space="preserve"><value>Open Image in Browser</value></data>
+  <data name="OpenLink" xml:space="preserve"><value>Open Link</value></data>
+  <data name="OpenBrowser" xml:space="preserve"><value>Open in Browser</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Image" xml:space="preserve"><value>Image</value></data>
+  <data name="ImagePrefix" xml:space="preserve"><value>Image: {0}  </value></data>
+  <data name="ImageOpenHost" xml:space="preserve"><value>Open image from {0}</value></data>
+  <data name="ImageUnavailable" xml:space="preserve"><value>Image unavailable: {0}</value></data>
+  <data name="DiagnosticUnknown" xml:space="preserve"><value>The operation failed. Diagnostic details: {0}</value></data>
+  <data name="DiagnosticParameter" xml:space="preserve"><value>Parameter: {0}</value></data>
+  <data name="ErrorNoMicrophone" xml:space="preserve"><value>No microphone available. Check Windows microphone privacy settings.</value></data>
+  <data name="ErrorAutoAnalysisSignIn" xml:space="preserve"><value>Automatic analysis is on. Sign in with Microsoft before sending chat to Work IQ.</value></data>
+  <data name="ErrorEmptyQuestion" xml:space="preserve"><value>Enter a question before submitting.</value></data>
+  <data name="ErrorPauseLanguage" xml:space="preserve"><value>Pause listening before changing the listening and interface language.</value></data>
+  <data name="ErrorOnlyFailed" xml:space="preserve"><value>Only failed questions can be retried.</value></data>
+  <data name="ErrorQuestionCard" xml:space="preserve"><value>Unable to read this question. Select it again.</value></data>
+  <data name="ErrorTranscriptCard" xml:space="preserve"><value>Unable to read this transcript card. Select it again.</value></data>
+  <data name="ErrorImageTimeout" xml:space="preserve"><value>Image download timed out; use Open in Browser instead.</value></data>
+  <data name="ErrorInlineImagesLimit" xml:space="preserve"><value>Only 512 KB of images can be displayed inline at once.</value></data>
+  <data name="ErrorRichNavigation" xml:space="preserve"><value>Rich answer navigation failed: {0}</value></data>
+  <data name="ErrorRichEmpty" xml:space="preserve"><value>The rich answer page is empty; showing the original response.</value></data>
+  <data name="ErrorRenderLimit" xml:space="preserve"><value>Work IQ answer exceeds the safe rendering limit; use Copy Answer to inspect the full response.</value></data>
+  <data name="ErrorImageHost" xml:space="preserve"><value>Only explicitly approved Microsoft-hosted images can be loaded inline.</value></data>
+  <data name="ErrorImageRedirect" xml:space="preserve"><value>The image redirected to another URL; open its link in your browser instead.</value></data>
+  <data name="ErrorImageFormat" xml:space="preserve"><value>The source did not return a supported raster image.</value></data>
+  <data name="ErrorImageTooLarge" xml:space="preserve"><value>The image is too large to show inline; open its link in a browser.</value></data>
+  <data name="ErrorImageSize" xml:space="preserve"><value>The image exceeded the inline size limit.</value></data>
+  <data name="ErrorImageData" xml:space="preserve"><value>The downloaded content is not a valid raster image.</value></data>
+  <data name="ErrorAccessCheck" xml:space="preserve"><value>Microsoft sign-in completed, but Work IQ did not pass its access check.</value></data>
+  <data name="ErrorAccountMatch" xml:space="preserve"><value>Unable to match the Entra account to Work IQ. Sign in again with an organizational account.</value></data>
+  <data name="ErrorAccountOverride" xml:space="preserve"><value>The Work IQ account cannot be overridden by request arguments.</value></data>
+  <data name="ErrorAuthNoAccount" xml:space="preserve"><value>Entra sign-in did not return a matching work account; Work IQ sign-in was not continued.</value></data>
+  <data name="ErrorAuthTimeout" xml:space="preserve"><value>Microsoft sign-in timed out. Please try again.</value></data>
+  <data name="ErrorCliOverride" xml:space="preserve"><value>CONVERSATIONASSISTANT_WORKIQ_PATH must be an absolute path to an existing workiq.exe.</value></data>
+  <data name="ErrorCliInstall" xml:space="preserve"><value>Install the official Work IQ CLI and set CONVERSATIONASSISTANT_WORKIQ_PATH to workiq.exe.</value></data>
+  <data name="ErrorCliEula" xml:space="preserve"><value>Accept the official Work IQ evaluation terms before using Work IQ.</value></data>
+  <data name="ErrorCliExit" xml:space="preserve"><value>Work IQ failed (exit code {0}). Check sign-in, consent, and network.</value></data>
+  <data name="ErrorCliStart" xml:space="preserve"><value>Cannot start Work IQ CLI. Check the executable path.</value></data>
+  <data name="ErrorWorkIqTimeout" xml:space="preserve"><value>Work IQ did not respond within three minutes.</value></data>
+  <data name="ErrorWorkIqJson" xml:space="preserve"><value>Work IQ returned an unexpected JSON response.</value></data>
+  <data name="ErrorWorkIqService" xml:space="preserve"><value>Work IQ could not answer this question. Retry or check your permissions.</value></data>
+  <data name="ErrorWorkIqNoAnswer" xml:space="preserve"><value>Work IQ returned no answer.</value></data>
+  <data name="ErrorWorkIqInvalidJson" xml:space="preserve"><value>Work IQ returned invalid JSON. Update the official CLI.</value></data>
+  <data name="ErrorWorkIqInvalidQuestions" xml:space="preserve"><value>Work IQ returned an invalid question list. Retry conversation analysis.</value></data>
+  <data name="ErrorWorkIqContinuation" xml:space="preserve"><value>Work IQ did not return a conversation ID for the complete transcript. Analysis was not completed; retry.</value></data>
+  <data name="ErrorWorkIqEmpty" xml:space="preserve"><value>Work IQ returned an empty answer. Retry this request.</value></data>
+  <data name="ErrorWorkIqNoParts" xml:space="preserve"><value>The Work IQ request had no parts.</value></data>
+  <data name="ErrorQueueFull" xml:space="preserve"><value>Work IQ request queue is full.</value></data>
+  <data name="ErrorEndFirst" xml:space="preserve"><value>End the current conversation first.</value></data>
+  <data name="ErrorStartFirst" xml:space="preserve"><value>Start a conversation first.</value></data>
+  <data name="ErrorNotListening" xml:space="preserve"><value>Conversation is not listening.</value></data>
+  <data name="ErrorNotPaused" xml:space="preserve"><value>Conversation is not paused.</value></data>
+  <data name="ErrorConversationEnded" xml:space="preserve"><value>Conversation has ended.</value></data>
+  <data name="ErrorEmptyTranscript" xml:space="preserve"><value>There is no conversation content to analyze yet.</value></data>
+  <data name="ErrorSuggestionExpired" xml:space="preserve"><value>This question has been cleared or belongs to another conversation.</value></data>
+  <data name="ErrorTranscriptExpired" xml:space="preserve"><value>This transcript has been cleared or does not belong to the current conversation.</value></data>
+  <data name="ErrorWorkIqSignIn" xml:space="preserve"><value>Sign in with Microsoft before asking Work IQ.</value></data>
+  <data name="ErrorWorkIqOffline" xml:space="preserve"><value>Work IQ offline. Check your network.</value></data>
+  <data name="ErrorDeviceChanged" xml:space="preserve"><value>Audio device list changed. Check input selection.</value></data>
+  <data name="ErrorSettingsSize" xml:space="preserve"><value>Encrypted app configuration is too large.</value></data>
+  <data name="ErrorDecrypt" xml:space="preserve"><value>Unable to decrypt this user's configuration. Use the original Windows account, or sign in/save settings again.</value></data>
+  <data name="ErrorSpeechSettingsInvalid" xml:space="preserve"><value>Speech configuration is invalid. Re-enter and save the settings.</value></data>
+  <data name="ErrorSpeechSettingsFormat" xml:space="preserve"><value>Speech configuration format is invalid. Re-enter and save the settings.</value></data>
+  <data name="ErrorEndpointMissing" xml:space="preserve"><value>Save the Azure AI resource endpoint in Settings, then sign in with Microsoft for Entra authorization.</value></data>
+  <data name="ErrorEndpointHost" xml:space="preserve"><value>Entra mode requires a custom Azure public-cloud resource endpoint (*.cognitiveservices.azure.com), not a regional Speech host.</value></data>
+  <data name="ErrorCloudConsent" xml:space="preserve"><value>Allow microphone audio to be sent to Azure Speech in Settings.</value></data>
+  <data name="ErrorTenantMissing" xml:space="preserve"><value>Enter the Azure AI resource's directory Tenant ID, save, and sign in with Microsoft again. The Work IQ/M365 tenant cannot be assumed.</value></data>
+  <data name="ErrorTenantInvalid" xml:space="preserve"><value>Tenant ID must be the Azure AI resource directory GUID, not a region or Client ID.</value></data>
+  <data name="ErrorClientInvalid" xml:space="preserve"><value>Client ID must be an application registration GUID, not a resource key or client secret.</value></data>
+  <data name="ErrorEndpointInvalid" xml:space="preserve"><value>The endpoint must be an Azure AI Services / Speech HTTPS/WSS address without keys, query parameters or fragments.</value></data>
+  <data name="ErrorEndpointPath" xml:space="preserve"><value>Paste the Azure AI Services / Speech root endpoint or a full real-time recognition address. Batch transcription/translation REST addresses are unsupported.</value></data>
+  <data name="ErrorMicrophoneMissing" xml:space="preserve"><value>No microphone found. Connect one and grant Windows microphone access.</value></data>
+  <data name="ErrorMicrophoneDisconnected" xml:space="preserve"><value>Selected microphone is no longer connected.</value></data>
+  <data name="ErrorMicrophoneChanged" xml:space="preserve"><value>Microphone changed or disconnected. Pause and resume after selecting an input.</value></data>
+  <data name="ErrorMicrophoneActive" xml:space="preserve"><value>Microphone is already active.</value></data>
+  <data name="ErrorRecognitionActive" xml:space="preserve"><value>Speech recognition already active.</value></data>
+  <data name="ErrorProviderUnknown" xml:space="preserve"><value>Unknown speech provider.</value></data>
+  <data name="ErrorPcmSample" xml:space="preserve"><value>Microphone returned an incomplete 16-bit PCM sample.</value></data>
+  <data name="ErrorPcmFrame" xml:space="preserve"><value>Microphone returned an incomplete 16-bit PCM frame.</value></data>
+  <data name="ErrorSpeechBacklog" xml:space="preserve"><value>Speech engine fell behind microphone input.</value></data>
+  <data name="ErrorInferenceStopped" xml:space="preserve"><value>Speech inference queue has stopped.</value></data>
+  <data name="ErrorInferenceBacklog" xml:space="preserve"><value>Local speech inference cannot keep up with the conversation. Pause and resume after checking CPU load.</value></data>
+  <data name="ErrorWhisperBacklog" xml:space="preserve"><value>Offline speech inference is falling behind microphone audio. Pause and resume after checking CPU load.</value></data>
+  <data name="ErrorWhisperStopped" xml:space="preserve"><value>Offline speech recognition stopped. Pause and resume to restart.</value></data>
+  <data name="ErrorWhisperMissing" xml:space="preserve"><value>Offline Whisper model is missing. Rebuild or reinstall Conversation Assistant with Models\ggml-small.bin.</value></data>
+  <data name="ErrorWhisperSize" xml:space="preserve"><value>Offline Whisper model has an unexpected size; reinstall the model.</value></data>
+  <data name="ErrorWhisperIntegrity" xml:space="preserve"><value>Offline Whisper model failed its integrity check; reinstall the model.</value></data>
+  <data name="ErrorSpeechAutoLanguage" xml:space="preserve"><value>Automatic speech language detection is unavailable. Select Chinese or English.</value></data>
+  <data name="ErrorChineseRecognizer" xml:space="preserve"><value>Chinese (Simplified, zh-CN) local speech recognizer is not installed. Install the Windows Chinese speech language pack.</value></data>
+  <data name="ErrorEnglishRecognizer" xml:space="preserve"><value>English local speech recognizer is not installed. Install a Windows English speech language pack.</value></data>
+  <data name="ErrorSpeechStartup" xml:space="preserve"><value>The Speech service disconnected during startup. Please retry.</value></data>
+  <data name="ErrorSpeechResume" xml:space="preserve"><value>The Speech service disconnected while resuming. Please retry.</value></data>
+  <data name="ErrorAzureConnectTimeout" xml:space="preserve"><value>Connecting to Azure Speech timed out. Check the endpoint, Entra sign-in, resource roles and network, then retry.</value></data>
+  <data name="ErrorAzureStopTimeout" xml:space="preserve"><value>Stopping Azure Speech timed out; the connection has been released.</value></data>
+  <data name="ErrorAzureAudioDisconnected" xml:space="preserve"><value>The Azure Speech audio connection is unavailable. Resume listening to reconnect.</value></data>
+  <data name="ErrorAzureStopFailed" xml:space="preserve"><value>An error occurred while stopping Azure Speech; the connection will be released.</value></data>
+  <data name="ErrorAzureSelect" xml:space="preserve"><value>Select Azure AI Services / Speech and save the settings first.</value></data>
+  <data name="ErrorAzureConnectionTimeout" xml:space="preserve"><value>Azure AI Speech [ConnectionTimeout] No connection was established within 20 seconds. Check the endpoint, Entra sign-in, resource roles and network rules.</value></data>
+  <data name="ErrorEntraMismatch" xml:space="preserve"><value>The Entra account tenant does not match the configured resource Tenant ID. Verify the directory and sign in again.</value></data>
+  <data name="ErrorEntraCache" xml:space="preserve"><value>The Entra account cache format is invalid. Close Conversation Assistant and clear its entra-account cache, then sign in again.</value></data>
+  <data name="ErrorEntraSignInRequired" xml:space="preserve"><value>Sign in with Microsoft to authorize Azure Entra first. Work IQ tokens or old resource keys cannot be used instead.</value></data>
+  <data name="ErrorEntraFailure" xml:space="preserve"><value>Azure Entra sign-in failed{0}. Check the tenant, Client ID, administrator consent and conditional access policies. The SDK development client used when Client ID is empty may be restricted by your organization.</value></data>
+  <data name="ErrorEntraScope" xml:space="preserve"><value>Refusing to obtain a Speech token for a scope other than Azure Cognitive Services.</value></data>
+  <data name="ErrorAzureTenantMismatch" xml:space="preserve"><value>{0} [TenantMismatch] The Entra token tenant differs from the Azure resource directory. Set Tenant ID to the resource subscription's directory ID in Settings, save, and sign in again. This may differ from the Work IQ/M365 tenant; the account also needs a Speech User role in the resource directory.</value></data>
+  <data name="ErrorAzureAuth" xml:space="preserve"><value>{0} Entra authentication failed. Sign in again and confirm the token is for Azure Cognitive Services. Resource keys will not be used as a fallback.</value></data>
+  <data name="ErrorAzureForbidden" xml:space="preserve"><value>{0} Access denied. Confirm the signed-in user has the Cognitive Services Speech User or Cognitive Services Speech Contributor role on this resource, and check tenant and network rules.</value></data>
+  <data name="ErrorAzureBadRequest" xml:space="preserve"><value>{0} The service rejected the request. HTTP 400 alone does not prove an incorrect endpoint. Check the resource Tenant ID, Entra authorization and recognition parameters.</value></data>
+  <data name="ErrorAzureThrottled" xml:space="preserve"><value>{0} The service is throttling requests. Check Speech quotas and reconnect later.</value></data>
+  <data name="ErrorAzureConnection" xml:space="preserve"><value>{0} Connection unavailable. Check the endpoint, DNS, proxy, firewall and WebSocket network access.</value></data>
+  <data name="ErrorAzureService" xml:space="preserve"><value>{0} The service returned an error. Confirm the Azure AI Services resource supports Speech, then check resource status and network configuration.</value></data>
+  <data name="ErrorAzureStopped" xml:space="preserve"><value>{0} The session stopped. Check the endpoint, Entra authorization and resource configuration before reconnecting.</value></data>
+  <data name="ErrorAzureSdkInit" xml:space="preserve"><value>Azure AI Speech [{0}] SDK initialization or connection failed. Check the endpoint, Entra authorization and local runtime.</value></data>
+</root>

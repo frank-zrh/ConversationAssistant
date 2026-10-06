@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using ConversationAssistant.Core.Models;
 using ConversationAssistant.Core.WorkIQ;
 using ConversationAssistant_App.UI;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +18,7 @@ public sealed partial class MainPage : Page
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly AnswerMarkdownFormatter _answerFormatter = new();
+    private readonly AnswerRenderQueue _answerDocuments = new();
     private readonly RemoteImageLoader _imageLoader = new();
     private readonly CancellationTokenSource _pageCancellation = new();
     private readonly Dictionary<string, string> _approvedImages = new(StringComparer.Ordinal);
@@ -33,12 +33,14 @@ public sealed partial class MainPage : Page
     private bool _preferRawAnswer;
     private long _renderRevision;
     private ulong? _answerNavigationId;
+    private string? _renderStatusKey;
 
     public MainPage()
     {
         InitializeComponent();
         _viewModel = ((App)Application.Current).Services.GetRequiredService<MainViewModel>();
         DataContext = _viewModel;
+        UpdateLanguage();
         _viewModel.PropertyChanged += OnViewModelChanged;
         _viewModel.TranscriptScrollRequested += () => TranscriptScroll.ChangeView(
             null, TranscriptScroll.ScrollableHeight, null);
@@ -50,6 +52,7 @@ public sealed partial class MainPage : Page
         {
             _timer.Stop();
             _pageCancellation.Cancel();
+            _answerDocuments.Clear();
             _imageLoader.Dispose();
             _viewModel.PropertyChanged -= OnViewModelChanged;
             if (_observedAnswer is not null) _observedAnswer.PropertyChanged -= OnAnswerChanged;
@@ -89,7 +92,7 @@ public sealed partial class MainPage : Page
         catch (Exception error) when (error is InvalidOperationException or
             System.Runtime.InteropServices.COMException or FileNotFoundException)
         {
-            AnswerRenderStatus.Text = "富文本不可用，已显示原文。";
+            _renderStatusKey = "RenderUnavailable";
             UpdateAnswerVisibility();
             _viewModel.ShowRenderingError(error.Message);
         }
@@ -98,11 +101,24 @@ public sealed partial class MainPage : Page
 
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MainViewModel.Texts))
+        {
+            UpdateLanguage();
+            RenderAnswer();
+            return;
+        }
         if (e.PropertyName != nameof(MainViewModel.SelectedAnswer)) return;
         if (_observedAnswer is not null) _observedAnswer.PropertyChanged -= OnAnswerChanged;
         _observedAnswer = _viewModel.SelectedAnswer;
         if (_observedAnswer is not null) _observedAnswer.PropertyChanged += OnAnswerChanged;
         RenderAnswer();
+    }
+
+    private void UpdateLanguage()
+    {
+        Language = _viewModel.Texts.LanguageTag;
+        var flyout = (Flyout)AssistantLayout.Resources["SettingsFlyout"];
+        ((FrameworkElement)flyout.Content).Language = Language;
     }
 
     private void OnAnswerChanged(object? sender, PropertyChangedEventArgs e)
@@ -119,31 +135,48 @@ public sealed partial class MainPage : Page
             _renderedQuestionId = answer?.Id;
             _approvedImages.Clear();
         }
-        var markdown = answer?.DisplayMarkdown ?? AnswerPresentation.Compose(null, null, []);
+        var language = _viewModel.Texts.Language;
+        var markdown = answer?.DisplayMarkdown ?? AnswerPresentation.Compose(null, null, [], language);
         AnswerFallbackText.Text = markdown.Length <= 200_000 ? markdown :
-            markdown[..200_000] + "\n\n[Display truncated. Copy Answer preserves the full response.]";
+            markdown[..200_000] + "\n\n" + _viewModel.Texts["RenderTruncated"];
         var revision = ++_renderRevision;
         _renderVerified = false;
-        _answerNavigationId = null;
         _remoteImages = new Dictionary<string, string>();
-        AnswerRenderStatus.Text = "";
+        if (_answerViewReady) _renderStatusKey = null;
         UpdateAnswerVisibility();
         if (!_answerViewReady) return;
         try
         {
-            var rendered = _answerFormatter.Format(markdown, _approvedImages);
+            var rendered = _answerFormatter.Format(markdown, _approvedImages, language);
             _remoteImages = rendered.RemoteImages;
-            _appNavigationRequested = true;
-            AnswerRenderStatus.Text = "正在排版，原文可直接阅读。";
+            _answerDocuments.Enqueue(revision, AnswerHtmlPage.Build(rendered, revision, language));
+            _renderStatusKey = "RenderFormatting";
             UpdateAnswerVisibility();
-            AnswerWebView.NavigateToString(AnswerHtmlPage.Build(rendered, revision));
+            StartNextAnswerDocument();
             _ = WatchAnswerNavigationAsync(revision);
         }
         catch (Exception error) when (error is ArgumentException or
             System.Runtime.InteropServices.COMException)
         {
+            _renderStatusKey = "RenderFailed";
+            UpdateAnswerVisibility();
+            _viewModel.ShowRenderingError(error.Message);
+        }
+    }
+
+    private void StartNextAnswerDocument()
+    {
+        if (!_answerViewReady || _pageCancellation.IsCancellationRequested ||
+            _answerDocuments.StartNext() is not { } document) return;
+        _answerNavigationId = null;
+        _appNavigationRequested = true;
+        try { AnswerWebView.NavigateToString(document.Html); }
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException or
+            System.Runtime.InteropServices.COMException)
+        {
+            _answerDocuments.Complete(document.Revision);
             _appNavigationRequested = false;
-            AnswerRenderStatus.Text = "排版失败，已显示原文。";
+            _renderStatusKey = "RenderFailed";
             UpdateAnswerVisibility();
             _viewModel.ShowRenderingError(error.Message);
         }
@@ -166,12 +199,14 @@ public sealed partial class MainPage : Page
 
     private async void AnswerNavigationCompleted(WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
     {
-        if (args.NavigationId != _answerNavigationId || _pageCancellation.IsCancellationRequested) return;
-        var revision = _renderRevision;
+        if (args.NavigationId != _answerNavigationId || _pageCancellation.IsCancellationRequested ||
+            _answerDocuments.Active is not { } document) return;
+        var revision = document.Revision;
         try
         {
+            if (revision != _renderRevision) return;
             if (!args.IsSuccess)
-                throw new InvalidOperationException($"Rich answer navigation failed: {args.WebErrorStatus}");
+                throw new InvalidOperationException(_viewModel.Texts.Format("ErrorRichNavigation", args.WebErrorStatus));
             // Execute only this fixed readiness check, never content supplied by Work IQ.
             var visible = await AnswerWebView.ExecuteScriptAsync($$"""
                 (() => {
@@ -180,21 +215,30 @@ public sealed partial class MainPage : Page
                         && !!main && (!!main.innerText.trim() || !!main.querySelector('img'));
                 })()
                 """);
-            if (revision != _renderRevision) return;
+            if (revision != _renderRevision || _pageCancellation.IsCancellationRequested) return;
             if (visible != "true")
-                throw new InvalidOperationException("The rich answer page is empty; showing the original response.");
+                throw new InvalidOperationException(_viewModel.Texts["ErrorRichEmpty"]);
             _renderVerified = true;
-            AnswerRenderStatus.Text = "";
+            _renderStatusKey = null;
             UpdateAnswerVisibility();
         }
         catch (Exception error) when (error is InvalidOperationException or
             System.Runtime.InteropServices.COMException)
         {
-            if (revision != _renderRevision) return;
+            if (revision != _renderRevision || _pageCancellation.IsCancellationRequested) return;
             _renderVerified = false;
-            AnswerRenderStatus.Text = "富文本加载失败，已显示原文。";
+            _renderStatusKey = "RenderFailed";
             UpdateAnswerVisibility();
             _viewModel.ShowRenderingError(error.Message);
+        }
+        finally
+        {
+            if (_answerDocuments.Complete(revision))
+            {
+                _answerNavigationId = null;
+                _appNavigationRequested = false;
+                StartNextAnswerDocument();
+            }
         }
     }
 
@@ -204,7 +248,7 @@ public sealed partial class MainPage : Page
         catch (OperationCanceledException) when (_pageCancellation.IsCancellationRequested) { return; }
         if (revision == _renderRevision && !_renderVerified)
         {
-            AnswerRenderStatus.Text = "富文本加载较慢，已显示原文。";
+            _renderStatusKey = "RenderSlow";
             UpdateAnswerVisibility();
         }
     }
@@ -217,7 +261,8 @@ public sealed partial class MainPage : Page
         AnswerWebView.Opacity = rich ? 1 : 0;
         AnswerWebView.IsHitTestVisible = rich;
         AnswerFallback.Visibility = rich ? Visibility.Collapsed : Visibility.Visible;
-        AnswerViewButton.Content = _preferRawAnswer ? "格式化" : "查看原文";
+        AnswerViewButton.Content = _viewModel.Texts[_preferRawAnswer ? "FormattedView" : "ViewOriginal"];
+        AnswerRenderStatus.Text = _renderStatusKey is null ? "" : _viewModel.Texts[_renderStatusKey];
         AnswerRenderStatus.Visibility = string.IsNullOrEmpty(AnswerRenderStatus.Text)
             ? Visibility.Collapsed : Visibility.Visible;
     }
@@ -254,20 +299,20 @@ public sealed partial class MainPage : Page
             var image = _remoteImages.ContainsKey(uri.AbsoluteUri);
             var inline = image && AnswerMarkdownFormatter.CanFetchInlineImage(uri);
             var selectedQuestion = _viewModel.SelectedAnswer?.Id;
+            var texts = _viewModel.Texts;
             var dialog = new ContentDialog
             {
                 XamlRoot = XamlRoot,
-                Title = image ? "Show referenced image?" : "Open source link?",
+                Language = texts.LanguageTag,
+                Title = texts[image ? "DialogImageTitle" : "DialogLinkTitle"],
                 Content = new TextBlock
                 {
-                    Text = uri.AbsoluteUri + (image
-                        ? "\nConfirm this URL contains no private data before requesting the image."
-                        : "\nThis opens the source outside Conversation Assistant."),
+                    Text = uri.AbsoluteUri + "\n" + texts[image ? "DialogImageWarning" : "DialogLinkWarning"],
                     TextWrapping = TextWrapping.Wrap
                 },
-                PrimaryButtonText = inline ? "Load inline" : image ? "Open image in browser" : "Open link",
-                SecondaryButtonText = inline ? "Open in browser" : "",
-                CloseButtonText = "Cancel"
+                PrimaryButtonText = texts[inline ? "LoadInline" : image ? "OpenImageBrowser" : "OpenLink"],
+                SecondaryButtonText = inline ? texts["OpenBrowser"] : "",
+                CloseButtonText = texts["Cancel"]
             };
             var result = await dialog.ShowAsync();
             if (result == ContentDialogResult.Primary && inline)
@@ -275,7 +320,7 @@ public sealed partial class MainPage : Page
                 var data = await _imageLoader.LoadAsync(uri, _pageCancellation.Token);
                 if (_viewModel.SelectedAnswer?.Id != selectedQuestion) return;
                 if (_approvedImages.Values.Sum(value => value.Length) + data.Length > 700_000)
-                    throw new InvalidDataException("Only 512 KB of images can be displayed inline at once.");
+                    throw new InvalidDataException(_viewModel.Texts["ErrorInlineImagesLimit"]);
                 _approvedImages[uri.AbsoluteUri] = data;
                 RenderAnswer();
             }
@@ -286,7 +331,7 @@ public sealed partial class MainPage : Page
         catch (OperationCanceledException) when (_pageCancellation.IsCancellationRequested) { }
         catch (OperationCanceledException)
         {
-            _viewModel.ShowRenderingError("Image download timed out; use Open in browser instead.");
+            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorImageTimeout"]);
         }
         catch (Exception error) when (error is InvalidOperationException or
             System.Runtime.InteropServices.COMException or IOException or HttpRequestException)
@@ -305,12 +350,20 @@ public sealed partial class MainPage : Page
     private void Dismiss_Click(object sender, RoutedEventArgs e) => _viewModel.Dismiss();
     private void Scroll_Click(object sender, RoutedEventArgs e) => _viewModel.ToggleScroll();
     private void ClearTranscript_Click(object sender, RoutedEventArgs e) => _viewModel.ClearTranscript();
+    private void AnalyzeConversation_Click(object sender, RoutedEventArgs e) => _viewModel.AnalyzeConversation();
+    private void SuggestedQuestion_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: SuggestedQuestionRow question })
+            _viewModel.OpenSuggestedQuestion(question.Id);
+        else
+            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorQuestionCard"]);
+    }
     private void TranscriptCard_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { DataContext: TranscriptRow card })
             _viewModel.OpenTranscriptCard(card.Id);
         else
-            _viewModel.ShowRenderingError("无法读取这张转写卡片，请重新选择。");
+            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorTranscriptCard"]);
     }
     private void TranscriptCard_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
@@ -322,7 +375,7 @@ public sealed partial class MainPage : Page
             AskBox.Select(AskBox.Text.Length, 0);
         }
         else
-            _viewModel.ShowRenderingError("无法读取这张转写卡片，请重新选择。");
+            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorTranscriptCard"]);
     }
     private void RefreshDevices_Click(object sender, RoutedEventArgs e) => _viewModel.RefreshDevices();
     private async void MicSettings_Click(object sender, RoutedEventArgs e) =>
@@ -359,41 +412,5 @@ public sealed partial class MainPage : Page
     private void Ask()
     {
         if (_viewModel.Ask(AskBox.Text)) AskBox.Text = "";
-    }
-
-    private void Language_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (DataContext is MainViewModel vm)
-            vm.Settings.Language = LanguagePicker.SelectedIndex switch
-            {
-                0 => ConversationLanguage.Chinese,
-                1 => ConversationLanguage.English,
-                _ => vm.Settings.Language
-            };
-    }
-
-    private void AnswerLanguage_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (DataContext is MainViewModel vm)
-            vm.Settings.AnswerLanguage = (ConversationLanguage)AnswerLanguagePicker.SelectedIndex;
-    }
-
-    private void Sensitivity_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (DataContext is MainViewModel vm)
-            vm.Settings.Sensitivity = (QuestionSensitivity)SensitivityPicker.SelectedIndex;
-    }
-
-    private void Context_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (DataContext is MainViewModel vm)
-            vm.Settings.ContextWindowDuration = TimeSpan.FromMinutes(
-                ContextPicker.SelectedIndex switch { 0 => 1, 2 => 5, _ => 3 });
-    }
-
-    private void Style_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (DataContext is MainViewModel vm)
-            vm.Settings.AnswerStyle = (AnswerStyle)StylePicker.SelectedIndex;
     }
 }

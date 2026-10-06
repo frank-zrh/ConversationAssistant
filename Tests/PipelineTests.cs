@@ -12,7 +12,7 @@ using ConversationAssistant.Core.WorkIQ;
 namespace ConversationAssistant.Tests;
 
 [TestClass]
-public sealed class PipelineTests
+public sealed partial class PipelineTests
 {
     [TestMethod]
     public async Task FinalSpeechPreemptsSlowPreviewAndDiscardsStaleHypotheses()
@@ -310,7 +310,7 @@ public sealed class PipelineTests
     [TestMethod]
     [DataRow(ConversationLanguage.Chinese, "我们正在讨论 DLP。", "帮我找一下相关文档。")]
     [DataRow(ConversationLanguage.English, "We are discussing DLP.", "Help me find the related documents.")]
-    public async Task ActionRequestsAutomaticallyReachWorkIqOnceWithContextAndCardCorrelation(
+    public async Task ActionRequestsStayLocalUntilExplicitlyRequested(
         ConversationLanguage language, string context, string text)
     {
         var fake = new Harness();
@@ -324,9 +324,11 @@ public sealed class PipelineTests
             Assert.IsEmpty(fake.Work.Calls);
             fake.Speech.EmitFinal(text, now);
             var segment = fake.Conversation.TranscriptSegments.Last();
-            var request = fake.Conversation.Session.Answers.Single();
+            Assert.IsEmpty(fake.Conversation.Session.Answers);
+            Assert.IsEmpty(fake.Work.Calls);
+            var request = fake.Conversation.AskFromTranscript(segment.Id);
             await WaitUntil(() => request.Status == QuestionStatus.Completed);
-            Assert.IsFalse(request.IsManual);
+            Assert.IsTrue(request.IsManual);
             Assert.AreEqual(text, request.Question);
             Assert.AreEqual(segment.Id, request.TranscriptSegmentId);
             StringAssert.Contains(request.ContextUsed, context);
@@ -342,10 +344,10 @@ public sealed class PipelineTests
     [TestMethod]
     [DataRow(ConversationLanguage.Chinese, "帮我找一下相关文档。")]
     [DataRow(ConversationLanguage.English, "Help me find the related documents.")]
-    public async Task ActionRequestsRespectDisabledAutoAsk(ConversationLanguage language, string text)
+    public async Task ActionRequestsRespectDisabledAutomaticAnalysis(ConversationLanguage language, string text)
     {
         var fake = new Harness();
-        fake.Conversation.StartConversation(new ConversationSettings { Language = language, AutomaticQuestions = false });
+        fake.Conversation.StartConversation(new ConversationSettings { Language = language, AutomaticAnalysis = false });
         try
         {
             fake.Speech.EmitFinal(text, DateTimeOffset.Now);
@@ -377,7 +379,7 @@ public sealed class PipelineTests
     }
 
     [TestMethod]
-    public async Task ChineseWhisperQuestionAutomaticallyReachesWorkIqWithRelevantContext()
+    public async Task ChineseWhisperQuestionStaysLocalUntilCardClickAndKeepsRelevantContext()
     {
         var fake = new Harness();
         fake.Conversation.StartConversation(new ConversationSettings { Language = ConversationLanguage.Chinese });
@@ -388,14 +390,15 @@ public sealed class PipelineTests
         var recognized = ChineseScriptConverter.ToSimplified(
             "我們目前有20個環境,應該如何制定數據防洩漏策略。");
         fake.Speech.EmitFinal(recognized, now);
+        Assert.IsEmpty(fake.Work.Calls);
+        var request = fake.Conversation.AskFromTranscript(fake.Conversation.TranscriptSegments.Last().Id);
         await WaitUntil(() => fake.Work.Calls.Count == 1);
-        var request = fake.Conversation.Session!.Answers.Single();
-        Assert.AreEqual("应该如何制定数据防泄漏策略？", request.Question);
+        Assert.AreEqual(recognized, request.Question);
         StringAssert.Contains(request.ContextUsed, "安全团队担心数据泄漏");
-        StringAssert.Contains(request.ContextUsed, "我们目前有20个环境");
         var prompt = fake.Work.Calls.ToArray()[0].Prompt;
         StringAssert.Contains(prompt, "QUESTION:");
         StringAssert.Contains(prompt, request.Question);
+        StringAssert.Contains(prompt, "我们目前有20个环境");
         Assert.HasCount(2, fake.Conversation.TranscriptSegments);
         await fake.Conversation.EndConversationAsync();
     }
@@ -490,6 +493,7 @@ public sealed class PipelineTests
         Assert.IsEmpty(fake.Work.Calls);
 
         fake.Speech.EmitFinal("How should we design the DLP strategy?", t.AddSeconds(6));
+        fake.Conversation.AskFromTranscript(fake.Conversation.TranscriptSegments.Last().Id);
         await WaitUntil(() => fake.Work.Calls.Count == 1);
         var first = fake.Conversation.Session!.Answers[0];
         Assert.AreEqual(QuestionStatus.Processing, first.Status);
@@ -498,13 +502,14 @@ public sealed class PipelineTests
         fake.Audio.Emit();
         fake.Speech.EmitFinal("We also need environments for testing.", t.AddSeconds(8));
         fake.Speech.EmitFinal("Does Copilot Studio support this?", t.AddSeconds(10));
+        fake.Conversation.AskFromTranscript(fake.Conversation.TranscriptSegments.Last().Id);
         Assert.HasCount(6, fake.Conversation.TranscriptSegments);
         Assert.AreEqual(1, fake.Audio.StartCount);
         Assert.AreEqual(0, fake.Audio.StopCount);
         Assert.AreEqual(1, fake.Speech.AudioChunks);
         Assert.HasCount(1, fake.Work.Calls);
         Assert.HasCount(2, fake.Conversation.Session.Answers);
-        Assert.HasCount(2, fake.Conversation.Session.DetectedQuestions);
+        Assert.IsEmpty(fake.Conversation.SuggestedQuestions);
 
         fake.Work.ReleaseFirst(new WorkIqAnswer("DLP answer", [], "conversation-123"));
         await WaitUntil(() => fake.Work.Calls.Count == 2);
@@ -517,7 +522,7 @@ public sealed class PipelineTests
     }
 
     [TestMethod]
-    public async Task PausingStopsSpeechAndBlocksNewAutomaticQuestions()
+    public async Task PausingStopsSpeechUntilResumeWithoutPerUtteranceRequests()
     {
         var fake = new Harness();
         fake.Conversation.StartConversation(new ConversationSettings { Language = ConversationLanguage.English });
@@ -528,6 +533,8 @@ public sealed class PipelineTests
         Assert.AreEqual(1, fake.Speech.StopCount);
         fake.Conversation.Resume();
         fake.Speech.EmitFinal("What is the DLP strategy?", DateTimeOffset.Now);
+        Assert.IsEmpty(fake.Work.Calls);
+        fake.Conversation.AskFromTranscript(fake.Conversation.TranscriptSegments.Single().Id);
         await WaitUntil(() => fake.Work.Calls.Count == 1);
         Assert.AreEqual(2, fake.Audio.StartCount);
         await fake.Conversation.EndConversationAsync();
@@ -592,7 +599,7 @@ public sealed class PipelineTests
     {
         var fake = new Harness();
         fake.Auth.IsSignedIn = false;
-        fake.Conversation.StartConversation(new ConversationSettings { AutomaticQuestions = false });
+        fake.Conversation.StartConversation(new ConversationSettings { AutomaticAnalysis = false });
         fake.Speech.EmitPartial("What is licensing?");
         Assert.IsEmpty(fake.Work.Calls);
         fake.Speech.EmitFinal("We use twenty environments.", DateTimeOffset.Now.AddSeconds(-2));
@@ -640,7 +647,7 @@ public sealed class PipelineTests
     {
         var fake = new Harness();
         fake.Work.BlockFirst = true;
-        fake.Conversation.StartConversation(new ConversationSettings { AutomaticQuestions = false });
+        fake.Conversation.StartConversation(new ConversationSettings { AutomaticAnalysis = false });
         fake.Speech.EmitFinal("我们目前有二十个环境。", DateTimeOffset.Now);
         var segment = fake.Conversation.TranscriptSegments.Single();
         Assert.IsNull(fake.Conversation.GetAnswerForTranscript(segment.Id));
@@ -659,24 +666,26 @@ public sealed class PipelineTests
     }
 
     [TestMethod]
-    public async Task AutomaticQuestionAndCardClickShareStableTranscriptCorrelation()
+    public async Task FinalQuestionWaitsForExplicitCardClickWithStableTranscriptCorrelation()
     {
         var fake = new Harness();
         fake.Work.BlockFirst = true;
         fake.Conversation.StartConversation(new ConversationSettings());
         fake.Speech.EmitFinal("我们有二十个环境，如何设置DLP？", DateTimeOffset.Now);
         var segment = fake.Conversation.TranscriptSegments.Single();
+        Assert.IsEmpty(fake.Work.Calls);
+        Assert.IsEmpty(fake.Conversation.Session!.Answers);
+        var request = fake.Conversation.AskFromTranscript(segment.Id);
         await WaitUntil(() => fake.Work.Calls.Count == 1);
-        var automatic = fake.Conversation.Session!.Answers.Single();
-        Assert.AreEqual(segment.Id, automatic.TranscriptSegmentId);
-        Assert.AreEqual("如何设置DLP？", automatic.Question);
-        Assert.AreSame(automatic, fake.Conversation.AskFromTranscript(segment.Id));
+        Assert.AreEqual(segment.Id, request.TranscriptSegmentId);
+        Assert.AreEqual(segment.Text, request.Question);
+        Assert.AreSame(request, fake.Conversation.AskFromTranscript(segment.Id));
         Assert.HasCount(1, fake.Work.Calls);
         await fake.Conversation.EndConversationAsync();
     }
 
     [TestMethod]
-    public async Task ClickDuringFinalCommitDoesNotRaceAutomaticDetectionIntoTwoRequests()
+    public async Task CardClickDuringFinalCommitQueuesExactlyOnce()
     {
         var fake = new Harness();
         fake.Work.BlockFirst = true;
@@ -694,14 +703,14 @@ public sealed class PipelineTests
     }
 
     [TestMethod]
-    public async Task ClickingFailedAutomaticCardExplicitlyRetriesSameRequestEvenWhenPaused()
+    public async Task ClickingFailedCardExplicitlyRetriesSameRequestEvenWhenPaused()
     {
         var fake = new Harness();
         fake.Network.IsAvailable = false;
         fake.Conversation.StartConversation(new ConversationSettings());
         fake.Speech.EmitFinal("如何配置安全策略？", DateTimeOffset.Now);
         var segment = fake.Conversation.TranscriptSegments.Single();
-        var request = fake.Conversation.GetAnswerForTranscript(segment.Id)!;
+        var request = fake.Conversation.AskFromTranscript(segment.Id);
         await WaitUntil(() => request.Status == QuestionStatus.Failed);
         fake.Conversation.Pause();
         fake.Network.IsAvailable = true;
@@ -723,7 +732,7 @@ public sealed class PipelineTests
     public async Task HistoricalCardUsesContextFromItsTimeNotLaterConversation()
     {
         var fake = new Harness();
-        fake.Conversation.StartConversation(new ConversationSettings { AutomaticQuestions = false });
+        fake.Conversation.StartConversation(new ConversationSettings { AutomaticAnalysis = false });
         var old = DateTimeOffset.Now.AddMinutes(-10);
         fake.Speech.EmitFinal("背景：当时有二十个环境。", old.AddSeconds(-10));
         fake.Speech.EmitFinal("如何设计DLP策略？", old);
@@ -739,7 +748,7 @@ public sealed class PipelineTests
     public async Task ClearedAndPreviousConversationCardsCannotSendNewRequests()
     {
         var fake = new Harness();
-        fake.Conversation.StartConversation(new ConversationSettings { AutomaticQuestions = false });
+        fake.Conversation.StartConversation(new ConversationSettings { AutomaticAnalysis = false });
         fake.Speech.EmitFinal("讨论环境清单。", DateTimeOffset.Now);
         var segment = fake.Conversation.TranscriptSegments.Single();
         fake.Conversation.ClearTranscript();
@@ -754,7 +763,7 @@ public sealed class PipelineTests
     {
         var fake = new Harness();
         fake.Work.Reply = "";
-        fake.Conversation.StartConversation(new ConversationSettings { AutomaticQuestions = false });
+        fake.Conversation.StartConversation(new ConversationSettings { AutomaticAnalysis = false });
         fake.Speech.EmitFinal("讨论环境清单。", DateTimeOffset.Now);
         var request = fake.Conversation.AskFromTranscript(fake.Conversation.TranscriptSegments.Single().Id);
         await WaitUntil(() => request.Status == QuestionStatus.Failed);
@@ -791,11 +800,11 @@ public sealed class PipelineTests
         public FakeWorkIq Work { get; } = new();
         public FakeNetwork Network { get; } = new();
         public FakeAuth Auth { get; } = new();
+        public ManualTimeProvider Clock { get; } = new();
         public ConversationSessionManager Conversation { get; }
 
         public Harness() => Conversation = new ConversationSessionManager(Audio, Speech, Auth,
-            Network, Work, new TranscriptEngine(), new QuestionDetector(),
-            new ContextBuilder(new PromptBuilder()));
+            Network, Work, new TranscriptEngine(), new ContextBuilder(new PromptBuilder()), Clock);
     }
 
     private sealed class FakeNetwork : INetworkStatus
@@ -869,14 +878,28 @@ public sealed class PipelineTests
         private int _count;
         public ConcurrentQueue<(string Prompt, string? ConversationId)> Calls { get; } = new();
         public bool BlockFirst { get; set; }
+        public int? BlockCall { get; set; }
         public string Reply { get; set; } = "4";
+        public string AnalysisReply { get; set; } =
+            """{"questions":[{"question":"How should we design DLP?","reason":"The conversation needs a data protection strategy."}]}""";
+        public ConcurrentQueue<WorkIqAnswer> Responses { get; } = new();
         public Task<WorkIqAnswer> AskAsync(string prompt, string? conversationId, CancellationToken token)
         {
             Calls.Enqueue((prompt, conversationId));
-            return Interlocked.Increment(ref _count) == 1 && BlockFirst
-                ? _first.Task.WaitAsync(token)
-                : Task.FromResult(new WorkIqAnswer(Reply, [], conversationId));
+            var call = Interlocked.Increment(ref _count);
+            if (call == BlockCall || call == 1 && BlockFirst) return _first.Task.WaitAsync(token);
+            if (Responses.TryDequeue(out var response)) return Task.FromResult(response);
+            var analysis = prompt.Contains("QUESTION DISCOVERY ONLY", StringComparison.Ordinal);
+            return Task.FromResult(new WorkIqAnswer(analysis ? AnalysisReply : Reply, [],
+                conversationId ?? (analysis ? "analysis-conversation" : "answer-conversation")));
         }
         public void ReleaseFirst(WorkIqAnswer answer) => _first.TrySetResult(answer);
+    }
+
+    private sealed class ManualTimeProvider : TimeProvider
+    {
+        private long _ticks = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero).Ticks;
+        public override DateTimeOffset GetUtcNow() => new(Interlocked.Read(ref _ticks), TimeSpan.Zero);
+        public void Advance(TimeSpan elapsed) => Interlocked.Add(ref _ticks, elapsed.Ticks);
     }
 }

@@ -1,13 +1,15 @@
 using System.ComponentModel;
 using ConversationAssistant.Core.Models;
 using ConversationAssistant.Core.Transcript;
+using ConversationAssistant.Core.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI;
 
 namespace ConversationAssistant_App.UI;
 
-public sealed class TranscriptRow(TranscriptSegment segment) : INotifyPropertyChanged
+public sealed class TranscriptRow(TranscriptSegment segment,
+    ConversationLanguage language = ConversationLanguage.Chinese) : INotifyPropertyChanged
 {
     private QuestionStatus? _status;
     private bool _selected;
@@ -15,7 +17,8 @@ public sealed class TranscriptRow(TranscriptSegment segment) : INotifyPropertyCh
     public string Time => segment.TimestampStart.ToLocalTime().ToString("HH:mm:ss");
     public string Text => segment.Text;
     public Guid? QuestionId { get; private set; }
-    public string StatusText => TranscriptCardAppearance.For(_status).StatusText;
+    public UiText Texts { get; private set; } = UiText.For(language);
+    public string StatusText => TranscriptCardAppearance.For(_status, Texts.Language).StatusText;
     public string AutomationLabel => $"{Time} {Text} — {StatusText}";
     public Brush CardBackground
     {
@@ -40,6 +43,12 @@ public sealed class TranscriptRow(TranscriptSegment segment) : INotifyPropertyCh
         }
     }
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void UpdateLanguage(UiText texts)
+    {
+        Texts = texts;
+        Notify(nameof(Texts), nameof(StatusText), nameof(AutomationLabel));
+    }
 
     public void UpdateRequest(QuestionRequest request)
     {

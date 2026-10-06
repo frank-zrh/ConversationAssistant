@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>会话助手</value></data>
+  <data name="ListeningLanguage" xml:space="preserve"><value>监听语言</value></data>
+  <data name="ChineseSpeech" xml:space="preserve"><value>中文（zh-CN）</value></data>
+  <data name="EnglishSpeech" xml:space="preserve"><value>英文（en-US）</value></data>
+  <data name="Chinese" xml:space="preserve"><value>中文</value></data>
+  <data name="English" xml:space="preserve"><value>英文</value></data>
+  <data name="AutomaticLanguage" xml:space="preserve"><value>自动</value></data>
+  <data name="LanguageHint" xml:space="preserve"><value>请先暂停监听再切换语言。界面立即更新；点击“继续监听”后应用新的语音识别语言。</value></data>
+  <data name="AutoAnalysis" xml:space="preserve"><value>自动使用 Work IQ 分析</value></data>
+  <data name="AutoAnalysisOn" xml:space="preserve"><value>自动分析：开</value></data>
+  <data name="AutoAnalysisOff" xml:space="preserve"><value>自动分析：关</value></data>
+  <data name="AutoAnalysisHint" xml:space="preserve"><value>有新增会话时，每 5 分钟或累计 7 条最终转写，将全部聊天交给 Work IQ 提取问题；选择问题后才会获取答案。</value></data>
+  <data name="Settings" xml:space="preserve"><value>设置</value></data>
+  <data name="StartConversation" xml:space="preserve"><value>开始对话</value></data>
+  <data name="EndConversation" xml:space="preserve"><value>结束对话</value></data>
+  <data name="PauseListening" xml:space="preserve"><value>暂停监听</value></data>
+  <data name="Resume" xml:space="preserve"><value>继续监听</value></data>
+  <data name="ManualQuestionPlaceholder" xml:space="preserve"><value>手动提问…（Ctrl+Enter）</value></data>
+  <data name="Ask" xml:space="preserve"><value>提问</value></data>
+  <data name="LiveTranscript" xml:space="preserve"><value>实时聊天记录</value></data>
+  <data name="CopyTranscript" xml:space="preserve"><value>复制</value></data>
+  <data name="ClearTranscript" xml:space="preserve"><value>清空</value></data>
+  <data name="PauseScrolling" xml:space="preserve"><value>暂停滚动</value></data>
+  <data name="ResumeScrolling" xml:space="preserve"><value>继续滚动</value></data>
+  <data name="TranscriptCardHint" xml:space="preserve"><value>左键点击以提问或查看回复；右键点击可将原文复制到提问框中编辑。</value></data>
+  <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · 待协助问题</value></data>
+  <data name="AnalyzeConversation" xml:space="preserve"><value>分析全部聊天</value></data>
+  <data name="QuestionsEmpty" xml:space="preserve"><value>分析后的问题会显示在这里。确认需要协助时再点击，不会自动获取答案。</value></data>
+  <data name="SuggestedQuestionHint" xml:space="preserve"><value>点击获取协助；已有回复直接查看，失败时重试。</value></data>
+  <data name="AnswersHeader" xml:space="preserve"><value>WORK IQ · 问题回复</value></data>
+  <data name="SelectQuestion" xml:space="preserve"><value>选择问题</value></data>
+  <data name="CopyAnswer" xml:space="preserve"><value>复制回复</value></data>
+  <data name="Retry" xml:space="preserve"><value>重试</value></data>
+  <data name="Dismiss" xml:space="preserve"><value>取消选择</value></data>
+  <data name="ViewOriginal" xml:space="preserve"><value>查看原文</value></data>
+  <data name="FormattedView" xml:space="preserve"><value>格式化</value></data>
+  <data name="SpeechSection" xml:space="preserve"><value>语音转文字</value></data>
+  <data name="SpeechProvider" xml:space="preserve"><value>识别服务</value></data>
+  <data name="AzureProvider" xml:space="preserve"><value>Azure 语音识别 · Entra ID（在线）</value></data>
+  <data name="WhisperProvider" xml:space="preserve"><value>Whisper（离线）</value></data>
+  <data name="Endpoint" xml:space="preserve"><value>Azure AI 服务 / 语音服务终结点</value></data>
+  <data name="AuthenticationMethod" xml:space="preserve"><value>认证方式：Microsoft Entra ID。不使用或发送资源密钥。</value></data>
+  <data name="TenantId" xml:space="preserve"><value>租户 ID（必填：资源所属目录）</value></data>
+  <data name="TenantPlaceholder" xml:space="preserve"><value>Azure 订阅所在目录的 GUID</value></data>
+  <data name="TenantHelp" xml:space="preserve"><value>在 Azure 门户查看该资源所属订阅的目录 ID。它可能不同于 Work IQ/M365 的租户；跨目录时该帐号需要资源目录的成员或来宾资格及语音服务角色。</value></data>
+  <data name="ClientId" xml:space="preserve"><value>客户端 ID（可选，生产推荐）</value></data>
+  <data name="ClientPlaceholder" xml:space="preserve"><value>租户批准的公共客户端应用 GUID</value></data>
+  <data name="ClientHelp" xml:space="preserve"><value>客户端 ID 留空时使用 Azure SDK 开发客户端，可能被组织限制。生产请使用批准的桌面应用注册（http://localhost 回调，无客户端密码）。</value></data>
+  <data name="AudioConsent" xml:space="preserve"><value>允许将麦克风音频发送到配置的 Azure 语音服务资源（需要联网，可能计费）。</value></data>
+  <data name="SaveSpeechSettings" xml:space="preserve"><value>保存语音设置</value></data>
+  <data name="TestSpeechConnection" xml:space="preserve"><value>测试已保存连接（不录音）</value></data>
+  <data name="TestingSpeechConnection" xml:space="preserve"><value>正在测试连接…</value></data>
+  <data name="IdentityHelp" xml:space="preserve"><value>更改帐号或服务前请先结束对话。当前帐号需具有资源的 Cognitive Services Speech User 角色；取得令牌不代表资源授权成功。</value></data>
+  <data name="MicrophonePrivacy" xml:space="preserve"><value>打开麦克风隐私设置</value></data>
+  <data name="InputDevice" xml:space="preserve"><value>输入设备</value></data>
+  <data name="DefaultMicrophone" xml:space="preserve"><value>默认麦克风</value></data>
+  <data name="RefreshDevices" xml:space="preserve"><value>刷新</value></data>
+  <data name="ContextWindow" xml:space="preserve"><value>手动提问上下文（不限制完整聊天分析）</value></data>
+  <data name="ShortContext" xml:space="preserve"><value>短（1 分钟）</value></data>
+  <data name="MediumContext" xml:space="preserve"><value>中（3 分钟）</value></data>
+  <data name="LongContext" xml:space="preserve"><value>长（5 分钟）</value></data>
+  <data name="AnswerStyle" xml:space="preserve"><value>回复风格</value></data>
+  <data name="Concise" xml:space="preserve"><value>简洁</value></data>
+  <data name="Balanced" xml:space="preserve"><value>适中</value></data>
+  <data name="Detailed" xml:space="preserve"><value>详细</value></data>
+  <data name="AnswerLanguage" xml:space="preserve"><value>回复语言</value></data>
+  <data name="GroundingNote" xml:space="preserve"><value>企业资料检索：Work IQ（已开启）。命令行工具暂不提供网页检索控制选项。</value></data>
+  <data name="StoreAudio" xml:space="preserve"><value>保存音频</value></data>
+  <data name="StoreTranscript" xml:space="preserve"><value>保存聊天记录</value></data>
+  <data name="ClearAfterConversation" xml:space="preserve"><value>对话结束后清除</value></data>
+  <data name="On" xml:space="preserve"><value>开</value></data>
+  <data name="Off" xml:space="preserve"><value>关</value></data>
+  <data name="StatusIdle" xml:space="preserve"><value>● 待机</value></data>
+  <data name="StatusListening" xml:space="preserve"><value>● 正在监听</value></data>
+  <data name="StatusStartingAzure" xml:space="preserve"><value>◌ 正在连接 Azure 语音服务…</value></data>
+  <data name="StatusStartingOffline" xml:space="preserve"><value>◌ 正在加载离线模型…</value></data>
+  <data name="StatusSpeechDetected" xml:space="preserve"><value>● 检测到语音</value></data>
+  <data name="StatusQuestionDetected" xml:space="preserve"><value>● 检测到问题或请求</value></data>
+  <data name="StatusThinking" xml:space="preserve"><value>◌ Work IQ 正在处理</value></data>
+  <data name="StatusAnswering" xml:space="preserve"><value>● 回复已就绪</value></data>
+  <data name="StatusPaused" xml:space="preserve"><value>● 已暂停</value></data>
+  <data name="StatusOffline" xml:space="preserve"><value>● Work IQ 已离线 · 转写继续</value></data>
+  <data name="StatusError" xml:space="preserve"><value>● 出错</value></data>
+  <data name="MicrophoneAzure" xml:space="preserve"><value>麦克风已开启 · Azure 在线识别</value></data>
+  <data name="MicrophoneWhisper" xml:space="preserve"><value>麦克风已开启 · Whisper 本地识别</value></data>
+  <data name="MicrophoneOff" xml:space="preserve"><value>麦克风已关闭</value></data>
+  <data name="SignIn" xml:space="preserve"><value>Microsoft 登录</value></data>
+  <data name="SigningIn" xml:space="preserve"><value>正在登录…</value></data>
+  <data name="AuthAzureInProgress" xml:space="preserve"><value>正在完成 Azure Entra 与 Work IQ 登录，可能需要分别同意授权。</value></data>
+  <data name="AuthWorkInProgress" xml:space="preserve"><value>正在登录并检查 Work IQ…</value></data>
+  <data name="AuthWorkReady" xml:space="preserve"><value>Work IQ ✓</value></data>
+  <data name="AuthWorkNotSignedIn" xml:space="preserve"><value>Work IQ 未登录</value></data>
+  <data name="AuthLocalSpeech" xml:space="preserve"><value>语音本地识别</value></data>
+  <data name="AuthEntraReady" xml:space="preserve"><value>Azure Entra 令牌就绪</value></data>
+  <data name="AuthEntraNotSignedIn" xml:space="preserve"><value>Azure Entra 未登录</value></data>
+  <data name="SettingsDirty" xml:space="preserve"><value>设置已修改，保存后生效。</value></data>
+  <data name="EndpointDirty" xml:space="preserve"><value>终结点已修改，请保存。</value></data>
+  <data name="TenantDirty" xml:space="preserve"><value>资源租户 ID 已修改，请保存并重新登录；旧租户令牌不能继续使用。</value></data>
+  <data name="ClientDirty" xml:space="preserve"><value>应用设置已修改，请保存后重新登录。</value></data>
+  <data name="EndpointHelp" xml:space="preserve"><value>支持 Azure AI 多服务资源和独立语音服务资源的根终结点。</value></data>
+  <data name="EndpointPreview" xml:space="preserve"><value>SDK 连接地址：{0}</value></data>
+  <data name="EndpointInvalid" xml:space="preserve"><value>请填写有效的 Azure AI 服务 / 语音服务终结点。</value></data>
+  <data name="ModelSettingsReadFailed" xml:space="preserve"><value>无法读取语音设置。请重新填写终结点和 Entra 设置后保存。</value></data>
+  <data name="ModelAzure" xml:space="preserve"><value>Azure AI 语音服务 · Microsoft Entra ID（无资源密钥）。与 Work IQ 使用同一登录入口，令牌各自独立。</value></data>
+  <data name="ModelWhisper" xml:space="preserve"><value>Whisper 离线转写（中文/英文）。音频在本机处理，不会发送至 Azure。</value></data>
+  <data name="SettingsReadyAzure" xml:space="preserve"><value>终结点已保存。请点击 Microsoft 登录获取 Entra 授权，再测试资源连接。</value></data>
+  <data name="SettingsMissingAzure" xml:space="preserve"><value>请先保存资源终结点、资源租户 ID 和音频授权，再进行 Microsoft 登录。</value></data>
+  <data name="SettingsReadyWhisper" xml:space="preserve"><value>当前使用本地 Whisper。登录按钮仅处理 Work IQ。</value></data>
+  <data name="SettingsEndFirst" xml:space="preserve"><value>请先结束对话，再修改服务设置。</value></data>
+  <data name="SettingsBusy" xml:space="preserve"><value>请先结束对话，或等待当前设置操作完成。</value></data>
+  <data name="SettingsSaveFirst" xml:space="preserve"><value>请先保存当前设置，再测试连接。</value></data>
+  <data name="SettingsTesting" xml:space="preserve"><value>正在使用已登录的 Entra 身份和终结点测试资源连接，不会录音。</value></data>
+  <data name="SettingsConnectionSuccess" xml:space="preserve"><value>Azure 服务连接成功（未录音）。这不等同于实际转写效果测试。</value></data>
+  <data name="SettingsEncryptionError" xml:space="preserve"><value>Windows 无法加密配置，设置未保存。</value></data>
+  <data name="AnalysisIdle" xml:space="preserve"><value>聊天只记录，不逐句自动提问。分析后点击问题获取协助。</value></data>
+  <data name="AnalysisPending" xml:space="preserve"><value>已排队，准备分析全部 {0} 条聊天记录。</value></data>
+  <data name="AnalysisProcessing" xml:space="preserve"><value>Work IQ 正在分析全部 {0} 条聊天记录…</value></data>
+  <data name="AnalysisCompletedEmpty" xml:space="preserve"><value>分析完成，未发现新的待协助问题。已有问题和回复保持不变。</value></data>
+  <data name="AnalysisCompletedNew" xml:space="preserve"><value>分析完成，新增 {0} 个待协助问题。点击问题获取信息。</value></data>
+  <data name="AnalysisFailed" xml:space="preserve"><value>分析失败，记录仍保留。可点击按钮重试，不会逐秒重复提交。</value></data>
+  <data name="AnalysisCancelled" xml:space="preserve"><value>分析已取消。</value></data>
+  <data name="AnalysisPendingCount" xml:space="preserve"><value>{0} 条待分析</value></data>
+  <data name="AnalysisScheduleOn" xml:space="preserve"><value>{0} 条待分析 · 新增满 7 条或等待 5 分钟时发送全部聊天</value></data>
+  <data name="AnalysisScheduleOff" xml:space="preserve"><value>{0} 条待分析 · 自动分析已关闭，可手动发送全部聊天</value></data>
+  <data name="QuestionStatusPending" xml:space="preserve"><value>已排队</value></data>
+  <data name="QuestionStatusProcessing" xml:space="preserve"><value>正在处理</value></data>
+  <data name="QuestionStatusCompleted" xml:space="preserve"><value>已完成</value></data>
+  <data name="QuestionStatusIgnored" xml:space="preserve"><value>已忽略</value></data>
+  <data name="QuestionStatusFailed" xml:space="preserve"><value>失败</value></data>
+  <data name="QuestionStatusCancelled" xml:space="preserve"><value>已取消</value></data>
+  <data name="TranscriptCompleted" xml:space="preserve"><value>已有回复 · 点击查看</value></data>
+  <data name="TranscriptPending" xml:space="preserve"><value>等待回复 · 已进入队列</value></data>
+  <data name="TranscriptProcessing" xml:space="preserve"><value>正在获取回复</value></data>
+  <data name="TranscriptFailed" xml:space="preserve"><value>获取失败 · 点击重试</value></data>
+  <data name="TranscriptCancelled" xml:space="preserve"><value>已取消 · 点击重新获取</value></data>
+  <data name="TranscriptUnanswered" xml:space="preserve"><value>未获取回复 · 点击获取</value></data>
+  <data name="SuggestionUnasked" xml:space="preserve"><value>点击获取 Work IQ 协助</value></data>
+  <data name="AnswerSelect" xml:space="preserve"><value>请选择问题以查看回复。</value></data>
+  <data name="AnswerPending" xml:space="preserve"><value>问题已进入 Work IQ 队列。</value></data>
+  <data name="AnswerProcessing" xml:space="preserve"><value>Work IQ 正在处理…</value></data>
+  <data name="AnswerFailed" xml:space="preserve"><value>Work IQ 未能提供回复。请查看下方错误后重试。</value></data>
+  <data name="AnswerCancelled" xml:space="preserve"><value>此问题已取消。</value></data>
+  <data name="AnswerIgnored" xml:space="preserve"><value>此问题已忽略。</value></data>
+  <data name="AnswerEmpty" xml:space="preserve"><value>Work IQ 返回了空回复，请重试此问题。</value></data>
+  <data name="AdditionalSources" xml:space="preserve"><value>补充来源</value></data>
+  <data name="RenderUnavailable" xml:space="preserve"><value>富文本不可用，已显示原文。</value></data>
+  <data name="RenderFormatting" xml:space="preserve"><value>正在排版，原文可直接阅读。</value></data>
+  <data name="RenderFailed" xml:space="preserve"><value>富文本加载失败，已显示原文。</value></data>
+  <data name="RenderSlow" xml:space="preserve"><value>富文本加载较慢，已显示原文。</value></data>
+  <data name="RenderTruncated" xml:space="preserve"><value>[显示内容已截断。“复制回复”仍保留完整原文。]</value></data>
+  <data name="DialogImageTitle" xml:space="preserve"><value>显示引用的图片？</value></data>
+  <data name="DialogLinkTitle" xml:space="preserve"><value>打开来源链接？</value></data>
+  <data name="DialogImageWarning" xml:space="preserve"><value>请求图片前，请确认此网址不包含私人数据。</value></data>
+  <data name="DialogLinkWarning" xml:space="preserve"><value>将在会话助手之外打开此来源。</value></data>
+  <data name="LoadInline" xml:space="preserve"><value>加载内嵌图片</value></data>
+  <data name="OpenImageBrowser" xml:space="preserve"><value>在浏览器中打开图片</value></data>
+  <data name="OpenLink" xml:space="preserve"><value>打开链接</value></data>
+  <data name="OpenBrowser" xml:space="preserve"><value>在浏览器中打开</value></data>
+  <data name="Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Image" xml:space="preserve"><value>图片</value></data>
+  <data name="ImagePrefix" xml:space="preserve"><value>图片：{0}  </value></data>
+  <data name="ImageOpenHost" xml:space="preserve"><value>打开来自 {0} 的图片</value></data>
+  <data name="ImageUnavailable" xml:space="preserve"><value>图片不可用：{0}</value></data>
+  <data name="DiagnosticUnknown" xml:space="preserve"><value>操作失败。诊断信息：{0}</value></data>
+  <data name="DiagnosticParameter" xml:space="preserve"><value>参数：{0}</value></data>
+  <data name="ErrorNoMicrophone" xml:space="preserve"><value>没有可用的麦克风，请检查 Windows 麦克风隐私设置。</value></data>
+  <data name="ErrorAutoAnalysisSignIn" xml:space="preserve"><value>自动分析已开启，请先 Microsoft 登录，才能将聊天记录交给 Work IQ 分析。</value></data>
+  <data name="ErrorEmptyQuestion" xml:space="preserve"><value>请先输入问题，再提交。</value></data>
+  <data name="ErrorPauseLanguage" xml:space="preserve"><value>请先暂停监听，再切换监听语言和界面语言。</value></data>
+  <data name="ErrorOnlyFailed" xml:space="preserve"><value>只有失败的问题可以重试。</value></data>
+  <data name="ErrorQuestionCard" xml:space="preserve"><value>无法读取这个问题，请重新选择。</value></data>
+  <data name="ErrorTranscriptCard" xml:space="preserve"><value>无法读取这张转写卡片，请重新选择。</value></data>
+  <data name="ErrorImageTimeout" xml:space="preserve"><value>图片下载超时，请改用“在浏览器中打开”。</value></data>
+  <data name="ErrorInlineImagesLimit" xml:space="preserve"><value>一次最多内嵌显示 512 KB 的图片。</value></data>
+  <data name="ErrorRichNavigation" xml:space="preserve"><value>富文本页面加载失败：{0}</value></data>
+  <data name="ErrorRichEmpty" xml:space="preserve"><value>富文本页面为空，已显示原始回复。</value></data>
+  <data name="ErrorRenderLimit" xml:space="preserve"><value>Work IQ 回复超过安全排版上限，请使用“复制回复”查看完整原文。</value></data>
+  <data name="ErrorImageHost" xml:space="preserve"><value>只有明确批准的 Microsoft 托管图片才能内嵌加载。</value></data>
+  <data name="ErrorImageRedirect" xml:space="preserve"><value>图片重定向到了其他网址，请改用浏览器打开链接。</value></data>
+  <data name="ErrorImageFormat" xml:space="preserve"><value>来源未返回受支持的位图图片。</value></data>
+  <data name="ErrorImageTooLarge" xml:space="preserve"><value>图片过大，无法内嵌显示，请在浏览器中打开链接。</value></data>
+  <data name="ErrorImageSize" xml:space="preserve"><value>图片超过内嵌显示大小限制。</value></data>
+  <data name="ErrorImageData" xml:space="preserve"><value>下载的内容不是有效的位图图片。</value></data>
+  <data name="ErrorAccessCheck" xml:space="preserve"><value>Microsoft 登录已完成，但 Work IQ 未通过访问检查。</value></data>
+  <data name="ErrorAccountMatch" xml:space="preserve"><value>无法将 Entra 帐号匹配到 Work IQ，请使用组织工作帐号重新登录。</value></data>
+  <data name="ErrorAccountOverride" xml:space="preserve"><value>Work IQ 帐号不能被请求参数覆盖。</value></data>
+  <data name="ErrorAuthNoAccount" xml:space="preserve"><value>Entra 登录未返回可匹配的工作帐号，未继续 Work IQ 登录。</value></data>
+  <data name="ErrorAuthTimeout" xml:space="preserve"><value>Microsoft 登录超时，请重试。</value></data>
+  <data name="ErrorCliOverride" xml:space="preserve"><value>CONVERSATIONASSISTANT_WORKIQ_PATH 必须是现有 workiq.exe 的绝对路径。</value></data>
+  <data name="ErrorCliInstall" xml:space="preserve"><value>请安装官方 Work IQ 命令行工具，并将 CONVERSATIONASSISTANT_WORKIQ_PATH 设置为 workiq.exe 的路径。</value></data>
+  <data name="ErrorCliEula" xml:space="preserve"><value>使用 Work IQ 前，请先接受官方评估条款。</value></data>
+  <data name="ErrorCliExit" xml:space="preserve"><value>Work IQ 运行失败（退出代码 {0}），请检查登录、授权同意和网络。</value></data>
+  <data name="ErrorCliStart" xml:space="preserve"><value>无法启动 Work IQ 命令行工具，请检查可执行文件路径。</value></data>
+  <data name="ErrorWorkIqTimeout" xml:space="preserve"><value>Work IQ 在三分钟内未响应。</value></data>
+  <data name="ErrorWorkIqJson" xml:space="preserve"><value>Work IQ 返回了非预期的 JSON 响应。</value></data>
+  <data name="ErrorWorkIqService" xml:space="preserve"><value>Work IQ 无法回答此问题，请重试或检查权限。</value></data>
+  <data name="ErrorWorkIqNoAnswer" xml:space="preserve"><value>Work IQ 未返回回复。</value></data>
+  <data name="ErrorWorkIqInvalidJson" xml:space="preserve"><value>Work IQ 返回的 JSON 无效，请更新官方命令行工具。</value></data>
+  <data name="ErrorWorkIqInvalidQuestions" xml:space="preserve"><value>Work IQ 返回的问题列表无效，请重新分析对话。</value></data>
+  <data name="ErrorWorkIqContinuation" xml:space="preserve"><value>Work IQ 未返回完整转写所需的会话 ID，分析未完成，请重试。</value></data>
+  <data name="ErrorWorkIqEmpty" xml:space="preserve"><value>Work IQ 返回了空回复，请重试此请求。</value></data>
+  <data name="ErrorWorkIqNoParts" xml:space="preserve"><value>Work IQ 请求没有可发送的内容片段。</value></data>
+  <data name="ErrorQueueFull" xml:space="preserve"><value>Work IQ 请求队列已满。</value></data>
+  <data name="ErrorEndFirst" xml:space="preserve"><value>请先结束当前对话。</value></data>
+  <data name="ErrorStartFirst" xml:space="preserve"><value>请先开始对话。</value></data>
+  <data name="ErrorNotListening" xml:space="preserve"><value>当前对话未在监听。</value></data>
+  <data name="ErrorNotPaused" xml:space="preserve"><value>当前对话未暂停。</value></data>
+  <data name="ErrorConversationEnded" xml:space="preserve"><value>对话已结束。</value></data>
+  <data name="ErrorEmptyTranscript" xml:space="preserve"><value>尚无可供分析的聊天内容。</value></data>
+  <data name="ErrorSuggestionExpired" xml:space="preserve"><value>此问题已被清除或属于其他对话。</value></data>
+  <data name="ErrorTranscriptExpired" xml:space="preserve"><value>这条转写已被清除或不属于当前对话。</value></data>
+  <data name="ErrorWorkIqSignIn" xml:space="preserve"><value>向 Work IQ 提问前，请先 Microsoft 登录。</value></data>
+  <data name="ErrorWorkIqOffline" xml:space="preserve"><value>Work IQ 已离线，请检查网络。</value></data>
+  <data name="ErrorDeviceChanged" xml:space="preserve"><value>音频设备列表已改变，请检查输入设备选择。</value></data>
+  <data name="ErrorSettingsSize" xml:space="preserve"><value>加密的应用配置文件过大。</value></data>
+  <data name="ErrorDecrypt" xml:space="preserve"><value>无法解密当前用户的配置，请使用原 Windows 用户，或重新登录、保存设置。</value></data>
+  <data name="ErrorSpeechSettingsInvalid" xml:space="preserve"><value>语音配置无效，请重新填写并保存。</value></data>
+  <data name="ErrorSpeechSettingsFormat" xml:space="preserve"><value>语音配置格式无效，请重新填写并保存。</value></data>
+  <data name="ErrorEndpointMissing" xml:space="preserve"><value>请在设置中保存 Azure AI 资源终结点，然后点击 Microsoft 登录进行 Entra 授权。</value></data>
+  <data name="ErrorEndpointHost" xml:space="preserve"><value>Entra 模式需要 Azure 公有云资源的自定义终结点（*.cognitiveservices.azure.com），不是区域语音服务主机。</value></data>
+  <data name="ErrorCloudConsent" xml:space="preserve"><value>请在设置中确认允许将麦克风音频发送到 Azure 语音服务。</value></data>
+  <data name="ErrorTenantMissing" xml:space="preserve"><value>请填写 Azure AI 资源所在目录的租户 ID，再保存并重新 Microsoft 登录，不能默认使用 Work IQ/M365 的租户。</value></data>
+  <data name="ErrorTenantInvalid" xml:space="preserve"><value>租户 ID 应为 Azure AI 资源所在目录的 GUID，不是区域名称或客户端 ID。</value></data>
+  <data name="ErrorClientInvalid" xml:space="preserve"><value>客户端 ID 应为应用注册的 GUID，不能填写资源密钥或客户端密码。</value></data>
+  <data name="ErrorEndpointInvalid" xml:space="preserve"><value>终结点必须是 Azure AI 服务 / 语音服务的 HTTPS/WSS 地址，不能包含密钥、查询参数或片段。</value></data>
+  <data name="ErrorEndpointPath" xml:space="preserve"><value>请粘贴 Azure AI 服务 / 语音资源的根终结点或完整实时识别地址，不支持批量转写、翻译的 REST 地址。</value></data>
+  <data name="ErrorMicrophoneMissing" xml:space="preserve"><value>未找到麦克风，请连接设备并允许 Windows 麦克风访问。</value></data>
+  <data name="ErrorMicrophoneDisconnected" xml:space="preserve"><value>所选麦克风已断开连接。</value></data>
+  <data name="ErrorMicrophoneChanged" xml:space="preserve"><value>麦克风已改变或断开连接，请选择输入设备后暂停并继续监听。</value></data>
+  <data name="ErrorMicrophoneActive" xml:space="preserve"><value>麦克风已在使用中。</value></data>
+  <data name="ErrorRecognitionActive" xml:space="preserve"><value>语音识别已在运行。</value></data>
+  <data name="ErrorProviderUnknown" xml:space="preserve"><value>未知的语音识别服务。</value></data>
+  <data name="ErrorPcmSample" xml:space="preserve"><value>麦克风返回了不完整的 16 位 PCM 采样。</value></data>
+  <data name="ErrorPcmFrame" xml:space="preserve"><value>麦克风返回了不完整的 16 位 PCM 音频帧。</value></data>
+  <data name="ErrorSpeechBacklog" xml:space="preserve"><value>语音引擎处理落后于麦克风输入。</value></data>
+  <data name="ErrorInferenceStopped" xml:space="preserve"><value>语音推理队列已停止。</value></data>
+  <data name="ErrorInferenceBacklog" xml:space="preserve"><value>本地语音推理无法跟上对话，请检查 CPU 负载后暂停并继续监听。</value></data>
+  <data name="ErrorWhisperBacklog" xml:space="preserve"><value>离线语音推理落后于麦克风输入，请检查 CPU 负载后暂停并继续监听。</value></data>
+  <data name="ErrorWhisperStopped" xml:space="preserve"><value>离线语音识别已停止，请暂停后继续监听以重新启动。</value></data>
+  <data name="ErrorWhisperMissing" xml:space="preserve"><value>缺少 Whisper 离线模型，请使用包含 Models\ggml-small.bin 的完整内容重新构建或安装会话助手。</value></data>
+  <data name="ErrorWhisperSize" xml:space="preserve"><value>Whisper 离线模型大小异常，请重新安装模型。</value></data>
+  <data name="ErrorWhisperIntegrity" xml:space="preserve"><value>Whisper 离线模型完整性校验失败，请重新安装模型。</value></data>
+  <data name="ErrorSpeechAutoLanguage" xml:space="preserve"><value>不支持自动检测语音语言，请选择中文或英文。</value></data>
+  <data name="ErrorChineseRecognizer" xml:space="preserve"><value>未安装简体中文（zh-CN）本地语音识别器，请安装 Windows 中文语音语言包。</value></data>
+  <data name="ErrorEnglishRecognizer" xml:space="preserve"><value>未安装本地英文语音识别器，请安装 Windows 英文语音语言包。</value></data>
+  <data name="ErrorSpeechStartup" xml:space="preserve"><value>语音服务在启动期间断开，请重试。</value></data>
+  <data name="ErrorSpeechResume" xml:space="preserve"><value>语音服务在恢复期间断开，请重试。</value></data>
+  <data name="ErrorAzureConnectTimeout" xml:space="preserve"><value>连接 Azure 语音服务超时，请检查终结点、Entra 登录、资源角色和网络后重试。</value></data>
+  <data name="ErrorAzureStopTimeout" xml:space="preserve"><value>停止 Azure 语音服务超时，连接已释放。</value></data>
+  <data name="ErrorAzureAudioDisconnected" xml:space="preserve"><value>Azure 语音服务的音频连接不可用，请继续监听以重新连接。</value></data>
+  <data name="ErrorAzureStopFailed" xml:space="preserve"><value>停止 Azure 语音服务时发生错误，连接将释放。</value></data>
+  <data name="ErrorAzureSelect" xml:space="preserve"><value>请先选择 Azure AI 服务 / 语音服务并保存。</value></data>
+  <data name="ErrorAzureConnectionTimeout" xml:space="preserve"><value>Azure AI Speech [ConnectionTimeout] 20 秒内未能建立连接，请检查终结点、Entra 登录、资源角色及网络规则。</value></data>
+  <data name="ErrorEntraMismatch" xml:space="preserve"><value>Entra 返回的帐号租户不符合配置的资源租户 ID，请核对目录并重新登录。</value></data>
+  <data name="ErrorEntraCache" xml:space="preserve"><value>Entra 帐号缓存格式无效，请关闭会话助手并清除应用的 entra-account 缓存后重新登录。</value></data>
+  <data name="ErrorEntraSignInRequired" xml:space="preserve"><value>请先点击 Microsoft 登录完成 Azure Entra 授权，不能使用 Work IQ 令牌或旧资源密钥代替。</value></data>
+  <data name="ErrorEntraFailure" xml:space="preserve"><value>Azure Entra 登录失败{0}。请检查租户、客户端 ID、管理员同意及条件访问策略；未配置客户端 ID 时使用的 SDK 开发客户端可能被组织限制。</value></data>
+  <data name="ErrorEntraScope" xml:space="preserve"><value>拒绝为非 Azure Cognitive Services 范围获取语音服务令牌。</value></data>
+  <data name="ErrorAzureTenantMismatch" xml:space="preserve"><value>{0} [TenantMismatch] Entra 令牌的租户与 Azure 资源所属目录不一致。请在设置中将租户 ID 填为该资源所属订阅的目录 ID，保存后重新登录。它不一定等于 Work IQ/M365 的租户；资源目录还需为该帐号授予语音服务用户角色。</value></data>
+  <data name="ErrorAzureAuth" xml:space="preserve"><value>{0} Entra 认证失败，请重新登录并确认令牌属于 Azure Cognitive Services，不会回退到资源密钥。</value></data>
+  <data name="ErrorAzureForbidden" xml:space="preserve"><value>{0} 访问被拒绝，请确认当前用户具有该资源的 Cognitive Services Speech User 或 Cognitive Services Speech Contributor 角色，并检查租户和网络规则。</value></data>
+  <data name="ErrorAzureBadRequest" xml:space="preserve"><value>{0} 服务拒绝了请求，不能仅凭 HTTP 400 判定终结点填错。请核对资源租户 ID、Entra 授权及识别参数。</value></data>
+  <data name="ErrorAzureThrottled" xml:space="preserve"><value>{0} 服务限流，请检查语音服务配额，稍后再连接。</value></data>
+  <data name="ErrorAzureConnection" xml:space="preserve"><value>{0} 连接不可用，请检查终结点、DNS、代理、防火墙及 WebSocket 网络访问。</value></data>
+  <data name="ErrorAzureService" xml:space="preserve"><value>{0} 服务返回错误，请确认此 Azure AI 资源支持语音服务，再检查资源状态及网络配置。</value></data>
+  <data name="ErrorAzureStopped" xml:space="preserve"><value>{0} 会话停止，请检查终结点、Entra 授权和资源配置后重新连接。</value></data>
+  <data name="ErrorAzureSdkInit" xml:space="preserve"><value>Azure AI Speech [{0}] SDK 初始化或连接失败，请检查终结点、Entra 授权和本机运行时。</value></data>
+</root>

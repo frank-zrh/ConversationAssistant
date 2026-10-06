@@ -16,11 +16,10 @@ public sealed class ConversationSettings
     public ConversationLanguage Language { get; set; } = ConversationLanguage.Chinese;
     public ConversationLanguage AnswerLanguage { get; set; } = ConversationLanguage.Auto;
     public AnswerStyle AnswerStyle { get; set; } = AnswerStyle.Concise;
-    public QuestionSensitivity Sensitivity { get; set; } = QuestionSensitivity.Medium;
     public string? InputDeviceId { get; set; }
     public TimeSpan ContextWindowDuration { get; set; } = TimeSpan.FromMinutes(3);
     public int MaxContextCharacters { get; set; } = 4000;
-    public bool AutomaticQuestions { get; set; } = true;
+    public bool AutomaticAnalysis { get; set; } = true;
 
     // V1 never writes conversation content or audio to disk.
     public bool StoreAudio => false;
@@ -40,22 +39,27 @@ public sealed record QuestionDetectionResult(
     string TriggerReason, DateTimeOffset Timestamp, string ContextPrefix = "");
 public sealed record WorkIqAnswer(string Text, IReadOnlyList<string> Sources, string? ConversationId);
 
-public sealed class QuestionRequest
+public abstract class WorkIqRequest
 {
     public Guid Id { get; } = Guid.NewGuid();
-    public required string Question { get; init; }
-    public required string ContextUsed { get; init; }
     public required DateTimeOffset Timestamp { get; init; }
     public bool IsManual { get; init; }
-    public Guid? TranscriptSegmentId { get; init; }
     private readonly TaskCompletionSource _explicitRequest =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal Task ExplicitRequest => _explicitRequest.Task;
     internal void RequestExplicitly() => _explicitRequest.TrySetResult();
     public QuestionStatus Status { get; internal set; } = QuestionStatus.Pending;
+    public string? Error { get; internal set; }
+}
+
+public sealed class QuestionRequest : WorkIqRequest
+{
+    public required string Question { get; init; }
+    public required string ContextUsed { get; init; }
+    public Guid? TranscriptSegmentId { get; init; }
+    public Guid? SuggestedQuestionId { get; init; }
     public string Answer { get; internal set; } = "";
     public IReadOnlyList<string> Sources { get; internal set; } = [];
-    public string? Error { get; internal set; }
 }
 
 public sealed class ConversationSession
@@ -66,6 +70,7 @@ public sealed class ConversationSession
     public string? WorkIqConversationId { get; internal set; }
     public required ConversationSettings Settings { get; init; }
     public List<TranscriptSegment> TranscriptSegments { get; } = [];
-    public List<QuestionDetectionResult> DetectedQuestions { get; } = [];
+    public ConversationAnalysisRequest? Analysis { get; internal set; }
+    public List<SuggestedQuestion> SuggestedQuestions { get; } = [];
     public List<QuestionRequest> Answers { get; } = [];
 }

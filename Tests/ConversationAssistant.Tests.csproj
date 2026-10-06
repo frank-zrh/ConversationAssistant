@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <None Include="MeetingCopilot.Tests.csproj" />
+    <None Include="..\App\MainPage.xaml" Link="MainPage.xaml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
