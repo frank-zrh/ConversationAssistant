@@ -30,6 +30,8 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Models\ggml-small.bin" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Models\LICENSE-*.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Models\Speakers\*.onnx" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Models\Speakers\*.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -65,6 +67,7 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" Version="0.7.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="org.k2fsa.sherpa.onnx" Version="1.13.8" />
     <PackageReference Include="System.Speech" Version="10.0.0" />
     <PackageReference Include="Whisper.net" Version="1.9.1" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />

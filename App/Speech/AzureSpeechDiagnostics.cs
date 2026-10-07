@@ -5,6 +5,8 @@ namespace ConversationAssistant_App.Speech;
 
 internal static partial class AzureSpeechDiagnostics
 {
+    internal enum StartupStage { Initialization, Connection, Transcription }
+
     [GeneratedRegex(@"\b(?:HTTP(?:\s+status)?|status(?:\s+code)?|response(?:\s+code)?|authentication\s+error)\s*[:=(]?\s*(400|401|403|404|408|429|500|502|503|504)\b",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex HttpCode();
@@ -49,10 +51,17 @@ internal static partial class AzureSpeechDiagnostics
             details.Contains("does not match resource tenant", StringComparison.OrdinalIgnoreCase);
     }
 
-    public static string Initialization(Exception error)
+    public static string Initialization(Exception error, StartupStage stage = StartupStage.Initialization)
     {
         var native = NativeCode().Match(error.Message);
         var code = native.Success ? native.Value : $"HRESULT 0x{error.HResult:X8}";
-        return $"Azure AI Speech [{code}] SDK 初始化或连接失败；请检查 Endpoint、Entra 授权和本机运行时。";
+        var stageLabel = stage switch
+        {
+            StartupStage.Connection => "Connection",
+            StartupStage.Transcription => "Transcription",
+            _ => "Initialization"
+        };
+        // Only emit allowlisted codes and stages, never raw SDK messages or inner exceptions.
+        return $"Azure AI Speech [{code}] [{stageLabel}] SDK 初始化或连接失败；请检查 Endpoint、Entra 授权和本机运行时。";
     }
 }

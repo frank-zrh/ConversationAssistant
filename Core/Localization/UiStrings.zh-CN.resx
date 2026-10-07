@@ -22,6 +22,8 @@
   <data name="ManualQuestionPlaceholder" xml:space="preserve"><value>手动提问…（Ctrl+Enter）</value></data>
   <data name="Ask" xml:space="preserve"><value>提问</value></data>
   <data name="LiveTranscript" xml:space="preserve"><value>实时聊天记录</value></data>
+  <data name="SpeakerNumber" xml:space="preserve"><value>说话人 {0}</value></data>
+  <data name="SpeakerUnknown" xml:space="preserve"><value>说话人未识别</value></data>
   <data name="CopyTranscript" xml:space="preserve"><value>复制</value></data>
   <data name="ClearTranscript" xml:space="preserve"><value>清空</value></data>
   <data name="PauseScrolling" xml:space="preserve"><value>暂停滚动</value></data>
@@ -103,6 +105,8 @@
   <data name="CombinedAudioAzure" xml:space="preserve"><value>麦克风 + 系统声音 · 共享 · Azure 在线识别</value></data>
   <data name="CombinedAudioWhisper" xml:space="preserve"><value>麦克风 + 系统声音 · 共享 · Whisper 本地识别</value></data>
   <data name="SignIn" xml:space="preserve"><value>Microsoft 登录</value></data>
+  <data name="SignedIn" xml:space="preserve"><value>已登录</value></data>
+  <data name="SignedInHint" xml:space="preserve"><value>已登录。点击可重新登录并验证访问权限。</value></data>
   <data name="SigningIn" xml:space="preserve"><value>正在登录…</value></data>
   <data name="AuthAzureInProgress" xml:space="preserve"><value>正在完成 Azure Entra 与 Work IQ 登录，可能需要分别同意授权。</value></data>
   <data name="AuthWorkInProgress" xml:space="preserve"><value>正在登录并检查 Work IQ…</value></data>
@@ -120,7 +124,8 @@
   <data name="EndpointInvalid" xml:space="preserve"><value>请填写有效的 Azure AI 服务 / 语音服务终结点。</value></data>
   <data name="ModelSettingsReadFailed" xml:space="preserve"><value>无法读取语音设置。请重新填写终结点和 Entra 设置后保存。</value></data>
   <data name="ModelAzure" xml:space="preserve"><value>Azure AI 语音服务 · Microsoft Entra ID（无资源密钥）。与 Work IQ 使用同一登录入口，令牌各自独立。</value></data>
-  <data name="ModelWhisper" xml:space="preserve"><value>Whisper 离线转写（中文/英文）。音频在本机处理，不会发送至 Azure。</value></data>
+  <data name="ModelWhisper" xml:space="preserve"><value>Whisper 离线转写与本地说话人区分（中文/英文）。音频仅在本机处理。需要打包说话人模型；重新构建前请运行 App\Speech\Install-OfflineSpeakerModels.ps1。</value></data>
+  <data name="SpeakerAccuracyHint" xml:space="preserve"><value>说话人编号仅为本次监听的匿名声音估计，不代表真实身份。相似声音、过短语音、噪声及多人同时发言可能导致误判。</value></data>
   <data name="SettingsReadyAzure" xml:space="preserve"><value>终结点已保存。请点击 Microsoft 登录获取 Entra 授权，再测试资源连接。</value></data>
   <data name="SettingsMissingAzure" xml:space="preserve"><value>请先保存资源终结点、资源租户 ID 和音频授权，再进行 Microsoft 登录。</value></data>
   <data name="SettingsReadyWhisper" xml:space="preserve"><value>当前使用本地 Whisper。登录按钮仅处理 Work IQ。</value></data>
@@ -270,6 +275,20 @@
   <data name="ErrorWhisperMissing" xml:space="preserve"><value>缺少 Whisper 离线模型，请使用包含 Models\ggml-small.bin 的完整内容重新构建或安装会话助手。</value></data>
   <data name="ErrorWhisperSize" xml:space="preserve"><value>Whisper 离线模型大小异常，请重新安装模型。</value></data>
   <data name="ErrorWhisperIntegrity" xml:space="preserve"><value>Whisper 离线模型完整性校验失败，请重新安装模型。</value></data>
+  <data name="ErrorSpeakerModelMissing" xml:space="preserve"><value>缺少离线说话人模型。请运行 App\Speech\Install-OfflineSpeakerModels.ps1，然后重新构建或安装包含 Models\Speakers 的完整应用。监听时不会自动下载模型。</value></data>
+  <data name="ErrorSpeakerModelSize" xml:space="preserve"><value>离线说话人模型大小异常。请运行 App\Speech\Install-OfflineSpeakerModels.ps1，然后重新构建或安装包含 Models\Speakers 的完整应用。监听时不会自动下载模型。</value></data>
+  <data name="ErrorSpeakerModelIntegrity" xml:space="preserve"><value>离线说话人模型完整性校验失败。请运行 App\Speech\Install-OfflineSpeakerModels.ps1，然后重新构建或安装包含 Models\Speakers 的完整应用。监听时不会自动下载模型。</value></data>
+  <data name="ErrorSpeakerPlatform" xml:space="preserve"><value>离线说话人区分需要 Windows x64 版本。请安装该版本，或自行选择 Azure 语音服务。</value></data>
+  <data name="ErrorSpeakerModelsIncompatible" xml:space="preserve"><value>离线说话人模型不兼容。请运行 App\Speech\Install-OfflineSpeakerModels.ps1 并重新构建应用。</value></data>
+  <data name="ErrorSpeakerRuntime" xml:space="preserve"><value>无法加载离线说话人模型或本机运行库。请重新安装 Windows x64 应用及 Microsoft Visual C++ x64 运行库，并在重新构建前运行 App\Speech\Install-OfflineSpeakerModels.ps1。</value></data>
+  <data name="ErrorSpeakerTiming" xml:space="preserve"><value>离线说话人区分返回了无效时间信息。请暂停后继续监听；如果问题重复出现，请重新安装说话人模型。</value></data>
+  <data name="ErrorSpeakerBoundaries" xml:space="preserve"><value>离线说话人区分返回了无效的发言边界。请暂停后继续监听；如果问题重复出现，请重新安装说话人模型。</value></data>
+  <data name="ErrorSpeakerWindow" xml:space="preserve"><value>离线说话人区分需要短时的 16 kHz 单声道音频片段（最长 15 秒）。请检查音频来源后暂停并继续监听。</value></data>
+  <data name="ErrorSpeakerPcm" xml:space="preserve"><value>离线说话人区分需要归一化的 16 kHz 单声道 PCM 音频。请选择支持的麦克风或系统声音来源。</value></data>
+  <data name="ErrorSpeakerSessionLimit" xml:space="preserve"><value>离线说话人区分已达到本次会话的数量上限。请暂停后继续监听，以开始新的说话人识别会话。</value></data>
+  <data name="ErrorSpeakerEmbedding" xml:space="preserve"><value>离线说话人区分无法提取有效的声音特征。请检查音频来源；如果问题重复出现，请重新安装说话人模型。</value></data>
+  <data name="ErrorWhisperSpeakerStopped" xml:space="preserve"><value>离线语音识别或说话人区分已停止。请检查音频来源和 CPU 负载，再暂停并继续监听；如果问题重复出现，请重新安装本地说话人模型。</value></data>
+  <data name="ErrorWhisperLanguage" xml:space="preserve"><value>离线转写请选择中文或英文。</value></data>
   <data name="ErrorSpeechAutoLanguage" xml:space="preserve"><value>不支持自动检测语音语言，请选择中文或英文。</value></data>
   <data name="ErrorChineseRecognizer" xml:space="preserve"><value>未安装简体中文（zh-CN）本地语音识别器，请安装 Windows 中文语音语言包。</value></data>
   <data name="ErrorEnglishRecognizer" xml:space="preserve"><value>未安装本地英文语音识别器，请安装 Windows 英文语音语言包。</value></data>

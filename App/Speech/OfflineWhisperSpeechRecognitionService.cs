@@ -35,41 +35,53 @@ public sealed class OfflineWhisperSpeechRecognitionService(
         lock (_gate)
         {
             if (_audio is not null) throw new InvalidOperationException("Speech recognition already active.");
+            var speakerModels = models.ValidateSpeakerModels();
             var model = models.Validate();
-            if (_factory is null)
+            var diarizer = new OfflineSpeakerDiarizer(speakerModels);
+            WhisperProcessor? processor = null;
+            try
             {
-                var factory = WhisperFactory.FromPath(model);
-                try
+                if (_factory is null)
                 {
-                    using var warmUp = factory.CreateBuilder()
-                        .WithLanguage("zh")
-                        .WithNoContext()
-                        .WithThreads(Math.Clamp(Environment.ProcessorCount / 2, 1, 8))
-                        .Build();
-                    WarmUpAsync(warmUp).GetAwaiter().GetResult();
-                    _factory = factory;
+                    var factory = WhisperFactory.FromPath(model);
+                    try
+                    {
+                        using var warmUp = factory.CreateBuilder()
+                            .WithLanguage("zh")
+                            .WithNoContext()
+                            .WithThreads(Math.Clamp(Environment.ProcessorCount / 2, 1, 8))
+                            .Build();
+                        WarmUpAsync(warmUp).GetAwaiter().GetResult();
+                        _factory = factory;
+                    }
+                    catch
+                    {
+                        factory.Dispose();
+                        throw;
+                    }
                 }
-                catch
+                var builder = _factory.CreateBuilder()
+                    .WithLanguage(language == ConversationLanguage.Chinese ? "zh" : "en")
+                    .WithNoContext()
+                    .WithThreads(Math.Clamp(Environment.ProcessorCount / 2, 1, 8));
+                processor = builder.Build();
+                var audio = Channel.CreateBounded<CapturedAudio>(new BoundedChannelOptions(600)
                 {
-                    factory.Dispose();
-                    throw;
-                }
+                    SingleReader = true, SingleWriter = false, FullMode = BoundedChannelFullMode.Wait
+                });
+                var stop = new CancellationTokenSource();
+                var windows = new SpeechInferenceQueue();
+                _audio = audio;
+                _windows = windows;
+                _stop = stop;
+                _worker = Task.Run(() => RunSessionAsync(audio.Reader, windows, processor, diarizer, language, stop));
             }
-            var builder = _factory.CreateBuilder()
-                .WithLanguage(language == ConversationLanguage.Chinese ? "zh" : "en")
-                .WithNoContext()
-                .WithThreads(Math.Clamp(Environment.ProcessorCount / 2, 1, 8));
-            var processor = builder.Build();
-            var audio = Channel.CreateBounded<CapturedAudio>(new BoundedChannelOptions(600)
+            catch
             {
-                SingleReader = true, SingleWriter = false, FullMode = BoundedChannelFullMode.Wait
-            });
-            var stop = new CancellationTokenSource();
-            var windows = new SpeechInferenceQueue();
-            _audio = audio;
-            _windows = windows;
-            _stop = stop;
-            _worker = Task.Run(() => RunSessionAsync(audio.Reader, windows, processor, language, stop));
+                processor?.Dispose();
+                diarizer.Dispose();
+                throw;
+            }
         }
         SpeechStarted?.Invoke();
     }
@@ -132,10 +144,10 @@ public sealed class OfflineWhisperSpeechRecognitionService(
     }
 
     private async Task RunSessionAsync(ChannelReader<CapturedAudio> input, SpeechInferenceQueue windows,
-        WhisperProcessor processor, ConversationLanguage language, CancellationTokenSource stop)
+        WhisperProcessor processor, IOfflineSpeakerDiarizer diarizer, ConversationLanguage language, CancellationTokenSource stop)
     {
         var capture = CaptureWindowsAsync(input, windows, stop);
-        var inference = InferWindowsAsync(windows, processor, language, stop);
+        var inference = InferWindowsAsync(windows, processor, diarizer, language, stop);
         try
         {
             await Task.WhenAll(capture, inference).ConfigureAwait(false);
@@ -145,7 +157,8 @@ public sealed class OfflineWhisperSpeechRecognitionService(
         {
             logger.LogError("Offline speech recognition stopped: {ErrorType}", ex.GetType().Name);
             RecognitionError?.Invoke(new InvalidOperationException(
-                "Offline speech recognition stopped. Pause and resume to restart.", ex));
+                ex is InvalidDataException ? ex.Message :
+                "Offline speech recognition or speaker separation stopped. Check the audio source and CPU load, then pause and resume. Reinstall the local speaker models if this repeats.", ex));
         }
         finally
         {
@@ -194,20 +207,23 @@ public sealed class OfflineWhisperSpeechRecognitionService(
     }
 
     private async Task InferWindowsAsync(SpeechInferenceQueue windows,
-        WhisperProcessor processor, ConversationLanguage language, CancellationTokenSource stop)
+        WhisperProcessor processor, IOfflineSpeakerDiarizer diarizer, ConversationLanguage language, CancellationTokenSource stop)
     {
         try
         {
             using (processor)
+            using (diarizer)
             {
                 while (await windows.ReadAsync(stop.Token).ConfigureAwait(false) is { } window)
                 {
                     if (window.IsFinal)
                     {
-                        var text = await TranscribeWindowAsync(processor, window.Samples, language, stop.Token)
-                            .ConfigureAwait(false);
-                        if (!stop.IsCancellationRequested && !string.IsNullOrWhiteSpace(text))
-                            FinalTranscriptReceived?.Invoke(new SpeechText(text, window.Start, window.End));
+                        await foreach (var turn in OfflineSpeakerTurnTranscriber.TranscribeAsync(window, diarizer,
+                            (samples, token) => TranscribeWindowAsync(processor, samples, language, token),
+                            stop.Token).ConfigureAwait(false))
+                        {
+                            if (!stop.IsCancellationRequested) FinalTranscriptReceived?.Invoke(turn);
+                        }
                         continue;
                     }
 
@@ -232,13 +248,27 @@ public sealed class OfflineWhisperSpeechRecognitionService(
         }
     }
 
-    private static async Task<string> TranscribeWindowAsync(
+    internal static async Task<string> TranscribeWindowAsync(
         WhisperProcessor processor, float[] samples, ConversationLanguage language, CancellationToken cancellationToken)
     {
         var parts = new List<string>();
-        await foreach (var segment in processor.ProcessAsync(samples, cancellationToken).ConfigureAwait(false))
+        float[]? padded = null;
+        if (samples.Length < SpeechWindowSegmenter.SampleRate)
         {
-            if (!string.IsNullOrWhiteSpace(segment.Text)) parts.Add(segment.Text.Trim());
+            // Whisper needs at least a second of input; pad a short turn with silence, never another voice.
+            padded = new float[SpeechWindowSegmenter.SampleRate];
+            samples.CopyTo(padded, 0);
+        }
+        try
+        {
+            await foreach (var segment in processor.ProcessAsync(padded ?? samples, cancellationToken).ConfigureAwait(false))
+            {
+                if (!string.IsNullOrWhiteSpace(segment.Text)) parts.Add(segment.Text.Trim());
+            }
+        }
+        finally
+        {
+            if (padded is not null) Array.Clear(padded);
         }
         var raw = string.Join(language == ConversationLanguage.Chinese ? "" : " ", parts);
         return SpeechTextNormalizer.Normalize(language == ConversationLanguage.Chinese

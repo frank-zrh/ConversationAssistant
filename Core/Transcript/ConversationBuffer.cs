@@ -37,7 +37,7 @@ public sealed class ConversationBuffer(TimeSpan duration, int maxCharacters) : I
             var text = string.Join(Environment.NewLine, _items
                 .Where(item => item.TimestampEnd <= timestamp &&
                     item.TimestampEnd >= timestamp - duration)
-                .Select(item => item.Text));
+                .Select(TranscriptSpeaker.ContextText));
             return text.Length > maxCharacters ? text[^maxCharacters..] : text;
         }
     }
@@ -51,8 +51,8 @@ public sealed class ConversationBuffer(TimeSpan duration, int maxCharacters) : I
     {
         while (_items.Count > 0 && _items.Peek().TimestampEnd < now - duration)
             _items.Dequeue();
-        var length = _items.Sum(s => s.Text.Length + Environment.NewLine.Length);
+        var length = _items.Sum(s => TranscriptSpeaker.ContextText(s).Length + Environment.NewLine.Length);
         while (_items.Count > 1 && length > maxCharacters)
-            length -= _items.Dequeue().Text.Length + Environment.NewLine.Length;
+            length -= TranscriptSpeaker.ContextText(_items.Dequeue()).Length + Environment.NewLine.Length;
     }
 }

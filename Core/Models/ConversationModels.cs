@@ -33,9 +33,9 @@ public sealed class ConversationSettings
 
 public sealed record TranscriptSegment(
     Guid Id, DateTimeOffset TimestampStart, DateTimeOffset TimestampEnd,
-    string Text, string Source, bool IsFinal);
+    string Text, string Source, bool IsFinal, int? SpeakerNumber = null);
 
-public sealed record SpeechText(string Text, DateTimeOffset Start, DateTimeOffset End);
+public sealed record SpeechText(string Text, DateTimeOffset Start, DateTimeOffset End, string? SpeakerId = null);
 public sealed record AudioDevice(string Id, string Name, string? EndpointId = null)
 {
     public string EffectiveId => EndpointId ?? Id;

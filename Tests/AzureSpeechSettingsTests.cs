@@ -17,6 +17,8 @@ public sealed class AzureSpeechSettingsTests
     [TestMethod]
     [DataRow("https://stttest1.cognitiveservices.azure.com/")]
     [DataRow("wss://stttest1.cognitiveservices.azure.com/")]
+    [DataRow("wss://stttest1.cognitiveservices.azure.com/stt/speech/recognition/conversation/cognitiveservices/v1")]
+    [DataRow("https://stttest1.cognitiveservices.azure.com/speech/recognition/conversation/cognitiveservices/v1")]
     public void EntraUsesCustomResourceEndpointInsteadOfSubscriptionKey(string value)
     {
         Assert.AreEqual("https://stttest1.cognitiveservices.azure.com/",
@@ -26,6 +28,7 @@ public sealed class AzureSpeechSettingsTests
             ServiceUri = value, CloudAudioConsent = true,
             TenantId = "11111111-1111-1111-1111-111111111111"
         }.ValidateForAzure();
+        Assert.IsTrue(AzureSpeechEndpoint.AreEquivalent(value, "https://stttest1.cognitiveservices.azure.com/"));
     }
 
     [TestMethod]

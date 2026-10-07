@@ -125,6 +125,42 @@ public sealed class AzureSpeechPipelineTests
         Assert.AreEqual(ConversationUiState.Idle, manager.State);
     }
 
+    [TestMethod]
+    public async Task SpeakerTurnsRemainSeparateThroughAzureRoutingTranscriptAndWorkIqAnalysis()
+    {
+        var factory = new FakeSessionFactory();
+        using var azure = new AzureSpeechRecognitionService(new FakeSettings(Config()), factory);
+        var work = new FakeWork();
+        var transcript = new TranscriptEngine();
+        var manager = new ConversationSessionManager(new FakeAudio(), azure, new FakeAuth(), new FakeNetwork(),
+            work, transcript, new ContextBuilder(new PromptBuilder()));
+        manager.StartConversation(new ConversationSettings { AutomaticAnalysis = false });
+        try
+        {
+            var session = factory.Sessions.Single();
+            session.EmitPartial("First speaker is still talking", "session-a:Guest-1");
+            Assert.IsEmpty(manager.TranscriptSegments);
+            session.EmitFinal("I own the policy.", "session-a:Guest-1");
+            session.EmitFinal("I do not own deployment.", "session-a:Guest-2");
+            session.EmitFinal("Who owns deployment?", "session-a:Guest-1");
+            CollectionAssert.AreEqual(new int?[] { 1, 2, 1 },
+                manager.TranscriptSegments.Select(segment => segment.SpeakerNumber).ToArray());
+            Assert.HasCount(3, manager.TranscriptSegments);
+            Assert.AreEqual(0, work.Calls);
+            var analysis = manager.AnalyzeConversation();
+            await WaitFor(() => analysis.Status == QuestionStatus.Completed);
+            StringAssert.Contains(work.LastPrompt!, "[Speaker 1] I own the policy.");
+            StringAssert.Contains(work.LastPrompt!, "[Speaker 2] I do not own deployment.");
+            StringAssert.Contains(work.LastPrompt!, "[Speaker 1] Who owns deployment?");
+            Assert.HasCount(3, analysis.Transcript);
+            manager.Pause();
+            manager.Resume();
+            factory.Sessions.Last().EmitFinal("New recognition connection.", "session-b:Guest-1");
+            Assert.AreEqual(3, manager.TranscriptSegments.Last().SpeakerNumber);
+        }
+        finally { await manager.EndConversationAsync(); }
+    }
+
     private static SpeechServiceConfiguration Config(bool consent = true) => new()
     {
         ServiceUri = "https://test.cognitiveservices.azure.com/",
@@ -179,8 +215,10 @@ public sealed class AzureSpeechPipelineTests
         public void Write(byte[] pcm) => Bytes += pcm.Length;
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
         public void Dispose() => Disposed = true;
-        public void EmitPartial(string text) => Partial?.Invoke(new(text, DateTimeOffset.Now, DateTimeOffset.Now));
-        public void EmitFinal(string text) => Final?.Invoke(new(text, DateTimeOffset.Now, DateTimeOffset.Now));
+        public void EmitPartial(string text, string? speakerId = null) =>
+            Partial?.Invoke(new(text, DateTimeOffset.Now, DateTimeOffset.Now, speakerId));
+        public void EmitFinal(string text, string? speakerId = null) =>
+            Final?.Invoke(new(text, DateTimeOffset.Now, DateTimeOffset.Now, speakerId));
         public void EmitFailure() => Failed?.Invoke(new SpeechConnectionException("Azure connection unavailable."));
     }
 
@@ -223,10 +261,13 @@ public sealed class AzureSpeechPipelineTests
     private sealed class FakeWork : IWorkIqClient
     {
         public int Calls;
+        public string? LastPrompt { get; private set; }
         public Task<WorkIqAnswer> AskAsync(string prompt, string? conversationId, CancellationToken token)
         {
+            LastPrompt = prompt;
             Interlocked.Increment(ref Calls);
-            return Task.FromResult(new WorkIqAnswer("A synthetic answer.", [], "test-conversation"));
+            return Task.FromResult(new WorkIqAnswer(prompt.Contains("QUESTION DISCOVERY ONLY.", StringComparison.Ordinal)
+                ? """{"questions":[]}""" : "A synthetic answer.", [], "test-conversation"));
         }
     }
 }

@@ -22,6 +22,8 @@
   <data name="ManualQuestionPlaceholder" xml:space="preserve"><value>Ask manually... (Ctrl+Enter)</value></data>
   <data name="Ask" xml:space="preserve"><value>Ask</value></data>
   <data name="LiveTranscript" xml:space="preserve"><value>LIVE TRANSCRIPT</value></data>
+  <data name="SpeakerNumber" xml:space="preserve"><value>Speaker {0}</value></data>
+  <data name="SpeakerUnknown" xml:space="preserve"><value>Speaker not identified</value></data>
   <data name="CopyTranscript" xml:space="preserve"><value>Copy</value></data>
   <data name="ClearTranscript" xml:space="preserve"><value>Clear</value></data>
   <data name="PauseScrolling" xml:space="preserve"><value>Pause scrolling</value></data>
@@ -103,6 +105,8 @@
   <data name="CombinedAudioAzure" xml:space="preserve"><value>Microphone + system · shared · Azure online</value></data>
   <data name="CombinedAudioWhisper" xml:space="preserve"><value>Microphone + system · shared · local Whisper</value></data>
   <data name="SignIn" xml:space="preserve"><value>Microsoft Sign In</value></data>
+  <data name="SignedIn" xml:space="preserve"><value>Signed in</value></data>
+  <data name="SignedInHint" xml:space="preserve"><value>Signed in. Click to sign in again and verify access.</value></data>
   <data name="SigningIn" xml:space="preserve"><value>Signing in...</value></data>
   <data name="AuthAzureInProgress" xml:space="preserve"><value>Signing in to Azure Entra and Work IQ; separate consent may be required.</value></data>
   <data name="AuthWorkInProgress" xml:space="preserve"><value>Signing in and checking Work IQ...</value></data>
@@ -120,7 +124,8 @@
   <data name="EndpointInvalid" xml:space="preserve"><value>Enter a valid Azure AI Services / Speech endpoint.</value></data>
   <data name="ModelSettingsReadFailed" xml:space="preserve"><value>Unable to read Speech settings. Re-enter the endpoint and Entra settings, then save.</value></data>
   <data name="ModelAzure" xml:space="preserve"><value>Azure AI Speech · Microsoft Entra ID (no resource key). Shares the sign-in entry point with Work IQ; tokens remain separate.</value></data>
-  <data name="ModelWhisper" xml:space="preserve"><value>Whisper offline transcription (Chinese/English). Audio is processed locally and is not sent to Azure.</value></data>
+  <data name="ModelWhisper" xml:space="preserve"><value>Whisper offline transcription with local speaker detection (Chinese/English). Audio stays on this PC. Requires the packaged speaker models; run App\Speech\Install-OfflineSpeakerModels.ps1 before rebuilding.</value></data>
+  <data name="SpeakerAccuracyHint" xml:space="preserve"><value>Speaker numbers are anonymous voice estimates for this listening session, not verified identities. Similar voices, short turns, noise and simultaneous speech can cause mistakes.</value></data>
   <data name="SettingsReadyAzure" xml:space="preserve"><value>Endpoint saved. Sign in with Microsoft for Entra authorization, then test the resource connection.</value></data>
   <data name="SettingsMissingAzure" xml:space="preserve"><value>Save the resource endpoint, resource Tenant ID and audio consent before signing in with Microsoft.</value></data>
   <data name="SettingsReadyWhisper" xml:space="preserve"><value>Using local Whisper. The sign-in button only handles Work IQ.</value></data>
@@ -270,6 +275,20 @@
   <data name="ErrorWhisperMissing" xml:space="preserve"><value>Offline Whisper model is missing. Rebuild or reinstall Conversation Assistant with Models\ggml-small.bin.</value></data>
   <data name="ErrorWhisperSize" xml:space="preserve"><value>Offline Whisper model has an unexpected size; reinstall the model.</value></data>
   <data name="ErrorWhisperIntegrity" xml:space="preserve"><value>Offline Whisper model failed its integrity check; reinstall the model.</value></data>
+  <data name="ErrorSpeakerModelMissing" xml:space="preserve"><value>Offline speaker model is missing. Run App\Speech\Install-OfflineSpeakerModels.ps1, then rebuild or reinstall with Models\Speakers. Listening never downloads models.</value></data>
+  <data name="ErrorSpeakerModelSize" xml:space="preserve"><value>Offline speaker model has an unexpected size. Run App\Speech\Install-OfflineSpeakerModels.ps1, then rebuild or reinstall with Models\Speakers. Listening never downloads models.</value></data>
+  <data name="ErrorSpeakerModelIntegrity" xml:space="preserve"><value>Offline speaker model failed its integrity check. Run App\Speech\Install-OfflineSpeakerModels.ps1, then rebuild or reinstall with Models\Speakers. Listening never downloads models.</value></data>
+  <data name="ErrorSpeakerPlatform" xml:space="preserve"><value>Offline speaker separation requires the Windows x64 build. Install that build or select Azure Speech explicitly.</value></data>
+  <data name="ErrorSpeakerModelsIncompatible" xml:space="preserve"><value>Offline speaker models are incompatible. Run App\Speech\Install-OfflineSpeakerModels.ps1 and rebuild.</value></data>
+  <data name="ErrorSpeakerRuntime" xml:space="preserve"><value>Offline speaker separation could not load its local models or native runtime. Reinstall the Windows x64 app and Microsoft Visual C++ x64 runtime, and run App\Speech\Install-OfflineSpeakerModels.ps1 before rebuilding.</value></data>
+  <data name="ErrorSpeakerTiming" xml:space="preserve"><value>Offline speaker separation returned invalid timing. Pause and resume; reinstall the speaker models if this repeats.</value></data>
+  <data name="ErrorSpeakerBoundaries" xml:space="preserve"><value>Offline speaker separation returned invalid turn boundaries. Pause and resume; reinstall the speaker models if this repeats.</value></data>
+  <data name="ErrorSpeakerWindow" xml:space="preserve"><value>Offline speaker separation requires short 16 kHz mono audio windows (at most 15 seconds). Pause and resume after checking the audio source.</value></data>
+  <data name="ErrorSpeakerPcm" xml:space="preserve"><value>Offline speaker separation requires normalized 16 kHz mono PCM audio. Select a supported microphone or loopback source.</value></data>
+  <data name="ErrorSpeakerSessionLimit" xml:space="preserve"><value>Offline speaker separation reached its session limit. Pause and resume to start a new speaker session.</value></data>
+  <data name="ErrorSpeakerEmbedding" xml:space="preserve"><value>Offline speaker separation could not extract a valid voice embedding. Check the audio source and reinstall the speaker models if this repeats.</value></data>
+  <data name="ErrorWhisperSpeakerStopped" xml:space="preserve"><value>Offline speech recognition or speaker separation stopped. Check the audio source and CPU load, then pause and resume. Reinstall the local speaker models if this repeats.</value></data>
+  <data name="ErrorWhisperLanguage" xml:space="preserve"><value>Select Chinese or English for offline transcription.</value></data>
   <data name="ErrorSpeechAutoLanguage" xml:space="preserve"><value>Automatic speech language detection is unavailable. Select Chinese or English.</value></data>
   <data name="ErrorChineseRecognizer" xml:space="preserve"><value>Chinese (Simplified, zh-CN) local speech recognizer is not installed. Install the Windows Chinese speech language pack.</value></data>
   <data name="ErrorEnglishRecognizer" xml:space="preserve"><value>English local speech recognizer is not installed. Install a Windows English speech language pack.</value></data>

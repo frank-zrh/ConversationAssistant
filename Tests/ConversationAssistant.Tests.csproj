@@ -10,8 +10,14 @@
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.17.2" />
     <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.51.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <PackageReference Include="MSTest" Version="4.0.2" />
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="org.k2fsa.sherpa.onnx" Version="1.13.8" />
+    <PackageReference Include="System.Speech" Version="10.0.0" />
+    <PackageReference Include="Whisper.net" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime.NoAvx" Version="1.9.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,9 +27,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\ConversationAssistant.Core.csproj" />
     <Compile Include="..\App\Speech\AzureSpeechSessionFactory.cs" Link="AzureSpeechSessionFactory.cs" />
+    <Compile Include="..\App\Speech\AzureSpeechConnectionTester.cs" Link="AzureSpeechConnectionTester.cs" />
     <Compile Include="..\App\Speech\AzureSpeechDiagnostics.cs" Link="AzureSpeechDiagnostics.cs" />
     <Compile Include="..\App\Authentication\SpeechEntraIdentity.cs" Link="SpeechEntraIdentity.cs" />
     <Compile Include="..\App\Audio\*.cs" Link="Audio\%(Filename)%(Extension)" />
+    <Compile Include="..\App\Speech\OfflineSpeaker*.cs" Link="Speech\%(Filename)%(Extension)" />
+    <Compile Include="..\App\Speech\OfflineWhisper*.cs" Link="Speech\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,4 +2,5 @@
 **/obj/
 .vs/
 App/AppPackages/
+App/Models/Speakers/
 *.user

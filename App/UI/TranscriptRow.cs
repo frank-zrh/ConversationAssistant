@@ -15,11 +15,13 @@ public sealed class TranscriptRow(TranscriptSegment segment,
     private bool _selected;
     public Guid Id => segment.Id;
     public string Time => segment.TimestampStart.ToLocalTime().ToString("HH:mm:ss");
+    public string SpeakerText => TranscriptSpeaker.Label(segment.SpeakerNumber, Texts);
+    public string CopyText => $"{Time}  {SpeakerText}: {Text}";
     public string Text => segment.Text;
     public Guid? QuestionId { get; private set; }
     public UiText Texts { get; private set; } = UiText.For(language);
     public string StatusText => TranscriptCardAppearance.For(_status, Texts.Language).StatusText;
-    public string AutomationLabel => $"{Time} {Text} — {StatusText}";
+    public string AutomationLabel => $"{Time} {SpeakerText}: {Text} — {StatusText}";
     public Brush CardBackground
     {
         get
@@ -47,7 +49,7 @@ public sealed class TranscriptRow(TranscriptSegment segment,
     public void UpdateLanguage(UiText texts)
     {
         Texts = texts;
-        Notify(nameof(Texts), nameof(StatusText), nameof(AutomationLabel));
+        Notify(nameof(Texts), nameof(SpeakerText), nameof(CopyText), nameof(StatusText), nameof(AutomationLabel));
     }
 
     public void UpdateRequest(QuestionRequest request)

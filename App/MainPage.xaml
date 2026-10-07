@@ -72,8 +72,17 @@
             <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" MaxWidth="320">
                 <TextBlock Text="{Binding AuthText}" TextWrapping="Wrap" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button Content="{Binding SignInButtonText}" IsEnabled="{Binding CanSignIn}"
-                          Click="SignIn_Click" />
+                  <Button x:Name="SignInButton" IsEnabled="{Binding CanSignIn}" Click="SignIn_Click"
+                          AutomationProperties.Name="{Binding SignInButtonText}"
+                          ToolTipService.ToolTip="{Binding SignInButtonHint}">
+                      <Grid>
+                          <TextBlock x:Name="SignedInCaption" Text="{Binding SignInButtonText}"
+                                     Visibility="{Binding SignedInVisibility}"
+                                     Foreground="{ThemeResource SystemFillColorSuccessBrush}" FontWeight="SemiBold" />
+                          <TextBlock x:Name="SignInCaption" Text="{Binding SignInButtonText}"
+                                     Visibility="{Binding SignInVisibility}" />
+                      </Grid>
+                  </Button>
                   <Button Content="{Binding Texts[Settings]}" Click="Settings_Click" />
                 </StackPanel>
             </StackPanel>
@@ -140,10 +149,13 @@
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="{Binding Time}" Opacity=".75" FontSize="12"
                                                        Foreground="#1F2937" FontFamily="Consolas" />
-                                            <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="12"
+                                            <TextBlock Grid.Column="1" Text="{Binding SpeakerText}" FontSize="12"
+                                                       Foreground="#1F2937" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="12"
                                                        Foreground="#374151" HorizontalAlignment="Right"
                                                        TextWrapping="Wrap" />
                                         </Grid>
@@ -276,6 +288,7 @@
                     <ScrollViewer MaxHeight="380" Width="360">
                         <StackPanel Spacing="12" Padding="4,10">
                             <TextBlock Text="{Binding ModelStatus}" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Texts[SpeakerAccuracyHint]}" TextWrapping="Wrap" Opacity=".7" />
                             <StackPanel Spacing="8">
                                 <TextBlock Text="{Binding Texts[SpeechSection]}" FontWeight="SemiBold" />
                                 <ComboBox Header="{Binding Texts[SpeechProvider]}" HorizontalAlignment="Stretch"

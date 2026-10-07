@@ -5,6 +5,7 @@ using ConversationAssistant_App.Authentication;
 using Azure.Core;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
+using Microsoft.CognitiveServices.Speech.Transcription;
 
 namespace ConversationAssistant_App.Speech;
 
@@ -21,6 +22,7 @@ public sealed class AzureSpeechSessionFactory(ISpeechCredentialProvider identity
         var configuration = SpeechConfig.FromEndpoint(uri, credential);
         configuration.SpeechRecognitionLanguage = language == ConversationLanguage.Chinese ? "zh-CN" : "en-US";
         configuration.SetProperty(PropertyId.Speech_SegmentationSilenceTimeoutMs, "800");
+        configuration.SetProperty(PropertyId.SpeechServiceResponse_DiarizeIntermediateResults, "true");
         return configuration;
     }
 
@@ -43,7 +45,8 @@ internal sealed class AzureSpeechSession : IAzureSpeechSession
     private readonly AudioStreamFormat _format;
     private readonly PushAudioInputStream _input;
     private readonly AudioConfig _audio;
-    private readonly SpeechRecognizer _recognizer;
+    private readonly ConversationTranscriber _recognizer;
+    private readonly string _speakerSession = Guid.NewGuid().ToString("N");
     private readonly ConversationLanguage _language;
     private readonly Connection _connection;
     private readonly TaskCompletionSource _connected = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -58,16 +61,21 @@ internal sealed class AzureSpeechSession : IAzureSpeechSession
     public event Action<SpeechConnectionException>? Failed;
 
     public AzureSpeechSession(SpeechServiceConfiguration settings, ConversationLanguage language, TokenCredential credential)
+        : this(AzureSpeechSessionFactory.CreateConfiguration(settings, language, credential), language)
     {
-        settings.ValidateForAzure();
+    }
+
+    internal AzureSpeechSession(SpeechConfig configuration, ConversationLanguage language)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
         _language = language;
-        _configuration = AzureSpeechSessionFactory.CreateConfiguration(settings, language, credential);
+        _configuration = configuration;
         try
         {
             _format = AudioStreamFormat.GetWaveFormatPCM(16000, 16, 1);
             _input = AudioInputStream.CreatePushStream(_format);
             _audio = AudioConfig.FromStreamInput(_input);
-            _recognizer = new SpeechRecognizer(_configuration, _audio);
+            _recognizer = new ConversationTranscriber(_configuration, _audio);
             _connection = Connection.FromRecognizer(_recognizer);
         }
         catch
@@ -80,12 +88,12 @@ internal sealed class AzureSpeechSession : IAzureSpeechSession
             throw;
         }
         _connection.Connected += (_, _) => _connected.TrySetResult();
-        _recognizer.Recognizing += (_, args) =>
+        _recognizer.Transcribing += (_, args) =>
         {
             if (Volatile.Read(ref _stopping) == 0 && ToSpeech(args.Result) is { } speech)
                 Partial?.Invoke(speech);
         };
-        _recognizer.Recognized += (_, args) =>
+        _recognizer.Transcribed += (_, args) =>
         {
             if (Volatile.Read(ref _stopping) == 0 && args.Result.Reason == ResultReason.RecognizedSpeech &&
                 ToSpeech(args.Result) is { } speech)
@@ -105,10 +113,14 @@ internal sealed class AzureSpeechSession : IAzureSpeechSession
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        var stage = AzureSpeechDiagnostics.StartupStage.Transcription;
         try
         {
-            await ConnectAsync(cancellationToken).ConfigureAwait(false);
-            await _recognizer.StartContinuousRecognitionAsync().WaitAsync(cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            // ConversationTranscriber opens its own connection; preopening it fails with SPXERR_NOT_FOUND.
+            await _recognizer.StartTranscribingAsync().WaitAsync(cancellationToken).ConfigureAwait(false);
+            stage = AzureSpeechDiagnostics.StartupStage.Connection;
+            await _connected.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
             if (_failure is { } failure) throw failure;
         }
         catch (Exception error) when (error is not SpeechConnectionException &&
@@ -116,15 +128,8 @@ internal sealed class AzureSpeechSession : IAzureSpeechSession
             System.Runtime.InteropServices.COMException or System.Net.Http.HttpRequestException)
         {
             // SDK details can contain request headers or URI data; surface only a safe message.
-            throw new SpeechConnectionException(AzureSpeechDiagnostics.Initialization(error));
+            throw new SpeechConnectionException(AzureSpeechDiagnostics.Initialization(error, stage));
         }
-    }
-
-    internal async Task ConnectAsync(CancellationToken cancellationToken)
-    {
-        _connection.Open(forContinuousRecognition: true);
-        await _connected.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
-        if (_failure is { } failure) throw failure;
     }
 
     public void Write(byte[] pcm)
@@ -142,7 +147,7 @@ internal sealed class AzureSpeechSession : IAzureSpeechSession
     {
         Interlocked.Exchange(ref _stopping, 1);
         _input.Close();
-        try { await _recognizer.StopContinuousRecognitionAsync().WaitAsync(cancellationToken).ConfigureAwait(false); }
+        try { await _recognizer.StopTranscribingAsync().WaitAsync(cancellationToken).ConfigureAwait(false); }
         catch (ApplicationException)
         {
             throw new SpeechConnectionException("Azure Speech 停止时发生错误，连接将释放。");
@@ -160,16 +165,26 @@ internal sealed class AzureSpeechSession : IAzureSpeechSession
         _format.Dispose();
     }
 
-    private SpeechText? ToSpeech(SpeechRecognitionResult result)
+    private SpeechText? ToSpeech(ConversationTranscriptionResult result)
     {
-        if (string.IsNullOrWhiteSpace(result.Text)) return null;
-        var text = SpeechTextNormalizer.Normalize(_language == ConversationLanguage.Chinese
-            ? ChineseScriptConverter.ToSimplified(result.Text) : result.Text, _language);
-        if (string.IsNullOrWhiteSpace(text)) return null;
         var origin = Interlocked.Read(ref _audioOriginUtcTicks);
-        var start = (origin == 0 ? DateTimeOffset.UtcNow : new DateTimeOffset(origin, TimeSpan.Zero)) +
-            TimeSpan.FromTicks(checked((long)result.OffsetInTicks));
-        return new SpeechText(text, start, start + result.Duration);
+        return CreateSpeechText(result.Text, result.OffsetInTicks, result.Duration, result.SpeakerId,
+            _language, origin == 0 ? DateTimeOffset.UtcNow : new DateTimeOffset(origin, TimeSpan.Zero), _speakerSession);
+    }
+
+    internal static SpeechText? CreateSpeechText(string text, long offset, TimeSpan duration, string? speakerId,
+        ConversationLanguage language, DateTimeOffset audioOrigin, string speakerSession)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        text = SpeechTextNormalizer.Normalize(language == ConversationLanguage.Chinese
+            ? ChineseScriptConverter.ToSimplified(text) : text, language);
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var start = audioOrigin + TimeSpan.FromTicks(offset);
+        speakerId = speakerId?.Trim();
+        var identified = !string.IsNullOrWhiteSpace(speakerId) &&
+            !speakerId.Equals("Unknown", StringComparison.OrdinalIgnoreCase);
+        // Service guest IDs restart with each connection; never imply identity across a reconnect.
+        return new SpeechText(text, start, start + duration, identified ? $"{speakerSession}:{speakerId}" : null);
     }
 
     private void SignalFailure(string message)

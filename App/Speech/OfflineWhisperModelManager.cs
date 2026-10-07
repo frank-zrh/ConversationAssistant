@@ -10,6 +10,8 @@ public sealed class OfflineWhisperModelManager
 
     public string ModelPath => Path.Combine(AppContext.BaseDirectory, "Models", "ggml-small.bin");
 
+    public OfflineSpeakerModelPaths ValidateSpeakerModels() => new OfflineSpeakerModelManager().Validate();
+
     public IReadOnlyList<ConversationLanguage> AvailableLanguages() =>
         File.Exists(ModelPath) && new FileInfo(ModelPath).Length == ModelBytes
             ? [ConversationLanguage.Chinese, ConversationLanguage.English]

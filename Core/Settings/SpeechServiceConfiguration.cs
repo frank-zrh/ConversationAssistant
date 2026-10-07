@@ -89,8 +89,8 @@ public static class AzureSpeechEndpoint
     public static Uri GetSdkUri(string value)
     {
         var portalUri = Parse(value);
-        // TokenCredential authentication uses the custom resource endpoint; the SDK owns the transport.
-        return new UriBuilder(portalUri) { Scheme = "https", Port = -1 }.Uri;
+        // Let ConversationTranscriber select its transport instead of pinning a saved v1 recognition path.
+        return new UriBuilder(portalUri) { Scheme = "https", Port = -1, Path = "/" }.Uri;
     }
 
     public static bool AreEquivalent(string first, string second) =>

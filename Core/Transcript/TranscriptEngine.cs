@@ -16,6 +16,7 @@ public sealed class TranscriptEngine : ITranscriptEngine
 {
     private readonly object _gate = new();
     private readonly List<TranscriptSegment> _segments = [];
+    private readonly Dictionary<string, int> _speakers = new(StringComparer.Ordinal);
     private TranscriptSegment? _partial;
 
     public event Action<TranscriptSegment?>? Updated;
@@ -29,19 +30,22 @@ public sealed class TranscriptEngine : ITranscriptEngine
     public void ReceivePartial(SpeechText speech)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(speech.Text);
-        var segment = new TranscriptSegment(Guid.NewGuid(), speech.Start, speech.End,
-            speech.Text.Trim(), "Microphone", false);
-        lock (_gate) _partial = segment;
+        TranscriptSegment segment;
+        lock (_gate)
+        {
+            segment = CreateSegment(speech, false);
+            _partial = segment;
+        }
         Updated?.Invoke(segment);
     }
 
     public TranscriptSegment CommitFinal(SpeechText speech)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(speech.Text);
-        var segment = new TranscriptSegment(Guid.NewGuid(), speech.Start, speech.End,
-            speech.Text.Trim(), "Microphone", true);
+        TranscriptSegment segment;
         lock (_gate)
         {
+            segment = CreateSegment(speech, true);
             _partial = null;
             _segments.Add(segment);
         }
@@ -55,8 +59,23 @@ public sealed class TranscriptEngine : ITranscriptEngine
         lock (_gate)
         {
             _segments.Clear();
+            _speakers.Clear();
             _partial = null;
         }
         Updated?.Invoke(null);
+    }
+
+    private TranscriptSegment CreateSegment(SpeechText speech, bool final)
+    {
+        int? number = null;
+        if (!string.IsNullOrWhiteSpace(speech.SpeakerId) &&
+            !speech.SpeakerId.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!_speakers.TryGetValue(speech.SpeakerId, out var known))
+                _speakers.Add(speech.SpeakerId, known = _speakers.Count + 1);
+            number = known;
+        }
+        return new TranscriptSegment(Guid.NewGuid(), speech.Start, speech.End, speech.Text.Trim(),
+            "Microphone", final, number);
     }
 }

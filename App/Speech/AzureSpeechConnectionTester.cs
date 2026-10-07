@@ -2,6 +2,8 @@ using ConversationAssistant.Core.Models;
 using ConversationAssistant.Core.Settings;
 using ConversationAssistant.Core.Speech;
 using ConversationAssistant_App.Authentication;
+using Microsoft.CognitiveServices.Speech;
+using Microsoft.CognitiveServices.Speech.Audio;
 
 namespace ConversationAssistant_App.Speech;
 
@@ -15,11 +17,13 @@ public sealed class AzureSpeechConnectionTester(ISpeechSettingsStore settings, I
         configuration.ValidateForAzure();
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(20));
+        var stage = AzureSpeechDiagnostics.StartupStage.Initialization;
         try
         {
-            using var session = new AzureSpeechSession(configuration, language, identity.GetCredential(configuration));
-            // Establish only the SDK connection: no microphone, audio writes or recognition start.
-            await session.ConnectAsync(deadline.Token).ConfigureAwait(false);
+            var sdkConfiguration = AzureSpeechSessionFactory.CreateConfiguration(
+                configuration, language, identity.GetCredential(configuration));
+            stage = AzureSpeechDiagnostics.StartupStage.Connection;
+            await ConnectAsync(sdkConfiguration, deadline.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -30,7 +34,25 @@ public sealed class AzureSpeechConnectionTester(ISpeechSettingsStore settings, I
             error is ApplicationException or ArgumentException or InvalidOperationException or
             System.Runtime.InteropServices.COMException)
         {
-            throw new SpeechConnectionException(AzureSpeechDiagnostics.Initialization(error));
+            throw new SpeechConnectionException(AzureSpeechDiagnostics.Initialization(error, stage));
         }
+    }
+
+    internal static async Task ConnectAsync(SpeechConfig configuration, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var format = AudioStreamFormat.GetWaveFormatPCM(16000, 16, 1);
+        using var input = AudioInputStream.CreatePushStream(format);
+        using var audio = AudioConfig.FromStreamInput(input);
+        // Unlike ConversationTranscriber, SpeechRecognizer supports connection-only preopening.
+        using var recognizer = new SpeechRecognizer(configuration, audio);
+        using var connection = Connection.FromRecognizer(recognizer);
+        var connected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.Connected += (_, _) => connected.TrySetResult();
+        recognizer.Canceled += (_, args) => connected.TrySetException(new SpeechConnectionException(
+            AzureSpeechDiagnostics.Cancellation(args.ErrorCode, args.ErrorDetails)));
+        // No microphone, audio writes or recognition start are needed to test the connection.
+        connection.Open(forContinuousRecognition: true);
+        await connected.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
     }
 }

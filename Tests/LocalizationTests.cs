@@ -120,6 +120,49 @@ public sealed class LocalizationTests
     }
 
     [TestMethod]
+    public void MissingOfflineSpeakerModelGuidanceFollowsTheListeningLanguage()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"missing-speaker-models-{Guid.NewGuid():N}");
+        var error = Assert.Throws<FileNotFoundException>(() => new OfflineSpeakerModelManager(directory).Validate());
+        var message = UiMessage.FromDiagnostic(error.Message)!;
+
+        Assert.AreEqual("ErrorSpeakerModelMissing", message.Key);
+        Assert.AreEqual(English["ErrorSpeakerModelMissing"], message.Resolve(English));
+        Assert.AreEqual(Chinese["ErrorSpeakerModelMissing"], message.Resolve(Chinese));
+        StringAssert.Contains(message.Resolve(Chinese), "Install-OfflineSpeakerModels.ps1");
+        StringAssert.Contains(message.Resolve(Chinese), "监听时不会自动下载模型");
+    }
+
+    [TestMethod]
+    [DataRow("Offline speaker separation returned invalid turn boundaries. Pause and resume; reinstall the speaker models if this repeats.",
+        "ErrorSpeakerBoundaries")]
+    [DataRow("Offline speaker separation requires short 16 kHz mono audio windows (at most 15 seconds). Pause and resume after checking the audio source.",
+        "ErrorSpeakerWindow")]
+    [DataRow("Offline speaker separation requires normalized 16 kHz mono PCM audio. Select a supported microphone or loopback source.",
+        "ErrorSpeakerPcm")]
+    [DataRow("Offline speaker separation reached its session limit. Pause and resume to start a new speaker session.",
+        "ErrorSpeakerSessionLimit")]
+    [DataRow("Offline speaker separation requires the Windows x64 build. Install that build or select Azure Speech explicitly.",
+        "ErrorSpeakerPlatform")]
+    [DataRow("Offline speaker models are incompatible. Run App\\Speech\\Install-OfflineSpeakerModels.ps1 and rebuild.",
+        "ErrorSpeakerModelsIncompatible")]
+    [DataRow("Offline speaker separation could not load its local models or native runtime. Reinstall the Windows x64 app and Microsoft Visual C++ x64 runtime, and run App\\Speech\\Install-OfflineSpeakerModels.ps1 before rebuilding.",
+        "ErrorSpeakerRuntime")]
+    [DataRow("Offline speaker separation returned invalid timing. Pause and resume; reinstall the speaker models if this repeats.",
+        "ErrorSpeakerTiming")]
+    [DataRow("Offline speaker separation could not extract a valid voice embedding. Check the audio source and reinstall the speaker models if this repeats.",
+        "ErrorSpeakerEmbedding")]
+    [DataRow("Offline speech recognition or speaker separation stopped. Check the audio source and CPU load, then pause and resume. Reinstall the local speaker models if this repeats.",
+        "ErrorWhisperSpeakerStopped")]
+    public void OfflineSpeakerDiagnosticsTranslateWithoutLosingRecoveryGuidance(string diagnostic, string key)
+    {
+        var message = UiMessage.FromDiagnostic(diagnostic)!;
+        Assert.AreEqual(key, message.Key);
+        Assert.AreEqual(English[key], message.Resolve(English));
+        Assert.AreEqual(Chinese[key], message.Resolve(Chinese));
+    }
+
+    [TestMethod]
     public void ExistingSettingsErrorsAreTranslatedWithoutChangingExceptionContracts()
     {
         var missingEndpoint = Assert.Throws<InvalidOperationException>(() =>

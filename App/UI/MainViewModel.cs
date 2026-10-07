@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using ConversationAssistant.Core.Conversation;
 using ConversationAssistant.Core.Localization;
 using ConversationAssistant.Core.Models;
+using ConversationAssistant.Core.Transcript;
 using ConversationAssistant.Core.Settings;
 using ConversationAssistant.Core.WorkIQ;
 using ConversationAssistant_App.Speech;
@@ -68,7 +69,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private AudioDeviceRow? _selectedOutputDevice;
     private bool _refreshingDevices;
     private ConversationUiState _state = ConversationUiState.Idle;
-    private string _partialText = "";
+    private TranscriptSegment? _partialSegment;
     private UiMessage? _lastError;
     private bool _speechSettingsLoadFailed;
     private string _timerText = "00:00";
@@ -132,7 +133,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             SuggestedQuestions.Clear();
             SelectedAnswer = null;
             _followNewestAnswers = true;
-            PartialText = "";
+            SetPartial(null);
             TimerText = "00:00";
             RefreshAnalysis();
         });
@@ -195,7 +196,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
             foreach (var row in AudioDevices) row.UpdateLanguage(Texts);
             foreach (var row in OutputDevices) row.UpdateLanguage(Texts);
             Notify(nameof(Texts), nameof(SpeechLanguageIndex), nameof(StatusText), nameof(ListeningText),
-                nameof(AuthText), nameof(SignInButtonText), nameof(SpeechConnectionButtonText),
+                nameof(AuthText), nameof(SignInButtonText), nameof(SignInButtonHint), nameof(PartialText),
+                nameof(SpeechConnectionButtonText),
                 nameof(SpeechEndpointPreview), nameof(SpeechSettingsStatus), nameof(ModelStatus),
                 nameof(ScrollText), nameof(LastError), nameof(AnalysisStatus), nameof(AnalysisError),
                 nameof(PendingAnalysisText), nameof(AnalysisScheduleText));
@@ -251,7 +253,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 : Texts[_speechIdentity.IsSignedIn ? "AuthEntraReady" : "AuthEntraNotSignedIn"] + " · " + work;
         }
     }
-    public string SignInButtonText => Texts[_verifying ? "SigningIn" : "SignIn"];
+    public bool IsSignedIn => !_verifying && _auth.IsSignedIn &&
+        (_savedSpeech.Provider == SpeechProvider.OfflineWhisper || _speechIdentity.IsSignedIn);
+    public string SignInButtonText => Texts[_verifying ? "SigningIn" : IsSignedIn ? "SignedIn" : "SignIn"];
+    public string SignInButtonHint => IsSignedIn ? Texts["SignedInHint"] : AuthText;
+    public Visibility SignedInVisibility => IsSignedIn ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility SignInVisibility => IsSignedIn ? Visibility.Collapsed : Visibility.Visible;
     public bool CanSignIn => !_verifying && _conversation.Session is null && !_starting &&
         !_savingSpeechSettings && !_testingSpeechConnection;
     public bool CanStart => _conversation.Session is null && !_starting && !_savingSpeechSettings &&
@@ -365,7 +372,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private void SetSpeechError(string message) =>
         Set(ref _speechSettingsStatus, UiMessage.FromDiagnostic(message), nameof(SpeechSettingsStatus));
     public string TimerText { get => _timerText; private set => Set(ref _timerText, value); }
-    public string PartialText { get => _partialText; private set => Set(ref _partialText, value); }
+    public string PartialText => _partialSegment is { } partial
+        ? $"{TranscriptSpeaker.Label(partial.SpeakerNumber, Texts)}: {partial.Text}" : "";
     public string LastError
     {
         get => _lastError?.Resolve(Texts) ?? "";
@@ -635,7 +643,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         SetSpeechStatus(azure ? ready ? "SettingsReadyAzure" : "SettingsMissingAzure" : "SettingsReadyWhisper");
     }
 
-    private void UpdateAuthenticationStatus() => Notify(nameof(AuthText));
+    private void UpdateAuthenticationStatus() => Notify(nameof(AuthText), nameof(IsSignedIn),
+        nameof(SignInButtonText), nameof(SignInButtonHint), nameof(SignedInVisibility), nameof(SignInVisibility));
 
     public async Task TestSpeechConnectionAsync()
     {
@@ -749,7 +758,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public void ClearTranscript()
     {
-        try { _conversation.ClearTranscript(); TranscriptItems.Clear(); PartialText = ""; }
+        try { _conversation.ClearTranscript(); TranscriptItems.Clear(); SetPartial(null); }
         catch (InvalidOperationException ex) { LastError = ex.Message; }
     }
 
@@ -776,7 +785,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnTranscriptUpdate(TranscriptSegment? partial)
     {
-        PartialText = partial?.Text ?? "";
+        SetPartial(partial);
         var finalized = _conversation.TranscriptSegments;
         if (TranscriptItems.Count > finalized.Count) TranscriptItems.Clear();
         for (var i = TranscriptItems.Count; i < finalized.Count; i++)
@@ -790,6 +799,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
             TranscriptItems.Add(card);
         }
         if (!_scrollPaused) TranscriptScrollRequested?.Invoke();
+    }
+
+    private void SetPartial(TranscriptSegment? partial)
+    {
+        _partialSegment = partial;
+        Notify(nameof(PartialText));
     }
 
     private void OnAnswerUpdate(QuestionRequest request)

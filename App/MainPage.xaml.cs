@@ -383,7 +383,7 @@ public sealed partial class MainPage : Page
 
     private void CopyTranscript_Click(object sender, RoutedEventArgs e) =>
         Copy(string.Join(Environment.NewLine, _viewModel.TranscriptItems
-            .Select(x => $"{x.Time}  {x.Text}")));
+            .Select(x => x.CopyText)));
 
     private void CopyAnswer_Click(object sender, RoutedEventArgs e)
     {
