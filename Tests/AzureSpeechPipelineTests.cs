@@ -192,8 +192,9 @@ public sealed class AzureSpeechPipelineTests
         public event Action? AudioStopped { add { } remove { } }
         public event Action? AudioDeviceChanged { add { } remove { } }
         public int Stops { get; private set; }
-        public IReadOnlyList<AudioDevice> ListDevices() => [new("test", "Fake microphone")];
-        public void Start(string? deviceId) { }
+        public IReadOnlyList<AudioDevice> ListDevices(AudioDeviceKind kind = AudioDeviceKind.Input) =>
+            kind == AudioDeviceKind.Input ? [new("test", "Fake microphone")] : [new("test-output", "Fake speakers")];
+        public void Start(AudioCaptureOptions options) { }
         public void Stop() => Stops++;
     }
 

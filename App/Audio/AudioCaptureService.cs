@@ -1,19 +1,29 @@
+using System.Runtime.InteropServices;
+using ConversationAssistant.Core.Audio;
 using ConversationAssistant.Core.Conversation;
+using ConversationAssistant.Core.Localization;
 using ConversationAssistant.Core.Models;
-using NAudio;
-using NAudio.CoreAudioApi;
-using NAudio.Wave;
 
 namespace ConversationAssistant_App.Audio;
 
 public sealed class AudioCaptureService : IAudioCaptureService, IDisposable
 {
-    private readonly object _gate = new();
-    private WaveInEvent? _capture;
-    private Timer? _deviceTimer;
-    private string _deviceSignature = "";
-    private string? _selectedName;
-    private string? _defaultEndpointId;
+    private static readonly UiText Texts = UiText.For(ConversationLanguage.English);
+    private static readonly TimeSpan FrameDuration = TimeSpan.FromMilliseconds(100);
+    private const int MaximumFramesPerWake = Pcm16AudioMixer.MaximumBufferedSamples / Pcm16AudioMixer.SamplesPerFrame;
+    private readonly object _lifecycle = new();
+    private readonly ISharedAudioDeviceFactory _devices;
+    private readonly TimeProvider _clock;
+    private CaptureRun? _active;
+    private bool _disposed;
+
+    public AudioCaptureService() : this(new WasapiAudioDeviceFactory(), TimeProvider.System) { }
+
+    internal AudioCaptureService(ISharedAudioDeviceFactory devices, TimeProvider clock)
+    {
+        _devices = devices;
+        _clock = clock;
+    }
 
     public event Action<byte[]>? AudioDataAvailable;
     public event Action<Exception>? AudioError;
@@ -21,130 +31,247 @@ public sealed class AudioCaptureService : IAudioCaptureService, IDisposable
     public event Action? AudioStopped;
     public event Action? AudioDeviceChanged;
 
-    public IReadOnlyList<AudioDevice> ListDevices()
-    {
-        if (WaveIn.DeviceCount == 0) return [];
-        return [new AudioDevice("default", "Default microphone"),
-            .. Enumerable.Range(0, WaveIn.DeviceCount)
-                .Select(i => new AudioDevice(i.ToString(), WaveIn.GetCapabilities(i).ProductName))];
-    }
+    public IReadOnlyList<AudioDevice> ListDevices(AudioDeviceKind kind = AudioDeviceKind.Input) =>
+        _devices.ListDevices(kind);
 
-    public void Start(string? deviceId)
+    public void Start(AudioCaptureOptions options)
     {
-        var devices = ListDevices();
-        if (devices.Count == 0) throw new InvalidOperationException(
-            "No microphone found. Connect one and grant Windows microphone access.");
-        var selected = deviceId is null ? devices[0] :
-            devices.FirstOrDefault(x => x.Id == deviceId) ??
-            throw new InvalidOperationException("Selected microphone is no longer connected.");
-        var signature = GetSignature(devices);
-        var defaultId = selected.Id == "default" ? GetDefaultEndpointId() : null;
-        lock (_gate)
+        ArgumentNullException.ThrowIfNull(options);
+        options.Validate();
+        lock (_lifecycle)
         {
-            if (_capture is not null) throw new InvalidOperationException("Microphone is already active.");
-            var capture = new WaveInEvent
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (_active is not null) throw new AudioCaptureException(Texts["ErrorAudioAlreadyActive"]);
+            var run = new CaptureRun(options);
+            _active = run;
+            try
             {
-                DeviceNumber = selected.Id == "default" ? -1 : int.Parse(selected.Id),
-                WaveFormat = new WaveFormat(16000, 16, 1),
-                BufferMilliseconds = 100
-            };
-            capture.DataAvailable += OnDataAvailable;
-            capture.RecordingStopped += OnRecordingStopped;
-            try { capture.StartRecording(); }
-            catch
+                if (options.IncludesMicrophone) AddSource(run, AudioDeviceKind.Input, options.InputDeviceId);
+                if (options.IncludesSystemAudio) AddSource(run, AudioDeviceKind.Output, options.OutputDeviceId);
+                foreach (var source in run.Sources) source.Endpoint.Start();
+                if (run.Failure is { } failure) throw failure;
+                var startedAt = _clock.GetTimestamp();
+                ObserveFailure(run, Task.Run(() => PumpAsync(run, startedAt)));
+                AudioStarted?.Invoke();
+            }
+            catch (Exception startupError)
             {
-                capture.DataAvailable -= OnDataAvailable;
-                capture.RecordingStopped -= OnRecordingStopped;
-                capture.Dispose();
+                if (ReferenceEquals(_active, run))
+                {
+                    _active = null;
+                    try { Release(run); }
+                    catch (AudioCaptureException cleanupError)
+                    {
+                        throw new AudioCaptureException(Texts["ErrorAudioRelease"],
+                            new AggregateException(startupError, cleanupError));
+                    }
+                }
                 throw;
             }
-            _capture = capture;
-            _selectedName = selected.Name;
-            _defaultEndpointId = defaultId;
-            _deviceSignature = signature;
-            _deviceTimer = new Timer(CheckDevices, null, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3));
         }
-        AudioStarted?.Invoke();
+    }
+
+    private void AddSource(CaptureRun run, AudioDeviceKind kind, string? selectedId)
+    {
+        var devices = _devices.ListDevices(kind);
+        var endpoint = _devices.Open(kind, selectedId);
+        void OnData(ReadOnlyMemory<byte> bytes)
+        {
+            if (run.Token.IsCancellationRequested) return;
+            try { run.Mixer.Add(kind, bytes.Span); }
+            catch (AudioCaptureException error) { Fail(run, error); }
+        }
+        void OnStopped(Exception? error) => Fail(run, error is null
+            ? new AudioCaptureException(Texts["ErrorAudioStopped"])
+            : new AudioCaptureException(Texts.Format("ErrorAudioStoppedCode", $"0x{error.HResult:X8}"), error));
+        run.Sources.Add(new CaptureSource(kind, selectedId ?? "default", endpoint, devices, OnData, OnStopped));
+        endpoint.DataAvailable += OnData;
+        endpoint.Stopped += OnStopped;
+    }
+
+    private async Task PumpAsync(CaptureRun run, long startedAt)
+    {
+        using var timer = new PeriodicTimer(FrameDuration, _clock);
+        long framesDelivered = 0;
+        var lastDeviceCheck = _clock.GetUtcNow();
+        try
+        {
+            while (!run.Token.IsCancellationRequested &&
+                await timer.WaitForNextTickAsync(run.Token).ConfigureAwait(false))
+            {
+                // Timer ticks can be late or coalesced; sample duration follows elapsed time, not tick count.
+                var elapsedFrames = _clock.GetElapsedTime(startedAt).Ticks / FrameDuration.Ticks;
+                var framesDue = (int)Math.Clamp(elapsedFrames - framesDelivered, 0, MaximumFramesPerWake);
+                for (var frame = 0; frame < framesDue; frame++)
+                {
+                    lock (_lifecycle)
+                    {
+                        if (run.Token.IsCancellationRequested || !ReferenceEquals(_active, run)) return;
+                        // Serialize delivery with Stop/Start so a stopped run cannot feed a new speech session.
+                        framesDelivered++;
+                        AudioDataAvailable?.Invoke(run.Mixer.ReadFrame());
+                    }
+                }
+                lock (_lifecycle)
+                {
+                    if (run.Token.IsCancellationRequested) return;
+                    if (_clock.GetUtcNow() - lastDeviceCheck < TimeSpan.FromSeconds(3) ||
+                        !run.DeviceCheck.IsCompletedSuccessfully) continue;
+                    lastDeviceCheck = _clock.GetUtcNow();
+                    run.DeviceCheck = Task.Run(() => CheckDevices(run));
+                    ObserveFailure(run, run.DeviceCheck);
+                }
+            }
+        }
+        catch (OperationCanceledException) when (run.Token.IsCancellationRequested) { }
+    }
+
+    private void CheckDevices(CaptureRun run)
+    {
+        foreach (var source in run.Sources)
+        {
+            if (run.Token.IsCancellationRequested) return;
+            // Endpoint enumeration can take hundreds of milliseconds; never hold the delivery lock while querying it.
+            var devices = _devices.ListDevices(source.Kind);
+            lock (_lifecycle)
+            {
+                if (run.Token.IsCancellationRequested || !ReferenceEquals(_active, run)) return;
+                if (!devices.SequenceEqual(source.Devices))
+                {
+                    source.Devices = devices;
+                    AudioDeviceChanged?.Invoke();
+                    if (run.Token.IsCancellationRequested) return;
+                }
+                if (devices.FirstOrDefault(device => device.Id == source.SelectedId)?.EffectiveId != source.Endpoint.EndpointId)
+                    throw new AudioCaptureException(Texts["ErrorAudioDeviceChanged"]);
+            }
+        }
+    }
+
+    private void ObserveFailure(CaptureRun run, Task worker)
+    {
+        _ = worker.ContinueWith(task =>
+        {
+            var error = task.Exception!.GetBaseException();
+            Fail(run, error is AudioCaptureException ? error :
+                new AudioCaptureException(Texts.Format("ErrorAudioStoppedCode", $"0x{error.HResult:X8}"), error));
+        }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
+    }
+
+    private void Fail(CaptureRun run, Exception error)
+    {
+        if (run.Token.IsCancellationRequested || Interlocked.CompareExchange(ref run.Failure, error, null) is not null)
+            return;
+        run.RequestStop();
+        // Native Dispose joins its capture thread, so never release endpoints from their own callbacks.
+        _ = Task.Run(() =>
+        {
+            lock (_lifecycle)
+            {
+                if (!ReferenceEquals(_active, run)) return;
+                _active = null;
+                try { Release(run); }
+                catch (AudioCaptureException cleanup)
+                {
+                    error = new AudioCaptureException(Texts["ErrorAudioRelease"], new AggregateException(error, cleanup));
+                }
+                AudioError?.Invoke(error);
+                if (_active is null) AudioStopped?.Invoke();
+            }
+        });
     }
 
     public void Stop()
     {
-        WaveInEvent? capture;
-        lock (_gate)
+        lock (_lifecycle)
         {
-            _deviceTimer?.Dispose();
-            _deviceTimer = null;
-            capture = _capture;
-            _capture = null;
-            _selectedName = null;
-            _defaultEndpointId = null;
-        }
-        if (capture is null) return;
-        capture.DataAvailable -= OnDataAvailable;
-        capture.RecordingStopped -= OnRecordingStopped;
-        try { capture.StopRecording(); }
-        finally
-        {
-            capture.Dispose();
-            AudioStopped?.Invoke();
+            if (_active is not { } run) return;
+            _active = null;
+            try { Release(run); }
+            finally { AudioStopped?.Invoke(); }
         }
     }
 
-    private void OnDataAvailable(object? sender, WaveInEventArgs e)
+    private static void Release(CaptureRun run)
     {
-        if (e.BytesRecorded == 0) return;
-        var audio = new byte[e.BytesRecorded];
-        Buffer.BlockCopy(e.Buffer, 0, audio, 0, audio.Length);
-        try { AudioDataAvailable?.Invoke(audio); }
-        catch (InvalidOperationException ex) { AudioError?.Invoke(ex); }
-    }
-
-    private void OnRecordingStopped(object? sender, StoppedEventArgs e)
-    {
-        if (e.Exception is not null)
+        run.RequestStop();
+        foreach (var source in run.Sources)
         {
-            AudioError?.Invoke(e.Exception);
-            Stop();
+            source.Endpoint.DataAvailable -= source.OnData;
+            source.Endpoint.Stopped -= source.OnStopped;
         }
-    }
-
-    private void CheckDevices(object? state)
-    {
-        IReadOnlyList<AudioDevice> devices;
-        string signature;
+        // The pump checks cancellation under the lifecycle lock; joining it here would deadlock callback-driven Stop.
+        var failures = new List<Exception>();
         try
         {
-            devices = ListDevices();
-            signature = GetSignature(devices);
+            foreach (var source in run.Sources)
+            {
+                try { source.Endpoint.Dispose(); }
+                catch (Exception error) when (error is InvalidOperationException or COMException or IOException)
+                {
+                    failures.Add(error);
+                }
+            }
         }
-        catch (Exception ex) when (ex is MmException or System.Runtime.InteropServices.COMException)
+        finally
         {
-            Stop();
-            AudioError?.Invoke(ex);
-            return;
+            run.Mixer.Clear();
+            run.DisposeCancellation();
         }
-        if (signature == _deviceSignature) return;
-        _deviceSignature = signature;
-        AudioDeviceChanged?.Invoke();
-        if ((_defaultEndpointId is not null && _defaultEndpointId != GetDefaultEndpointId()) ||
-            (_selectedName is not null && !devices.Any(x => x.Name == _selectedName)))
-        {
-            Stop();
-            AudioError?.Invoke(new InvalidOperationException(
-                "Microphone changed or disconnected. Pause and resume after selecting an input."));
-        }
+        if (failures.Count > 0)
+            throw new AudioCaptureException(Texts["ErrorAudioRelease"], new AggregateException(failures));
     }
 
-    private static string GetSignature(IReadOnlyList<AudioDevice> devices) =>
-        string.Join("\u001f", devices.Select(x => x.Name)) +
-        (devices.Count > 0 ? GetDefaultEndpointId() : "");
-
-    private static string GetDefaultEndpointId()
+    public void Dispose()
     {
-        using var enumerator = new MMDeviceEnumerator();
-        using var endpoint = enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Multimedia);
-        return endpoint.ID;
+        lock (_lifecycle)
+        {
+            _disposed = true;
+            Stop();
+        }
     }
 
-    public void Dispose() => Stop();
+    private sealed class CaptureRun
+    {
+        private readonly object _stopGate = new();
+        private readonly CancellationTokenSource _cancellation = new();
+        private bool _released;
+        public readonly Pcm16AudioMixer Mixer;
+        public CancellationToken Token { get; }
+        public readonly List<CaptureSource> Sources = [];
+        public Task DeviceCheck = Task.CompletedTask;
+        public Exception? Failure;
+
+        public CaptureRun(AudioCaptureOptions options)
+        {
+            Mixer = new Pcm16AudioMixer(options);
+            Token = _cancellation.Token;
+        }
+
+        public void RequestStop()
+        {
+            lock (_stopGate)
+                if (!_released) _cancellation.Cancel();
+        }
+
+        public void DisposeCancellation()
+        {
+            lock (_stopGate)
+            {
+                _released = true;
+                _cancellation.Dispose();
+            }
+        }
+    }
+
+    private sealed class CaptureSource(AudioDeviceKind kind, string selectedId, ISharedAudioEndpoint endpoint,
+        IReadOnlyList<AudioDevice> devices, Action<ReadOnlyMemory<byte>> onData, Action<Exception?> onStopped)
+    {
+        public AudioDeviceKind Kind { get; } = kind;
+        public string SelectedId { get; } = selectedId;
+        public ISharedAudioEndpoint Endpoint { get; } = endpoint;
+        public IReadOnlyList<AudioDevice> Devices { get; set; } = devices;
+        public Action<ReadOnlyMemory<byte>> OnData { get; } = onData;
+        public Action<Exception?> OnStopped { get; } = onStopped;
+    }
 }

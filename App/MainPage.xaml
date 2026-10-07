@@ -51,7 +51,8 @@
                 <TextBlock Text="{Binding Texts[AppTitle]}" FontSize="24" FontWeight="SemiBold" />
                 <StackPanel Orientation="Horizontal" Spacing="14">
                     <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusBrush}" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding ListeningText}" Opacity=".7" />
+                    <TextBlock Text="{Binding ListeningText}" Opacity=".7"
+                               ToolTipService.ToolTip="{Binding Texts[AudioSharedHint]}" />
                     <TextBlock Text="{Binding TimerText}" FontFamily="Consolas" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -316,13 +317,25 @@
                                        TextWrapping="Wrap" Opacity=".7" />
                             <Button Content="{Binding Texts[MicrophonePrivacy]}" Click="MicSettings_Click"
                                     HorizontalAlignment="Left" />
+                            <ComboBox x:Name="AudioModePicker" Header="{Binding Texts[AudioSource]}"
+                                      HorizontalAlignment="Stretch" ItemsSource="{Binding AudioModeOptions}"
+                                      DisplayMemberPath="Label" SelectedIndex="{Binding AudioModeIndex, Mode=TwoWay}"
+                                      IsEnabled="{Binding CanChangeAudioSettings}" />
+                            <TextBlock Text="{Binding Texts[AudioSharedHint]}" TextWrapping="Wrap" Opacity=".7" />
+                            <TextBlock Text="{Binding Texts[SystemAudioNotice]}" TextWrapping="Wrap"
+                                       Visibility="{Binding SystemAudioNoticeVisibility}" />
                             <TextBlock Text="{Binding Texts[InputDevice]}" />
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <ComboBox Width="275" ItemsSource="{Binding AudioDevices}"
-                                          SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
-                                          DisplayMemberPath="Name" />
-                                <Button Content="{Binding Texts[RefreshDevices]}" Click="RefreshDevices_Click" />
-                            </StackPanel>
+                            <ComboBox x:Name="InputDevicePicker" HorizontalAlignment="Stretch"
+                                      ItemsSource="{Binding AudioDevices}" DisplayMemberPath="Name"
+                                      SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
+                                      IsEnabled="{Binding CanChooseInputDevice}" />
+                            <TextBlock Text="{Binding Texts[OutputDevice]}" />
+                            <ComboBox x:Name="OutputDevicePicker" HorizontalAlignment="Stretch"
+                                      ItemsSource="{Binding OutputDevices}" DisplayMemberPath="Name"
+                                      SelectedItem="{Binding SelectedOutputDevice, Mode=TwoWay}"
+                                      IsEnabled="{Binding CanChooseOutputDevice}" />
+                            <Button Content="{Binding Texts[RefreshDevices]}" Click="RefreshDevices_Click"
+                                    IsEnabled="{Binding CanChangeAudioSettings}" />
                             <TextBlock Text="{Binding Texts[ContextWindow]}" />
                             <ComboBox x:Name="ContextPicker" ItemsSource="{Binding ContextOptions}" DisplayMemberPath="Label"
                                       SelectedIndex="{Binding ContextWindowIndex, Mode=TwoWay}" />

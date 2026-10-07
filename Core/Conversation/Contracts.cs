@@ -9,10 +9,13 @@ public interface IAudioCaptureService
     event Action? AudioStarted;
     event Action? AudioStopped;
     event Action? AudioDeviceChanged;
-    IReadOnlyList<AudioDevice> ListDevices();
-    void Start(string? deviceId);
+    IReadOnlyList<AudioDevice> ListDevices(AudioDeviceKind kind = AudioDeviceKind.Input);
+    void Start(AudioCaptureOptions options);
     void Stop();
 }
+
+public sealed class AudioCaptureException(string message, Exception? innerException = null)
+    : InvalidOperationException(message, innerException);
 
 public interface ISpeechRecognitionService
 {

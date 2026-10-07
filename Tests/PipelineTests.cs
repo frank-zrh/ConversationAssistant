@@ -643,6 +643,38 @@ public sealed partial class PipelineTests
     }
 
     [TestMethod]
+    public async Task SharedAudioFailurePausesBothSourcesAndResumeUsesAnImmutableSelectionSnapshot()
+    {
+        var fake = new Harness();
+        var settings = new ConversationSettings
+        {
+            AudioMode = AudioCaptureMode.MicrophoneAndSystemAudio,
+            InputDeviceId = "communications",
+            OutputDeviceId = "headset-output"
+        };
+        fake.Conversation.StartConversation(settings);
+        var first = fake.Audio.LastOptions!;
+        Assert.IsTrue(first.IncludesMicrophone && first.IncludesSystemAudio);
+        Assert.AreEqual("communications", first.InputDeviceId);
+        Assert.AreEqual("headset-output", first.OutputDeviceId);
+        fake.Speech.EmitFinal("Recorded before device loss.", DateTimeOffset.Now);
+        fake.Audio.EmitError(new AudioCaptureException("Device disconnected"));
+        Assert.IsFalse(fake.Conversation.IsListening);
+        Assert.AreEqual(ConversationUiState.Error, fake.Conversation.State);
+        await WaitUntil(() => fake.Audio.StopCount == 1 && fake.Speech.StopCount == 1);
+        Assert.HasCount(1, fake.Conversation.TranscriptSegments);
+        settings.AudioMode = AudioCaptureMode.SystemAudio;
+        settings.OutputDeviceId = "replacement-output";
+        fake.Conversation.Resume();
+        Assert.AreEqual(AudioCaptureMode.SystemAudio, fake.Audio.LastOptions!.Mode);
+        Assert.AreEqual("replacement-output", fake.Audio.LastOptions.OutputDeviceId);
+        Assert.AreEqual(AudioCaptureMode.MicrophoneAndSystemAudio, first.Mode);
+        Assert.AreEqual("headset-output", first.OutputDeviceId);
+        Assert.IsTrue(fake.Conversation.IsListening);
+        await fake.Conversation.EndConversationAsync();
+    }
+
+    [TestMethod]
     public async Task ClickingTranscriptQueuesOnceThenReusesCompletedReply()
     {
         var fake = new Harness();
@@ -828,8 +860,10 @@ public sealed partial class PipelineTests
         public int StartCount { get; private set; }
         public int StopCount { get; private set; }
         public Exception? StopError { get; set; }
-        public IReadOnlyList<AudioDevice> ListDevices() => [new("0", "Fake microphone")];
-        public void Start(string? deviceId) { StartCount++; AudioStarted?.Invoke(); }
+        public AudioCaptureOptions? LastOptions { get; private set; }
+        public IReadOnlyList<AudioDevice> ListDevices(AudioDeviceKind kind = AudioDeviceKind.Input) =>
+            kind == AudioDeviceKind.Input ? [new("default", "Fake microphone")] : [new("default", "Fake speakers")];
+        public void Start(AudioCaptureOptions options) { LastOptions = options; StartCount++; AudioStarted?.Invoke(); }
         public void Stop()
         {
             StopCount++;

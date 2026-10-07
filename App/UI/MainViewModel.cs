@@ -65,6 +65,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private AnswerRow? _selectedAnswer;
     private bool _followNewestAnswers = true;
     private AudioDeviceRow? _selectedDevice;
+    private AudioDeviceRow? _selectedOutputDevice;
+    private bool _refreshingDevices;
     private ConversationUiState _state = ConversationUiState.Idle;
     private string _partialText = "";
     private UiMessage? _lastError;
@@ -93,10 +95,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public IReadOnlyList<LocalizedOption> ContextOptions { get; } = Options("ShortContext", "MediumContext", "LongContext");
     public IReadOnlyList<LocalizedOption> AnswerStyleOptions { get; } = Options("Concise", "Balanced", "Detailed");
     public IReadOnlyList<LocalizedOption> AnswerLanguageOptions { get; } = Options("AutomaticLanguage", "English", "Chinese");
+    public IReadOnlyList<LocalizedOption> AudioModeOptions { get; } = Options("AudioMicrophone", "AudioSystem", "AudioBoth");
     public ObservableCollection<TranscriptRow> TranscriptItems { get; } = [];
     public ObservableCollection<AnswerRow> Answers { get; } = [];
     public ObservableCollection<SuggestedQuestionRow> SuggestedQuestions { get; } = [];
     public ObservableCollection<AudioDeviceRow> AudioDevices { get; } = [];
+    public ObservableCollection<AudioDeviceRow> OutputDevices { get; } = [];
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? TranscriptScrollRequested;
 
@@ -161,7 +165,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
             Notify(nameof(State), nameof(StatusText), nameof(StatusBrush), nameof(ListeningText),
                 nameof(CanStart), nameof(CanEnd), nameof(CanPause), nameof(CanResume),
                 nameof(CanChangeSpeechLanguage), nameof(CanEditSpeechSettings), nameof(CanSignIn),
-                nameof(CanAnalyzeConversation));
+                nameof(CanAnalyzeConversation), nameof(CanChangeAudioSettings),
+                nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice));
         }
     }
 
@@ -182,12 +187,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
             Settings.Language = language;
             Texts = UiText.For(language);
             foreach (var options in new[] { SpeechLanguageOptions, SpeechProviderOptions, ContextOptions,
-                AnswerStyleOptions, AnswerLanguageOptions })
+                AnswerStyleOptions, AnswerLanguageOptions, AudioModeOptions })
                 foreach (var option in options) option.UpdateLanguage(Texts);
             foreach (var row in TranscriptItems) row.UpdateLanguage(Texts);
             foreach (var row in SuggestedQuestions) row.UpdateLanguage(Texts);
             foreach (var row in Answers) row.UpdateLanguage(Texts);
             foreach (var row in AudioDevices) row.UpdateLanguage(Texts);
+            foreach (var row in OutputDevices) row.UpdateLanguage(Texts);
             Notify(nameof(Texts), nameof(SpeechLanguageIndex), nameof(StatusText), nameof(ListeningText),
                 nameof(AuthText), nameof(SignInButtonText), nameof(SpeechConnectionButtonText),
                 nameof(SpeechEndpointPreview), nameof(SpeechSettingsStatus), nameof(ModelStatus),
@@ -219,10 +225,20 @@ public sealed class MainViewModel : INotifyPropertyChanged
         ConversationUiState.Error or ConversationUiState.Offline => Color.FromArgb(255, 238, 88, 93),
         _ => Color.FromArgb(255, 135, 144, 160)
     });
-    public string ListeningText => Texts[_conversation.IsListening
-        ? _savedSpeech.Provider == SpeechProvider.AzureSpeech
-            ? "MicrophoneAzure" : "MicrophoneWhisper"
-        : "MicrophoneOff"];
+    public string ListeningText
+    {
+        get
+        {
+            if (!_conversation.IsListening) return Texts["MicrophoneOff"];
+            var source = Settings.AudioMode switch
+            {
+                AudioCaptureMode.Microphone => "Microphone",
+                AudioCaptureMode.SystemAudio => "SystemAudio",
+                _ => "CombinedAudio"
+            };
+            return Texts[source + (_savedSpeech.Provider == SpeechProvider.AzureSpeech ? "Azure" : "Whisper")];
+        }
+    }
     public string AuthText
     {
         get
@@ -242,8 +258,31 @@ public sealed class MainViewModel : INotifyPropertyChanged
         !_testingSpeechConnection && !_verifying;
     public bool CanEnd => _conversation.Session is not null && !_starting;
     public bool CanPause => _conversation.IsListening && !_starting;
-    public bool CanResume => _conversation.Session is not null && !_conversation.IsListening;
+    public bool CanResume => _conversation.Session is not null && !_conversation.IsListening && !_starting;
     public bool CanChangeSpeechLanguage => !_conversation.IsListening && !_starting;
+    public bool CanChangeAudioSettings => !_conversation.IsListening && !_starting;
+    public bool CanChooseInputDevice => CanChangeAudioSettings && Settings.AudioCapture.IncludesMicrophone;
+    public bool CanChooseOutputDevice => CanChangeAudioSettings && Settings.AudioCapture.IncludesSystemAudio;
+    public Visibility SystemAudioNoticeVisibility => Settings.AudioCapture.IncludesSystemAudio
+        ? Visibility.Visible : Visibility.Collapsed;
+    public int AudioModeIndex
+    {
+        get => (int)Settings.AudioMode;
+        set
+        {
+            if (value is < 0 or > 2) throw new ArgumentOutOfRangeException(nameof(value));
+            if ((int)Settings.AudioMode == value) return;
+            if (!CanChangeAudioSettings)
+            {
+                LastError = Texts["ErrorPauseAudioSettings"];
+                Notify(nameof(AudioModeIndex));
+                return;
+            }
+            Settings.AudioMode = (AudioCaptureMode)value;
+            Notify(nameof(AudioModeIndex), nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice),
+                nameof(SystemAudioNoticeVisibility), nameof(ListeningText));
+        }
+    }
     public bool CanEditSpeechSettings => _conversation.Session is null && !_starting &&
         !_savingSpeechSettings && !_testingSpeechConnection && !_verifying;
     public string SpeechConnectionButtonText => Texts[_testingSpeechConnection
@@ -374,7 +413,29 @@ public sealed class MainViewModel : INotifyPropertyChanged
         get => _selectedDevice;
         set
         {
+            if (_refreshingDevices) return;
+            if (!CanChangeAudioSettings)
+            {
+                LastError = Texts["ErrorPauseAudioSettings"];
+                Notify(nameof(SelectedDevice));
+                return;
+            }
             if (Set(ref _selectedDevice, value)) Settings.InputDeviceId = value?.Id;
+        }
+    }
+    public AudioDeviceRow? SelectedOutputDevice
+    {
+        get => _selectedOutputDevice;
+        set
+        {
+            if (_refreshingDevices) return;
+            if (!CanChangeAudioSettings)
+            {
+                LastError = Texts["ErrorPauseAudioSettings"];
+                Notify(nameof(SelectedOutputDevice));
+                return;
+            }
+            if (Set(ref _selectedOutputDevice, value)) Settings.OutputDeviceId = value?.Id;
         }
     }
 
@@ -382,14 +443,25 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         try
         {
-            var devices = _conversation.ListDevices();
-            var previous = SelectedDevice?.Device.Name;
-            AudioDevices.Clear();
-            foreach (var device in devices) AudioDevices.Add(new AudioDeviceRow(device, Texts));
-            SelectedDevice = AudioDevices.FirstOrDefault(x => x.Device.Name == previous) ?? AudioDevices.FirstOrDefault();
-            if (devices.Count == 0) LastError = Texts["ErrorNoMicrophone"];
+            var inputs = _conversation.ListDevices(AudioDeviceKind.Input);
+            var outputs = _conversation.ListDevices(AudioDeviceKind.Output);
+            _refreshingDevices = true;
+            try
+            {
+                AudioDevices.Clear();
+                OutputDevices.Clear();
+                foreach (var device in inputs) AudioDevices.Add(new AudioDeviceRow(device, Texts));
+                foreach (var device in outputs) OutputDevices.Add(new AudioDeviceRow(device, Texts, AudioDeviceKind.Output));
+                _selectedDevice = AudioDevices.FirstOrDefault(row => row.Id == (Settings.InputDeviceId ?? "default"));
+                _selectedOutputDevice = OutputDevices.FirstOrDefault(row => row.Id == (Settings.OutputDeviceId ?? "default"));
+                Notify(nameof(SelectedDevice), nameof(SelectedOutputDevice));
+            }
+            finally { _refreshingDevices = false; }
+            if (inputs.Count == 0 && Settings.AudioCapture.IncludesMicrophone) LastError = Texts["ErrorAudioInputUnavailable"];
+            else if (outputs.Count == 0 && Settings.AudioCapture.IncludesSystemAudio) LastError = Texts["ErrorAudioOutputUnavailable"];
         }
-        catch (Exception ex) when (ex is InvalidOperationException or NAudio.MmException)
+        catch (Exception ex) when (ex is InvalidOperationException or NAudio.MmException or
+            System.Runtime.InteropServices.COMException)
         {
             LastError = ex.Message;
         }
@@ -424,7 +496,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             OnUi(() => { _starting = false; Notify(nameof(CanStart), nameof(CanEnd),
                 nameof(CanPause), nameof(CanResume), nameof(CanChangeSpeechLanguage),
-                nameof(CanEditSpeechSettings), nameof(CanSignIn), nameof(CanAnalyzeConversation)); });
+                nameof(CanEditSpeechSettings), nameof(CanSignIn), nameof(CanAnalyzeConversation),
+                nameof(CanChangeAudioSettings), nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice)); });
         }
     }
 

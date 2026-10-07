@@ -11,6 +11,7 @@
     <PackageReference Include="Azure.Identity" Version="1.17.2" />
     <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.51.0" />
     <PackageReference Include="MSTest" Version="4.0.2" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +23,7 @@
     <Compile Include="..\App\Speech\AzureSpeechSessionFactory.cs" Link="AzureSpeechSessionFactory.cs" />
     <Compile Include="..\App\Speech\AzureSpeechDiagnostics.cs" Link="AzureSpeechDiagnostics.cs" />
     <Compile Include="..\App\Authentication\SpeechEntraIdentity.cs" Link="SpeechEntraIdentity.cs" />
+    <Compile Include="..\App\Audio\*.cs" Link="Audio\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

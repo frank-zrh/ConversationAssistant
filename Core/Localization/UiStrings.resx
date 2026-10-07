@@ -50,7 +50,7 @@
   <data name="ClientId" xml:space="preserve"><value>Client ID (optional; recommended for production)</value></data>
   <data name="ClientPlaceholder" xml:space="preserve"><value>Tenant-approved public client application GUID</value></data>
   <data name="ClientHelp" xml:space="preserve"><value>Leaving Client ID empty uses the Azure SDK development client, which your organization may restrict. For production, use an approved desktop app registration (http://localhost redirect; no client secret).</value></data>
-  <data name="AudioConsent" xml:space="preserve"><value>Allow microphone audio to be sent to the configured Azure Speech resource (internet required; charges may apply).</value></data>
+  <data name="AudioConsent" xml:space="preserve"><value>Allow the selected microphone/system audio to be sent to the configured Azure Speech resource (internet required; charges may apply).</value></data>
   <data name="SaveSpeechSettings" xml:space="preserve"><value>Save Speech Settings</value></data>
   <data name="TestSpeechConnection" xml:space="preserve"><value>Test Saved Connection (No Recording)</value></data>
   <data name="TestingSpeechConnection" xml:space="preserve"><value>Testing Connection...</value></data>
@@ -58,6 +58,16 @@
   <data name="MicrophonePrivacy" xml:space="preserve"><value>Open Microphone Privacy Settings</value></data>
   <data name="InputDevice" xml:space="preserve"><value>Input device</value></data>
   <data name="DefaultMicrophone" xml:space="preserve"><value>Default microphone</value></data>
+  <data name="DefaultOutput" xml:space="preserve"><value>Default playback device</value></data>
+  <data name="DefaultCommunicationsMicrophone" xml:space="preserve"><value>Default communications microphone</value></data>
+  <data name="DefaultCommunicationsOutput" xml:space="preserve"><value>Default communications playback device</value></data>
+  <data name="OutputDevice" xml:space="preserve"><value>Playback device to capture (match Teams speakers)</value></data>
+  <data name="AudioSource" xml:space="preserve"><value>Audio sources (shared mode)</value></data>
+  <data name="AudioMicrophone" xml:space="preserve"><value>Microphone only</value></data>
+  <data name="AudioSystem" xml:space="preserve"><value>System audio only</value></data>
+  <data name="AudioBoth" xml:space="preserve"><value>Microphone + system audio</value></data>
+  <data name="AudioSharedHint" xml:space="preserve"><value>WASAPI shared capture does not take exclusive control or change device volume/defaults. Pause before changing sources. Match Teams input/output devices, or choose the communications defaults.</value></data>
+  <data name="SystemAudioNotice" xml:space="preserve"><value>System audio captures ALL apps playing through the selected output, not just Teams. In Azure mode this audio is also sent for transcription. Ensure participants consent; use headphones to reduce microphone echo.</value></data>
   <data name="RefreshDevices" xml:space="preserve"><value>Refresh</value></data>
   <data name="ContextWindow" xml:space="preserve"><value>Manual question context (does not limit full-chat analysis)</value></data>
   <data name="ShortContext" xml:space="preserve"><value>Short (1 min)</value></data>
@@ -85,9 +95,13 @@
   <data name="StatusPaused" xml:space="preserve"><value>● Paused</value></data>
   <data name="StatusOffline" xml:space="preserve"><value>● Work IQ offline · transcript continues</value></data>
   <data name="StatusError" xml:space="preserve"><value>● Error</value></data>
-  <data name="MicrophoneAzure" xml:space="preserve"><value>Microphone on · Azure online</value></data>
-  <data name="MicrophoneWhisper" xml:space="preserve"><value>Microphone on · local Whisper</value></data>
-  <data name="MicrophoneOff" xml:space="preserve"><value>Microphone off</value></data>
+  <data name="MicrophoneAzure" xml:space="preserve"><value>Microphone · shared · Azure online</value></data>
+  <data name="MicrophoneWhisper" xml:space="preserve"><value>Microphone · shared · local Whisper</value></data>
+  <data name="MicrophoneOff" xml:space="preserve"><value>Audio capture off</value></data>
+  <data name="SystemAudioAzure" xml:space="preserve"><value>System audio · shared · Azure online</value></data>
+  <data name="SystemAudioWhisper" xml:space="preserve"><value>System audio · shared · local Whisper</value></data>
+  <data name="CombinedAudioAzure" xml:space="preserve"><value>Microphone + system · shared · Azure online</value></data>
+  <data name="CombinedAudioWhisper" xml:space="preserve"><value>Microphone + system · shared · local Whisper</value></data>
   <data name="SignIn" xml:space="preserve"><value>Microsoft Sign In</value></data>
   <data name="SigningIn" xml:space="preserve"><value>Signing in...</value></data>
   <data name="AuthAzureInProgress" xml:space="preserve"><value>Signing in to Azure Entra and Work IQ; separate consent may be required.</value></data>
@@ -167,6 +181,18 @@
   <data name="ImageUnavailable" xml:space="preserve"><value>Image unavailable: {0}</value></data>
   <data name="DiagnosticUnknown" xml:space="preserve"><value>The operation failed. Diagnostic details: {0}</value></data>
   <data name="DiagnosticParameter" xml:space="preserve"><value>Parameter: {0}</value></data>
+  <data name="ErrorAudioInputUnavailable" xml:space="preserve"><value>The selected microphone is unavailable. Connect it, check microphone privacy permissions, and refresh the devices.</value></data>
+  <data name="ErrorAudioOutputUnavailable" xml:space="preserve"><value>The selected playback device is unavailable. Connect it and select the output used by Teams.</value></data>
+  <data name="ErrorAudioSharedOpen" xml:space="preserve"><value>Shared audio capture could not start ({0}). Check device access and privacy settings. If another app holds exclusive access, release it; this app will not take over.</value></data>
+  <data name="ErrorAudioStartTimeout" xml:space="preserve"><value>Shared audio capture did not start within five seconds. Check the device and try again.</value></data>
+  <data name="ErrorAudioAlreadyActive" xml:space="preserve"><value>Audio capture is already active.</value></data>
+  <data name="ErrorAudioStopped" xml:space="preserve"><value>Shared audio capture stopped unexpectedly. Check the selected devices and resume listening.</value></data>
+  <data name="ErrorAudioStoppedCode" xml:space="preserve"><value>Shared audio capture stopped ({0}). Check the selected devices and resume listening.</value></data>
+  <data name="ErrorAudioRelease" xml:space="preserve"><value>An audio device reported an error during release. Capture has stopped; check the devices before resuming.</value></data>
+  <data name="ErrorAudioDeviceChanged" xml:space="preserve"><value>A selected audio device changed or disconnected. Capture has stopped; check input and output selections before resuming.</value></data>
+  <data name="ErrorAudioPcmFrame" xml:space="preserve"><value>The audio device returned an incomplete 16-bit PCM frame.</value></data>
+  <data name="ErrorAudioBacklog" xml:space="preserve"><value>Audio capture is falling behind. Pause and resume after checking system load.</value></data>
+  <data name="ErrorPauseAudioSettings" xml:space="preserve"><value>Pause listening before changing audio sources or devices.</value></data>
   <data name="ErrorNoMicrophone" xml:space="preserve"><value>No microphone available. Check Windows microphone privacy settings.</value></data>
   <data name="ErrorAutoAnalysisSignIn" xml:space="preserve"><value>Automatic analysis is on. Sign in with Microsoft before sending chat to Work IQ.</value></data>
   <data name="ErrorEmptyQuestion" xml:space="preserve"><value>Enter a question before submitting.</value></data>
@@ -215,7 +241,7 @@
   <data name="ErrorTranscriptExpired" xml:space="preserve"><value>This transcript has been cleared or does not belong to the current conversation.</value></data>
   <data name="ErrorWorkIqSignIn" xml:space="preserve"><value>Sign in with Microsoft before asking Work IQ.</value></data>
   <data name="ErrorWorkIqOffline" xml:space="preserve"><value>Work IQ offline. Check your network.</value></data>
-  <data name="ErrorDeviceChanged" xml:space="preserve"><value>Audio device list changed. Check input selection.</value></data>
+  <data name="ErrorDeviceChanged" xml:space="preserve"><value>Audio device list changed. Check input and output selections.</value></data>
   <data name="ErrorSettingsSize" xml:space="preserve"><value>Encrypted app configuration is too large.</value></data>
   <data name="ErrorDecrypt" xml:space="preserve"><value>Unable to decrypt this user's configuration. Use the original Windows account, or sign in/save settings again.</value></data>
   <data name="ErrorSpeechSettingsInvalid" xml:space="preserve"><value>Speech configuration is invalid. Re-enter and save the settings.</value></data>

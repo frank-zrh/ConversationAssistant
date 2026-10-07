@@ -73,7 +73,7 @@ public sealed class ConversationSessionManager
         _audio.AudioDeviceChanged += () =>
         {
             AudioDevicesChanged?.Invoke();
-            ErrorOccurred?.Invoke("Audio device list changed. Check input selection.");
+            ErrorOccurred?.Invoke("Audio device list changed. Check input and output selections.");
         };
         _speech.PartialTranscriptReceived += OnPartial;
         _speech.FinalTranscriptReceived += OnFinal;
@@ -81,7 +81,7 @@ public sealed class ConversationSessionManager
         _transcript.Updated += segment => TranscriptUpdated?.Invoke(segment);
     }
 
-    public IReadOnlyList<AudioDevice> ListDevices() => _audio.ListDevices();
+    public IReadOnlyList<AudioDevice> ListDevices(AudioDeviceKind kind = AudioDeviceKind.Input) => _audio.ListDevices(kind);
     public IReadOnlyList<ConversationLanguage> AvailableLanguages() => _speech.AvailableLanguages();
 
     public void StartConversation(ConversationSettings settings)
@@ -108,7 +108,7 @@ public sealed class ConversationSessionManager
             _speech.Start(settings.Language);
             lock (_gate)
                 if (_paused) throw new SpeechConnectionException("Speech 服务在启动期间断开，请重试。");
-            _audio.Start(settings.InputDeviceId);
+            _audio.Start(settings.AudioCapture);
             lock (_gate)
             {
                 if (_paused) throw new SpeechConnectionException("Speech 服务在启动期间断开，请重试。");
@@ -181,7 +181,7 @@ public sealed class ConversationSessionManager
             _speech.Start(settings.Language);
             lock (_gate)
                 if (_paused) throw new SpeechConnectionException("Speech 服务在恢复期间断开，请重试。");
-            _audio.Start(settings.InputDeviceId);
+            _audio.Start(settings.AudioCapture);
             lock (_gate)
             {
                 if (_paused) throw new SpeechConnectionException("Speech 服务在恢复期间断开，请重试。");
@@ -692,7 +692,7 @@ public sealed class ConversationSessionManager
 
     private void OnFailure(Exception error)
     {
-        if (error is SpeechConnectionException)
+        if (error is SpeechConnectionException or AudioCaptureException)
         {
             lock (_gate)
             {
@@ -705,6 +705,10 @@ public sealed class ConversationSessionManager
                     _speechRecovery = Task.Run(() =>
                     {
                         try { _audio.Stop(); }
+                        catch (AudioCaptureException cleanupError)
+                        {
+                            ErrorOccurred?.Invoke(cleanupError.Message);
+                        }
                         finally
                         {
                             try { _speech.Stop(); }

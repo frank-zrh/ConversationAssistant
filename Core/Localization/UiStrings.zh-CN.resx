@@ -50,7 +50,7 @@
   <data name="ClientId" xml:space="preserve"><value>客户端 ID（可选，生产推荐）</value></data>
   <data name="ClientPlaceholder" xml:space="preserve"><value>租户批准的公共客户端应用 GUID</value></data>
   <data name="ClientHelp" xml:space="preserve"><value>客户端 ID 留空时使用 Azure SDK 开发客户端，可能被组织限制。生产请使用批准的桌面应用注册（http://localhost 回调，无客户端密码）。</value></data>
-  <data name="AudioConsent" xml:space="preserve"><value>允许将麦克风音频发送到配置的 Azure 语音服务资源（需要联网，可能计费）。</value></data>
+  <data name="AudioConsent" xml:space="preserve"><value>允许将选定的麦克风／系统音频发送到配置的 Azure 语音服务资源（需要联网，可能计费）。</value></data>
   <data name="SaveSpeechSettings" xml:space="preserve"><value>保存语音设置</value></data>
   <data name="TestSpeechConnection" xml:space="preserve"><value>测试已保存连接（不录音）</value></data>
   <data name="TestingSpeechConnection" xml:space="preserve"><value>正在测试连接…</value></data>
@@ -58,6 +58,16 @@
   <data name="MicrophonePrivacy" xml:space="preserve"><value>打开麦克风隐私设置</value></data>
   <data name="InputDevice" xml:space="preserve"><value>输入设备</value></data>
   <data name="DefaultMicrophone" xml:space="preserve"><value>默认麦克风</value></data>
+  <data name="DefaultOutput" xml:space="preserve"><value>默认播放设备</value></data>
+  <data name="DefaultCommunicationsMicrophone" xml:space="preserve"><value>默认通信麦克风</value></data>
+  <data name="DefaultCommunicationsOutput" xml:space="preserve"><value>默认通信播放设备</value></data>
+  <data name="OutputDevice" xml:space="preserve"><value>采集的播放设备（与 Teams 扬声器一致）</value></data>
+  <data name="AudioSource" xml:space="preserve"><value>音频来源（共享模式）</value></data>
+  <data name="AudioMicrophone" xml:space="preserve"><value>仅麦克风</value></data>
+  <data name="AudioSystem" xml:space="preserve"><value>仅系统声音</value></data>
+  <data name="AudioBoth" xml:space="preserve"><value>麦克风 + 系统声音</value></data>
+  <data name="AudioSharedHint" xml:space="preserve"><value>WASAPI 共享采集不会独占设备，也不更改音量或默认设备。更改来源前请暂停监听。请选择与 Teams 相同的输入／输出设备，或选择默认通信设备。</value></data>
+  <data name="SystemAudioNotice" xml:space="preserve"><value>系统声音会采集所选输出上所有应用的声音，不限于 Teams；Azure 模式下这些音频也会发送用于转写。请确保参与者知情同意，建议使用耳机减少麦克风回声。</value></data>
   <data name="RefreshDevices" xml:space="preserve"><value>刷新</value></data>
   <data name="ContextWindow" xml:space="preserve"><value>手动提问上下文（不限制完整聊天分析）</value></data>
   <data name="ShortContext" xml:space="preserve"><value>短（1 分钟）</value></data>
@@ -85,9 +95,13 @@
   <data name="StatusPaused" xml:space="preserve"><value>● 已暂停</value></data>
   <data name="StatusOffline" xml:space="preserve"><value>● Work IQ 已离线 · 转写继续</value></data>
   <data name="StatusError" xml:space="preserve"><value>● 出错</value></data>
-  <data name="MicrophoneAzure" xml:space="preserve"><value>麦克风已开启 · Azure 在线识别</value></data>
-  <data name="MicrophoneWhisper" xml:space="preserve"><value>麦克风已开启 · Whisper 本地识别</value></data>
-  <data name="MicrophoneOff" xml:space="preserve"><value>麦克风已关闭</value></data>
+  <data name="MicrophoneAzure" xml:space="preserve"><value>麦克风 · 共享 · Azure 在线识别</value></data>
+  <data name="MicrophoneWhisper" xml:space="preserve"><value>麦克风 · 共享 · Whisper 本地识别</value></data>
+  <data name="MicrophoneOff" xml:space="preserve"><value>音频采集已关闭</value></data>
+  <data name="SystemAudioAzure" xml:space="preserve"><value>系统声音 · 共享 · Azure 在线识别</value></data>
+  <data name="SystemAudioWhisper" xml:space="preserve"><value>系统声音 · 共享 · Whisper 本地识别</value></data>
+  <data name="CombinedAudioAzure" xml:space="preserve"><value>麦克风 + 系统声音 · 共享 · Azure 在线识别</value></data>
+  <data name="CombinedAudioWhisper" xml:space="preserve"><value>麦克风 + 系统声音 · 共享 · Whisper 本地识别</value></data>
   <data name="SignIn" xml:space="preserve"><value>Microsoft 登录</value></data>
   <data name="SigningIn" xml:space="preserve"><value>正在登录…</value></data>
   <data name="AuthAzureInProgress" xml:space="preserve"><value>正在完成 Azure Entra 与 Work IQ 登录，可能需要分别同意授权。</value></data>
@@ -167,6 +181,18 @@
   <data name="ImageUnavailable" xml:space="preserve"><value>图片不可用：{0}</value></data>
   <data name="DiagnosticUnknown" xml:space="preserve"><value>操作失败。诊断信息：{0}</value></data>
   <data name="DiagnosticParameter" xml:space="preserve"><value>参数：{0}</value></data>
+  <data name="ErrorAudioInputUnavailable" xml:space="preserve"><value>所选麦克风不可用，请连接设备、检查麦克风隐私权限并刷新设备列表。</value></data>
+  <data name="ErrorAudioOutputUnavailable" xml:space="preserve"><value>所选播放设备不可用，请连接设备并选择 Teams 使用的输出设备。</value></data>
+  <data name="ErrorAudioSharedOpen" xml:space="preserve"><value>无法启动共享音频采集（{0}）。请检查设备访问和隐私设置；若其他应用正在独占设备，请先释放独占访问，本应用不会抢占设备。</value></data>
+  <data name="ErrorAudioStartTimeout" xml:space="preserve"><value>共享音频采集在五秒内未启动，请检查设备后重试。</value></data>
+  <data name="ErrorAudioAlreadyActive" xml:space="preserve"><value>音频采集已在运行。</value></data>
+  <data name="ErrorAudioStopped" xml:space="preserve"><value>共享音频采集意外停止，请检查所选设备后继续监听。</value></data>
+  <data name="ErrorAudioStoppedCode" xml:space="preserve"><value>共享音频采集已停止（{0}），请检查所选设备后继续监听。</value></data>
+  <data name="ErrorAudioRelease" xml:space="preserve"><value>释放音频设备时发生错误，采集已停止，请检查设备后再继续监听。</value></data>
+  <data name="ErrorAudioDeviceChanged" xml:space="preserve"><value>所选音频设备已改变或断开，采集已停止，请检查输入和输出设备后继续监听。</value></data>
+  <data name="ErrorAudioPcmFrame" xml:space="preserve"><value>音频设备返回了不完整的 16 位 PCM 音频帧。</value></data>
+  <data name="ErrorAudioBacklog" xml:space="preserve"><value>音频采集处理落后，请检查系统负载后暂停并继续监听。</value></data>
+  <data name="ErrorPauseAudioSettings" xml:space="preserve"><value>请先暂停监听，再更改音频来源或设备。</value></data>
   <data name="ErrorNoMicrophone" xml:space="preserve"><value>没有可用的麦克风，请检查 Windows 麦克风隐私设置。</value></data>
   <data name="ErrorAutoAnalysisSignIn" xml:space="preserve"><value>自动分析已开启，请先 Microsoft 登录，才能将聊天记录交给 Work IQ 分析。</value></data>
   <data name="ErrorEmptyQuestion" xml:space="preserve"><value>请先输入问题，再提交。</value></data>
@@ -215,7 +241,7 @@
   <data name="ErrorTranscriptExpired" xml:space="preserve"><value>这条转写已被清除或不属于当前对话。</value></data>
   <data name="ErrorWorkIqSignIn" xml:space="preserve"><value>向 Work IQ 提问前，请先 Microsoft 登录。</value></data>
   <data name="ErrorWorkIqOffline" xml:space="preserve"><value>Work IQ 已离线，请检查网络。</value></data>
-  <data name="ErrorDeviceChanged" xml:space="preserve"><value>音频设备列表已改变，请检查输入设备选择。</value></data>
+  <data name="ErrorDeviceChanged" xml:space="preserve"><value>音频设备列表已改变，请检查输入和输出设备选择。</value></data>
   <data name="ErrorSettingsSize" xml:space="preserve"><value>加密的应用配置文件过大。</value></data>
   <data name="ErrorDecrypt" xml:space="preserve"><value>无法解密当前用户的配置，请使用原 Windows 用户，或重新登录、保存设置。</value></data>
   <data name="ErrorSpeechSettingsInvalid" xml:space="preserve"><value>语音配置无效，请重新填写并保存。</value></data>

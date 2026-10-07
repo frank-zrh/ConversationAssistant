@@ -17,6 +17,9 @@ public sealed class ConversationSettings
     public ConversationLanguage AnswerLanguage { get; set; } = ConversationLanguage.Auto;
     public AnswerStyle AnswerStyle { get; set; } = AnswerStyle.Concise;
     public string? InputDeviceId { get; set; }
+    public string? OutputDeviceId { get; set; }
+    public AudioCaptureMode AudioMode { get; set; } = AudioCaptureMode.Microphone;
+    public AudioCaptureOptions AudioCapture => new(AudioMode, InputDeviceId, OutputDeviceId);
     public TimeSpan ContextWindowDuration { get; set; } = TimeSpan.FromMinutes(3);
     public int MaxContextCharacters { get; set; } = 4000;
     public bool AutomaticAnalysis { get; set; } = true;
@@ -33,7 +36,10 @@ public sealed record TranscriptSegment(
     string Text, string Source, bool IsFinal);
 
 public sealed record SpeechText(string Text, DateTimeOffset Start, DateTimeOffset End);
-public sealed record AudioDevice(string Id, string Name);
+public sealed record AudioDevice(string Id, string Name, string? EndpointId = null)
+{
+    public string EffectiveId => EndpointId ?? Id;
+}
 public sealed record QuestionDetectionResult(
     bool IsQuestion, double Confidence, string QuestionText,
     string TriggerReason, DateTimeOffset Timestamp, string ContextPrefix = "");
