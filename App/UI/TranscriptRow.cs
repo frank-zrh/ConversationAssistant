@@ -9,7 +9,7 @@ using Windows.UI;
 namespace ConversationAssistant_App.UI;
 
 public sealed class TranscriptRow(TranscriptSegment segment,
-    ConversationLanguage language = ConversationLanguage.Chinese) : INotifyPropertyChanged
+    ConversationLanguage language = ConversationLanguage.Chinese) : ITranscriptListItem, INotifyPropertyChanged
 {
     private QuestionStatus? _status;
     private bool _selected;

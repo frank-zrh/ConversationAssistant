@@ -26,13 +26,35 @@
   <data name="SpeakerUnknown" xml:space="preserve"><value>说话人未识别</value></data>
   <data name="CopyTranscript" xml:space="preserve"><value>复制</value></data>
   <data name="ClearTranscript" xml:space="preserve"><value>清空</value></data>
+  <data name="CreateGroup" xml:space="preserve"><value>新建组</value></data>
+  <data name="CreateGroupHint" xml:space="preserve"><value>将当前所有未入组的最终转写加入一个新组。</value></data>
+  <data name="GroupDefaultName" xml:space="preserve"><value>组{0}</value></data>
+  <data name="GroupEntryCount" xml:space="preserve"><value>{0} 条会话</value></data>
+  <data name="GroupHint" xml:space="preserve"><value>点击展开或折叠。右键可重命名或交给 Work IQ 分析；也可按 Shift+F10 打开菜单。</value></data>
+  <data name="RenameGroup" xml:space="preserve"><value>重命名组</value></data>
+  <data name="GroupName" xml:space="preserve"><value>组名（1–120 个字符）</value></data>
+  <data name="SaveGroupName" xml:space="preserve"><value>保存</value></data>
+  <data name="AnalyzeGroup" xml:space="preserve"><value>将本组会话交给 Work IQ 分析</value></data>
+  <data name="AnalysisHistory" xml:space="preserve"><value>选择分析记录</value></data>
+  <data name="AnalysisHistoryHint" xml:space="preserve"><value>默认显示最新分析。历史问题保持原样，选择以前的分析可查看当时的问题列表，不会再次发送请求。</value></data>
+  <data name="AnalysisAllScope" xml:space="preserve"><value>全部聊天</value></data>
+  <data name="AnalysisHistoryItem" xml:space="preserve"><value>分析{0} · {1} · {2}</value></data>
+  <data name="ImportConversation" xml:space="preserve"><value>导入记录</value></data>
+  <data name="ImportHint" xml:space="preserve"><value>请先结束当前会话。导入的 JSON 会保存为独立副本，不覆盖原文件，也不会自动监听或向 Work IQ 发送请求。</value></data>
+  <data name="SaveNow" xml:space="preserve"><value>立即保存</value></data>
+  <data name="RecordNone" xml:space="preserve"><value>每次会话独立保存为 JSON</value></data>
+  <data name="RecordSaving" xml:space="preserve"><value>正在保存 JSON…</value></data>
+  <data name="RecordSavedAt" xml:space="preserve"><value>最近保存于 {0}</value></data>
+  <data name="RecordSaveFailed" xml:space="preserve"><value>保存失败，请点击立即保存</value></data>
+  <data name="RecordPrivacy" xml:space="preserve"><value>转写、分组、分析及回复会自动保存为本机可读的 JSON，结束会话后仍可查看。不保存音频或登录凭据。文件可能包含敏感对话和企业信息，请妥善保管。</value></data>
+  <data name="OpenRecordsFolder" xml:space="preserve"><value>打开记录文件夹</value></data>
   <data name="PauseScrolling" xml:space="preserve"><value>暂停滚动</value></data>
   <data name="ResumeScrolling" xml:space="preserve"><value>继续滚动</value></data>
   <data name="TranscriptCardHint" xml:space="preserve"><value>左键点击以提问或查看回复；右键点击可将原文复制到提问框中编辑。</value></data>
-  <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · 待协助问题</value></data>
+  <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · 知识与创意</value></data>
   <data name="AnalyzeConversation" xml:space="preserve"><value>分析全部聊天</value></data>
-  <data name="QuestionsEmpty" xml:space="preserve"><value>分析后的问题会显示在这里。确认需要协助时再点击，不会自动获取答案。</value></data>
-  <data name="SuggestedQuestionHint" xml:space="preserve"><value>点击获取协助；已有回复直接查看，失败时重试。</value></data>
+  <data name="QuestionsEmpty" xml:space="preserve"><value>这里提供能用于客户沟通的专业知识和创意问题。选择后再获取方案、依据或建议，不会自动请求答案。</value></data>
+  <data name="SuggestedQuestionHint" xml:space="preserve"><value>点击获取客户沟通需要的专业信息或创意建议；已有回复直接查看，失败时重试。</value></data>
   <data name="AnswersHeader" xml:space="preserve"><value>WORK IQ · 问题回复</value></data>
   <data name="SelectQuestion" xml:space="preserve"><value>选择问题</value></data>
   <data name="CopyAnswer" xml:space="preserve"><value>复制回复</value></data>
@@ -82,7 +104,7 @@
   <data name="AnswerLanguage" xml:space="preserve"><value>回复语言</value></data>
   <data name="GroundingNote" xml:space="preserve"><value>企业资料检索：Work IQ（已开启）。命令行工具暂不提供网页检索控制选项。</value></data>
   <data name="StoreAudio" xml:space="preserve"><value>保存音频</value></data>
-  <data name="StoreTranscript" xml:space="preserve"><value>保存聊天记录</value></data>
+  <data name="StoreTranscript" xml:space="preserve"><value>保存会话记录（JSON）</value></data>
   <data name="ClearAfterConversation" xml:space="preserve"><value>对话结束后清除</value></data>
   <data name="On" xml:space="preserve"><value>开</value></data>
   <data name="Off" xml:space="preserve"><value>关</value></data>
@@ -314,4 +336,66 @@
   <data name="ErrorAzureService" xml:space="preserve"><value>{0} 服务返回错误，请确认此 Azure AI 资源支持语音服务，再检查资源状态及网络配置。</value></data>
   <data name="ErrorAzureStopped" xml:space="preserve"><value>{0} 会话停止，请检查终结点、Entra 授权和资源配置后重新连接。</value></data>
   <data name="ErrorAzureSdkInit" xml:space="preserve"><value>Azure AI Speech [{0}] SDK 初始化或连接失败，请检查终结点、Entra 授权和本机运行时。</value></data>
+  <data name="ErrorNoUngroupedEntries" xml:space="preserve"><value>当前没有未入组的会话。</value></data>
+  <data name="ErrorGroupName" xml:space="preserve"><value>请输入 1 到 120 个字符的组名。</value></data>
+  <data name="ErrorGroupMissing" xml:space="preserve"><value>该组已被清除，或不属于当前会话。</value></data>
+  <data name="ErrorWorkspaceBusy" xml:space="preserve"><value>请等待当前会话操作完成。</value></data>
+  <data name="ErrorWorkspaceRequired" xml:space="preserve"><value>请先开始会话或导入记录。</value></data>
+  <data name="ErrorImportEndFirst" xml:space="preserve"><value>导入记录前请先结束当前会话。</value></data>
+  <data name="ErrorArchiveUnconfigured" xml:space="preserve"><value>尚未配置会话记录存储。</value></data>
+  <data name="ErrorArchiveSave" xml:space="preserve"><value>无法保存会话 JSON，记录仍保留在内存中。请检查磁盘空间及文件夹权限，并在开始新会话或导入前点击“立即保存”重试。</value></data>
+  <data name="ErrorRecordPicker" xml:space="preserve"><value>无法打开 JSON 文件选择器，未导入任何会话。</value></data>
+  <data name="ErrorRecordsFolder" xml:space="preserve"><value>无法打开会话记录文件夹，请检查路径和访问权限。</value></data>
+  <data name="ErrorArchiveInterrupted" xml:space="preserve"><value>该请求在保存会话前已中断，导入时未继续执行。如需重新提交，请手动重试。</value></data>
+  <data name="ErrorArchiveSize" xml:space="preserve"><value>会话记录超过 64 MiB 的文件大小限制。</value></data>
+  <data name="ErrorArchiveJson" xml:space="preserve"><value>会话记录不是有效的 JSON 文件，或包含无效的字段值。</value></data>
+  <data name="ErrorArchiveSerialization" xml:space="preserve"><value>无法将会话记录转换为 JSON。</value></data>
+  <data name="ErrorArchiveCancelled" xml:space="preserve"><value>会话记录保存已取消，请点击“立即保存”重试。</value></data>
+  <data name="ErrorArchiveWrite" xml:space="preserve"><value>无法保存会话记录，请点击“立即保存”重试。</value></data>
+  <data name="ErrorArchiveFlush" xml:space="preserve"><value>切换会话前，请先完成当前会话记录的保存。</value></data>
+  <data name="ErrorArchiveId" xml:space="preserve"><value>必须提供会话标识。</value></data>
+  <data name="ErrorArchiveDocument" xml:space="preserve"><value>会话记录无效：缺少记录文档。</value></data>
+  <data name="ErrorArchiveVersion" xml:space="preserve"><value>会话记录无效：不支持该记录版本。</value></data>
+  <data name="ErrorArchiveGuidance" xml:space="preserve"><value>会话记录无效：分析规则版本无效。</value></data>
+  <data name="ErrorArchiveEndTime" xml:space="preserve"><value>会话记录无效：结束时间早于开始时间。</value></data>
+  <data name="ErrorArchiveSettings" xml:space="preserve"><value>会话记录无效：缺少会话设置。</value></data>
+  <data name="ErrorArchiveLanguage" xml:space="preserve"><value>会话记录无效：监听语言必须为中文或英文。</value></data>
+  <data name="ErrorArchiveContextWindow" xml:space="preserve"><value>会话记录无效：上下文时间范围超出限制。</value></data>
+  <data name="ErrorArchiveContextLimit" xml:space="preserve"><value>会话记录无效：上下文字符数上限超出允许范围。</value></data>
+  <data name="ErrorArchiveGroupMetadata" xml:space="preserve"><value>会话记录无效：组分析必须同时包含组标识和组编号。</value></data>
+  <data name="ErrorArchiveGroupNumber" xml:space="preserve"><value>会话记录无效：组编号必须为正数。</value></data>
+  <data name="ErrorArchiveGroupTrigger" xml:space="preserve"><value>会话记录无效：组分析信息与触发方式不一致。</value></data>
+  <data name="ErrorArchiveGroupNameId" xml:space="preserve"><value>会话记录无效：有组名时必须包含组标识。</value></data>
+  <data name="ErrorArchiveQuestionCount" xml:space="preserve"><value>会话记录无效：新增问题数量超出允许范围。</value></data>
+  <data name="ErrorArchiveCurrentAnalysis" xml:space="preserve"><value>会话记录无效：当前分析标识未对应任何已保存的分析。</value></data>
+  <data name="ErrorArchiveGroupNumbers" xml:space="preserve"><value>会话记录无效：组编号必须为正数且不能重复。</value></data>
+  <data name="ErrorArchiveGroupEmpty" xml:space="preserve"><value>会话记录无效：每个组至少需要一条会话。</value></data>
+  <data name="ErrorArchiveGroupTranscript" xml:space="preserve"><value>会话记录无效：组引用了不存在的会话。</value></data>
+  <data name="ErrorArchiveGroupOverlap" xml:space="preserve"><value>会话记录无效：同一条会话不能属于多个组。</value></data>
+  <data name="ErrorArchiveNextGroup" xml:space="preserve"><value>会话记录无效：下一个组编号必须大于所有已保存的组编号。</value></data>
+  <data name="ErrorArchiveGroupAnalysisNumber" xml:space="preserve"><value>会话记录无效：组分析的组编号不正确。</value></data>
+  <data name="ErrorArchiveGroupAnalysisMembers" xml:space="preserve"><value>会话记录无效：组分析包含了该组以外的会话。</value></data>
+  <data name="ErrorArchiveHistoricalGroupId" xml:space="preserve"><value>会话记录无效：历史组标识与其他记录冲突。</value></data>
+  <data name="ErrorArchiveHistoricalGroupNumber" xml:space="preserve"><value>会话记录无效：同一个历史组标识对应了不同的组编号。</value></data>
+  <data name="ErrorArchiveQuestionEmpty" xml:space="preserve"><value>会话记录无效：建议问题不能为空。</value></data>
+  <data name="ErrorArchiveAnalysisQuestion" xml:space="preserve"><value>会话记录无效：分析引用了不存在的建议问题。</value></data>
+  <data name="ErrorArchiveAnswerQuestionEmpty" xml:space="preserve"><value>会话记录无效：回复对应的问题不能为空。</value></data>
+  <data name="ErrorArchiveAnswerTranscript" xml:space="preserve"><value>会话记录无效：回复的会话标识指向了其他类型的记录。</value></data>
+  <data name="ErrorArchiveAnswerQuestion" xml:space="preserve"><value>会话记录无效：回复引用了不存在的建议问题。</value></data>
+  <data name="ErrorArchiveTranscriptIds" xml:space="preserve"><value>会话记录无效：每份快照中的会话标识必须非空且不能重复。</value></data>
+  <data name="ErrorArchiveTranscriptId" xml:space="preserve"><value>会话记录无效：会话标识与其他记录冲突。</value></data>
+  <data name="ErrorArchiveTranscriptTime" xml:space="preserve"><value>会话记录无效：转写的结束时间早于开始时间。</value></data>
+  <data name="ErrorArchiveSpeaker" xml:space="preserve"><value>会话记录无效：说话人编号必须为正数。</value></data>
+  <data name="ErrorArchiveListNull" xml:space="preserve"><value>会话记录无效：列表不能为缺失值。</value></data>
+  <data name="ErrorArchiveListLimit" xml:space="preserve"><value>会话记录无效：单个列表的记录数量超出限制。</value></data>
+  <data name="ErrorArchiveTotalLimit" xml:space="preserve"><value>会话记录无效：记录总数量超出限制。</value></data>
+  <data name="ErrorArchiveListItem" xml:space="preserve"><value>会话记录无效：列表不能包含缺失的记录。</value></data>
+  <data name="ErrorArchiveReferenceIds" xml:space="preserve"><value>会话记录无效：引用标识必须非空且不能重复。</value></data>
+  <data name="ErrorArchiveRecordIds" xml:space="preserve"><value>会话记录无效：记录标识必须非空且不能重复。</value></data>
+  <data name="ErrorArchiveReferenceId" xml:space="preserve"><value>会话记录无效：引用标识不能为空。</value></data>
+  <data name="ErrorArchiveTimestamp" xml:space="preserve"><value>会话记录无效：时间戳无效。</value></data>
+  <data name="ErrorArchiveEnum" xml:space="preserve"><value>会话记录无效：包含不支持的选项值。</value></data>
+  <data name="ErrorArchiveGroupBlank" xml:space="preserve"><value>会话记录无效：组名不能只有空白字符。</value></data>
+  <data name="ErrorArchiveTextLimit" xml:space="preserve"><value>会话记录无效：必需的文本缺失或超过长度限制。</value></data>
+  <data name="ErrorArchiveQuestionConflict" xml:space="preserve"><value>会话记录无效：同一个建议问题标识对应了不同的内容快照。</value></data>
 </root>

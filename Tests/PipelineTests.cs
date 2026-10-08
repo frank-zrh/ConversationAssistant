@@ -4,6 +4,7 @@ using ConversationAssistant.Core.Authentication;
 using ConversationAssistant.Core.Context;
 using ConversationAssistant.Core.Conversation;
 using ConversationAssistant.Core.Models;
+using ConversationAssistant.Core.Persistence;
 using ConversationAssistant.Core.QuestionDetection;
 using ConversationAssistant.Core.Speech;
 using ConversationAssistant.Core.Transcript;
@@ -518,7 +519,7 @@ public sealed partial class PipelineTests
         await WaitUntil(() => fake.Conversation.Session!.Answers[1].Status == QuestionStatus.Completed);
         Assert.AreEqual("DLP answer", first.Answer);
         await fake.Conversation.EndConversationAsync();
-        Assert.IsEmpty(fake.Conversation.TranscriptSegments);
+        Assert.HasCount(6, fake.Conversation.TranscriptSegments);
     }
 
     [TestMethod]
@@ -630,7 +631,7 @@ public sealed partial class PipelineTests
     }
 
     [TestMethod]
-    public async Task DeviceFailureDuringEndStillStopsSpeechAndClearsContext()
+    public async Task DeviceFailureDuringEndStillStopsSpeechAndRetainsRecordedContent()
     {
         var fake = new Harness();
         fake.Conversation.StartConversation(new ConversationSettings());
@@ -638,7 +639,7 @@ public sealed partial class PipelineTests
         fake.Audio.StopError = new InvalidOperationException("Device disappeared");
         await Assert.ThrowsExactlyAsync<InvalidOperationException>(fake.Conversation.EndConversationAsync);
         Assert.AreEqual(1, fake.Speech.StopCount);
-        Assert.IsEmpty(fake.Conversation.TranscriptSegments);
+        Assert.HasCount(1, fake.Conversation.TranscriptSegments);
         Assert.AreEqual(ConversationUiState.Idle, fake.Conversation.State);
     }
 
@@ -835,8 +836,8 @@ public sealed partial class PipelineTests
         public ManualTimeProvider Clock { get; } = new();
         public ConversationSessionManager Conversation { get; }
 
-        public Harness() => Conversation = new ConversationSessionManager(Audio, Speech, Auth,
-            Network, Work, new TranscriptEngine(), new ContextBuilder(new PromptBuilder()), Clock);
+        public Harness(IConversationArchiveStore? archiveStore = null) => Conversation = new ConversationSessionManager(Audio, Speech, Auth,
+            Network, Work, new TranscriptEngine(), new ContextBuilder(new PromptBuilder()), Clock, archiveStore);
     }
 
     private sealed class FakeNetwork : INetworkStatus

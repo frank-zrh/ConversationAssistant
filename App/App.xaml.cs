@@ -1,5 +1,6 @@
 using ConversationAssistant.Core.Context;
 using ConversationAssistant.Core.Conversation;
+using ConversationAssistant.Core.Persistence;
 using ConversationAssistant.Core.Settings;
 using ConversationAssistant.Core.Speech;
 using ConversationAssistant.Core.Transcript;
@@ -47,8 +48,10 @@ public partial class App : Application
         services.AddSingleton<INetworkStatus, NetworkStatus>();
         services.AddSingleton<IAuthenticationService, AuthenticationService>();
         services.AddSingleton<IWorkIqClient, WorkIqClient>();
+        services.AddSingleton<IConversationArchiveStore>(_ =>
+            new JsonConversationArchiveStore(ConversationRecordLocation.DirectoryPath));
         services.AddSingleton<ConversationSessionManager>();
-        services.AddTransient<MainViewModel>();
+        services.AddSingleton<MainViewModel>();
         Services = services.BuildServiceProvider();
     }
 

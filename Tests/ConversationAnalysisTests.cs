@@ -474,8 +474,8 @@ public sealed partial class PipelineTests
             Assert.IsEmpty(fake.Conversation.SuggestedQuestions);
             Assert.HasCount(1, fake.Conversation.Session!.Answers);
             Assert.AreSame(answer, fake.Conversation.Session.Answers[0]);
-            Assert.ThrowsExactly<InvalidOperationException>(() =>
-                fake.Conversation.AskSuggestedQuestion(question.Id));
+            Assert.AreSame(answer, fake.Conversation.AskSuggestedQuestion(question.Id));
+            Assert.HasCount(1, fake.Conversation.Analyses);
         }
         finally { await fake.Conversation.EndConversationAsync(); }
     }
@@ -492,7 +492,7 @@ public sealed partial class PipelineTests
         await fake.Conversation.EndConversationAsync();
         Assert.AreEqual(QuestionStatus.Cancelled, old.Status);
         Assert.IsEmpty(fake.Conversation.SuggestedQuestions);
-        Assert.IsEmpty(fake.Conversation.TranscriptSegments);
+        Assert.HasCount(7, fake.Conversation.TranscriptSegments);
         fake.Conversation.StartConversation(new ConversationSettings());
         try
         {

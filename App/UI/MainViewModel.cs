@@ -54,7 +54,7 @@ public sealed class AnswerRow(QuestionRequest request,
     }
 }
 
-public sealed class MainViewModel : INotifyPropertyChanged
+public sealed partial class MainViewModel : INotifyPropertyChanged
 {
     private readonly ConversationSessionManager _conversation;
     private readonly IAuthenticationService _auth;
@@ -120,6 +120,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
         conversation.TranscriptUpdated += segment => OnUi(() => OnTranscriptUpdate(segment));
         conversation.AnswerUpdated += request => OnUi(() => OnAnswerUpdate(request));
         conversation.AnalysisUpdated += () => OnUi(RefreshAnalysis);
+        conversation.GroupsUpdated += () => OnUi(RefreshTranscriptLayout);
+        conversation.ConversationChanged += () => OnUi(RefreshWorkspace);
+        conversation.ArchiveUpdated += () => OnUi(RefreshRecordStatus);
         conversation.AudioDevicesChanged += () => OnUi(RefreshDevices);
         conversation.ErrorOccurred += message => OnUi(() =>
         {
@@ -128,14 +131,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
         });
         conversation.ConversationEnded += () => OnUi(() =>
         {
-            TranscriptItems.Clear();
-            Answers.Clear();
-            SuggestedQuestions.Clear();
-            SelectedAnswer = null;
-            _followNewestAnswers = true;
             SetPartial(null);
-            TimerText = "00:00";
+            Tick();
             RefreshAnalysis();
+            RefreshRecordStatus();
         });
         RefreshDevices();
         try
@@ -167,7 +166,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 nameof(CanStart), nameof(CanEnd), nameof(CanPause), nameof(CanResume),
                 nameof(CanChangeSpeechLanguage), nameof(CanEditSpeechSettings), nameof(CanSignIn),
                 nameof(CanAnalyzeConversation), nameof(CanChangeAudioSettings),
-                nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice));
+                nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice),
+                nameof(CanCreateGroup), nameof(CanImportConversation), nameof(CanSaveConversation));
         }
     }
 
@@ -186,22 +186,32 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 return;
             }
             Settings.Language = language;
-            Texts = UiText.For(language);
-            foreach (var options in new[] { SpeechLanguageOptions, SpeechProviderOptions, ContextOptions,
-                AnswerStyleOptions, AnswerLanguageOptions, AudioModeOptions })
-                foreach (var option in options) option.UpdateLanguage(Texts);
-            foreach (var row in TranscriptItems) row.UpdateLanguage(Texts);
-            foreach (var row in SuggestedQuestions) row.UpdateLanguage(Texts);
-            foreach (var row in Answers) row.UpdateLanguage(Texts);
-            foreach (var row in AudioDevices) row.UpdateLanguage(Texts);
-            foreach (var row in OutputDevices) row.UpdateLanguage(Texts);
-            Notify(nameof(Texts), nameof(SpeechLanguageIndex), nameof(StatusText), nameof(ListeningText),
-                nameof(AuthText), nameof(SignInButtonText), nameof(SignInButtonHint), nameof(PartialText),
-                nameof(SpeechConnectionButtonText),
-                nameof(SpeechEndpointPreview), nameof(SpeechSettingsStatus), nameof(ModelStatus),
-                nameof(ScrollText), nameof(LastError), nameof(AnalysisStatus), nameof(AnalysisError),
-                nameof(PendingAnalysisText), nameof(AnalysisScheduleText));
+            RefreshLanguage();
+            _conversation.UpdateWorkspacePreferences(Settings);
         }
+    }
+
+    private void RefreshLanguage()
+    {
+        var language = Settings.Language;
+        Texts = UiText.For(language);
+        foreach (var options in new[] { SpeechLanguageOptions, SpeechProviderOptions, ContextOptions,
+            AnswerStyleOptions, AnswerLanguageOptions, AudioModeOptions })
+            foreach (var option in options) option.UpdateLanguage(Texts);
+        foreach (var row in TranscriptItems) row.UpdateLanguage(Texts);
+        foreach (var row in SuggestedQuestions) row.UpdateLanguage(Texts);
+        foreach (var row in Answers) row.UpdateLanguage(Texts);
+        foreach (var row in _groupRows.Values) row.Refresh(Texts);
+        foreach (var row in AnalysisHistory) row.Refresh(Texts);
+        foreach (var row in AudioDevices) row.UpdateLanguage(Texts);
+        foreach (var row in OutputDevices) row.UpdateLanguage(Texts);
+        Notify(nameof(Texts), nameof(SpeechLanguageIndex), nameof(StatusText), nameof(ListeningText),
+            nameof(AuthText), nameof(SignInButtonText), nameof(SignInButtonHint), nameof(PartialText),
+            nameof(SpeechConnectionButtonText),
+            nameof(SpeechEndpointPreview), nameof(SpeechSettingsStatus), nameof(ModelStatus),
+            nameof(ScrollText), nameof(LastError), nameof(AnalysisStatus), nameof(AnalysisError),
+            nameof(PendingAnalysisText), nameof(AnalysisScheduleText), nameof(RecordStatus),
+            nameof(RecordPath), nameof(AutomaticAnalysis));
     }
 
     public string StatusText => Texts[State switch
@@ -259,15 +269,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public string SignInButtonHint => IsSignedIn ? Texts["SignedInHint"] : AuthText;
     public Visibility SignedInVisibility => IsSignedIn ? Visibility.Visible : Visibility.Collapsed;
     public Visibility SignInVisibility => IsSignedIn ? Visibility.Collapsed : Visibility.Visible;
-    public bool CanSignIn => !_verifying && _conversation.Session is null && !_starting &&
-        !_savingSpeechSettings && !_testingSpeechConnection;
-    public bool CanStart => _conversation.Session is null && !_starting && !_savingSpeechSettings &&
+    public bool CanSignIn => !_verifying && _conversation.Session is null && !WorkspaceBusy &&
+        !_savingSpeechSettings && !_testingSpeechConnection && !_conversation.HasPendingWork;
+    public bool CanStart => _conversation.Session is null && !WorkspaceBusy && !_savingSpeechSettings &&
         !_testingSpeechConnection && !_verifying;
-    public bool CanEnd => _conversation.Session is not null && !_starting;
-    public bool CanPause => _conversation.IsListening && !_starting;
-    public bool CanResume => _conversation.Session is not null && !_conversation.IsListening && !_starting;
-    public bool CanChangeSpeechLanguage => !_conversation.IsListening && !_starting;
-    public bool CanChangeAudioSettings => !_conversation.IsListening && !_starting;
+    public bool CanEnd => _conversation.Session is not null && !WorkspaceBusy;
+    public bool CanPause => _conversation.IsListening && !WorkspaceBusy;
+    public bool CanResume => _conversation.Session is not null && !_conversation.IsListening && !WorkspaceBusy;
+    public bool CanChangeSpeechLanguage => !_conversation.IsListening && !WorkspaceBusy;
+    public bool CanChangeAudioSettings => !_conversation.IsListening && !WorkspaceBusy;
     public bool CanChooseInputDevice => CanChangeAudioSettings && Settings.AudioCapture.IncludesMicrophone;
     public bool CanChooseOutputDevice => CanChangeAudioSettings && Settings.AudioCapture.IncludesSystemAudio;
     public Visibility SystemAudioNoticeVisibility => Settings.AudioCapture.IncludesSystemAudio
@@ -290,7 +300,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 nameof(SystemAudioNoticeVisibility), nameof(ListeningText));
         }
     }
-    public bool CanEditSpeechSettings => _conversation.Session is null && !_starting &&
+    public bool CanEditSpeechSettings => _conversation.Session is null && !WorkspaceBusy &&
         !_savingSpeechSettings && !_testingSpeechConnection && !_verifying;
     public string SpeechConnectionButtonText => Texts[_testingSpeechConnection
         ? "TestingSpeechConnection" : "TestSpeechConnection"];
@@ -301,6 +311,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             if (value is < 0 or > 2) throw new ArgumentOutOfRangeException(nameof(value));
             Settings.ContextWindowDuration = TimeSpan.FromMinutes(value switch { 0 => 1, 2 => 5, _ => 3 });
+            _conversation.UpdateWorkspacePreferences(Settings);
             Notify(nameof(ContextWindowIndex));
         }
     }
@@ -311,6 +322,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             if (value is < 0 or > 2) throw new ArgumentOutOfRangeException(nameof(value));
             Settings.AnswerStyle = (AnswerStyle)value;
+            _conversation.UpdateWorkspacePreferences(Settings);
             Notify(nameof(AnswerStyleIndex));
         }
     }
@@ -321,6 +333,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             if (value is < 0 or > 2) throw new ArgumentOutOfRangeException(nameof(value));
             Settings.AnswerLanguage = (ConversationLanguage)value;
+            _conversation.UpdateWorkspacePreferences(Settings);
             Notify(nameof(AnswerLanguageIndex));
         }
     }
@@ -388,8 +401,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         get => _analysisError?.Resolve(Texts) ?? "";
         private set => Set(ref _analysisError, UiMessage.FromDiagnostic(value), nameof(AnalysisError));
     }
-    public bool CanAnalyzeConversation => _conversation.Session is not null &&
-        TranscriptItems.Count > 0 && !_analysisBusy && !_starting;
+    public bool CanAnalyzeConversation => _conversation.CurrentConversation is not null &&
+        TranscriptItems.Count > 0 && !_analysisBusy && !WorkspaceBusy;
     public Visibility EmptySuggestionsVisibility => SuggestedQuestions.Count == 0
         ? Visibility.Visible : Visibility.Collapsed;
     public string PendingAnalysisText => Texts.Format("AnalysisPendingCount", _pendingAnalysisCount);
@@ -402,6 +415,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             if (Settings.AutomaticAnalysis == value) return;
             Settings.AutomaticAnalysis = value;
+            _conversation.UpdateWorkspacePreferences(Settings);
             Notify(nameof(AutomaticAnalysis), nameof(AnalysisScheduleText));
             if (value) _conversation.AnalyzeIfDue();
         }
@@ -477,6 +491,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public async Task StartAsync()
     {
+        if (!CanStart) return;
         _starting = true;
         State = ConversationUiState.Starting;
         Notify(nameof(CanStart));
@@ -494,7 +509,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
         catch (Exception ex) when (ex is InvalidOperationException or NAudio.MmException or
             System.Runtime.InteropServices.COMException or UnauthorizedAccessException or
-            PlatformNotSupportedException or NotSupportedException or IOException or ArgumentException or
+            PlatformNotSupportedException or NotSupportedException or IOException or InvalidDataException or ArgumentException or
             DllNotFoundException or BadImageFormatException)
         {
             OnUi(() => LastError = ex.Message);
@@ -506,22 +521,26 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 nameof(CanPause), nameof(CanResume), nameof(CanChangeSpeechLanguage),
                 nameof(CanEditSpeechSettings), nameof(CanSignIn), nameof(CanAnalyzeConversation),
                 nameof(CanChangeAudioSettings), nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice)); });
+            OnUi(NotifyWorkspaceControls);
         }
     }
 
     public async Task EndAsync()
     {
+        if (_ending || _importing) return;
+        _ending = true;
+        NotifyWorkspaceControls();
         try
         {
             await Task.Run(_conversation.EndConversationAsync);
-            _logger.LogInformation("Conversation ended and transient context cleared");
+            _logger.LogInformation("Conversation ended; its workspace and JSON record are retained");
         }
         catch (Exception ex) when (ex is InvalidOperationException or NAudio.MmException or
-            System.Runtime.InteropServices.COMException)
+            System.Runtime.InteropServices.COMException or IOException or InvalidDataException or UnauthorizedAccessException)
         {
             OnUi(() => LastError = ex.Message);
         }
-        finally { OnUi(() => Notify(nameof(ListeningText))); }
+        finally { OnUi(() => { _ending = false; NotifyWorkspaceControls(); }); }
     }
 
     public async Task PauseAsync()
@@ -560,6 +579,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public async Task SignInAsync()
     {
         if (!CanSignIn) return;
+        _conversation.ResetWorkIqContext();
         _verifying = true;
         UpdateAuthenticationStatus();
         Notify(nameof(CanSignIn), nameof(SignInButtonText), nameof(CanStart), nameof(CanEditSpeechSettings));
@@ -730,8 +750,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         try
         {
-            _conversation.AnalyzeConversation();
+            var request = _conversation.AnalyzeConversation();
             RefreshAnalysis();
+            SelectedAnalysis = AnalysisHistory.First(row => row.Id == request.Id);
         }
         catch (InvalidOperationException error) { LastError = error.Message; }
     }
@@ -758,7 +779,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public void ClearTranscript()
     {
-        try { _conversation.ClearTranscript(); TranscriptItems.Clear(); SetPartial(null); }
+        try
+        {
+            _conversation.ClearTranscript();
+            TranscriptItems.Clear();
+            RefreshTranscriptLayout();
+            SetPartial(null);
+        }
         catch (InvalidOperationException ex) { LastError = ex.Message; }
     }
 
@@ -776,9 +803,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
             TimerText = "00:00";
             return;
         }
-        if (_conversation.Session is { } session)
+        if (_conversation.CurrentConversation is { } session)
         {
-            TimerText = (DateTimeOffset.Now - session.StartTime).ToString(@"hh\:mm\:ss");
+            TimerText = ((session.EndTime ?? DateTimeOffset.Now) - session.StartTime).ToString(@"hh\:mm\:ss");
             _conversation.AnalyzeIfDue();
         }
     }
@@ -798,6 +825,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 card.UpdateRequest(request);
             TranscriptItems.Add(card);
         }
+        RefreshTranscriptLayout();
         if (!_scrollPaused) TranscriptScrollRequested?.Invoke();
     }
 
@@ -809,6 +837,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnAnswerUpdate(QuestionRequest request)
     {
+        if (!_conversation.AnswerHistory.Any(item => item.Id == request.Id)) return;
         UpsertAnswer(request);
         if (request.Status == QuestionStatus.Completed)
         {
@@ -817,13 +846,36 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
         else if (request.Status == QuestionStatus.Failed)
             _logger.LogWarning("Work IQ answer failed");
+        Notify(nameof(CanSignIn));
     }
 
     private void RefreshAnalysis()
     {
-        var analysis = _conversation.Analysis;
-        _analysisBusy = analysis?.Status is QuestionStatus.Pending or QuestionStatus.Processing;
+        var analyses = _conversation.Analyses;
+        foreach (var request in analyses)
+        {
+            var row = AnalysisHistory.FirstOrDefault(item => item.Id == request.Id);
+            if (row is null) AnalysisHistory.Add(new AnalysisRow(request, AnalysisHistory.Count + 1, Texts));
+            else row.Refresh(Texts);
+        }
+        var latest = _conversation.Analysis;
+        if (_latestAnalysisId != latest?.Id)
+        {
+            _latestAnalysisId = latest?.Id;
+            _selectedAnalysis = AnalysisHistory.FirstOrDefault(item => item.Id == latest?.Id);
+            Notify(nameof(SelectedAnalysis));
+        }
+        _analysisBusy = analyses.Any(item => item.GroupId is null &&
+            item.Status is QuestionStatus.Pending or QuestionStatus.Processing);
         _pendingAnalysisCount = _conversation.PendingAnalysisCount;
+        RefreshSelectedAnalysis();
+        Notify(nameof(AnalysisScheduleText), nameof(PendingAnalysisText),
+            nameof(CanAnalyzeConversation), nameof(CanSignIn));
+    }
+
+    private void RefreshSelectedAnalysis()
+    {
+        var analysis = SelectedAnalysis?.Request;
         AnalysisError = analysis?.Error ?? "";
         Set(ref _analysisStatus, analysis?.Status switch
         {
@@ -836,7 +888,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             QuestionStatus.Cancelled => new UiMessage("AnalysisCancelled"),
             _ => new UiMessage("AnalysisIdle")
         }, nameof(AnalysisStatus));
-        var questions = _conversation.SuggestedQuestions;
+        var questions = analysis?.Questions ?? [];
         var ids = questions.Select(question => question.Id).ToHashSet();
         for (var index = SuggestedQuestions.Count - 1; index >= 0; index--)
             if (!ids.Contains(SuggestedQuestions[index].Id)) SuggestedQuestions.RemoveAt(index);
@@ -851,8 +903,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             if (_conversation.GetAnswerForSuggestion(question.Id) is { } request)
                 row.UpdateRequest(request);
         }
-        Notify(nameof(AnalysisScheduleText), nameof(PendingAnalysisText),
-            nameof(CanAnalyzeConversation), nameof(EmptySuggestionsVisibility));
+        Notify(nameof(EmptySuggestionsVisibility));
     }
 
     private AnswerRow UpsertAnswer(QuestionRequest request)

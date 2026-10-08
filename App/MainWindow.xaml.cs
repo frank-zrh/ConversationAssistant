@@ -10,6 +10,8 @@ namespace ConversationAssistant_App;
 public sealed partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel;
+    private bool _closeApproved;
+    private bool _closing;
 
     public MainWindow()
     {
@@ -17,6 +19,7 @@ public sealed partial class MainWindow : Window
         _viewModel = ((App)Application.Current).Services.GetRequiredService<MainViewModel>();
         _viewModel.PropertyChanged += OnViewModelChanged;
         Closed += (_, _) => _viewModel.PropertyChanged -= OnViewModelChanged;
+        AppWindow.Closing += OnClosing;
         UpdateLanguage();
 
         ExtendsContentIntoTitleBar = true;
@@ -27,6 +30,21 @@ public sealed partial class MainWindow : Window
 
         RootFrame.Loaded += ApplyInitialWindowSize;
         RootFrame.Navigate(typeof(MainPage));
+    }
+
+    private async void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (_closeApproved) return;
+        args.Cancel = true;
+        if (_closing) return;
+        _closing = true;
+        try
+        {
+            if (!await _viewModel.PrepareCloseAsync()) return;
+            _closeApproved = true;
+            Close();
+        }
+        finally { _closing = false; }
     }
 
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)

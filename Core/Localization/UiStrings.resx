@@ -26,13 +26,35 @@
   <data name="SpeakerUnknown" xml:space="preserve"><value>Speaker not identified</value></data>
   <data name="CopyTranscript" xml:space="preserve"><value>Copy</value></data>
   <data name="ClearTranscript" xml:space="preserve"><value>Clear</value></data>
+  <data name="CreateGroup" xml:space="preserve"><value>New Group</value></data>
+  <data name="CreateGroupHint" xml:space="preserve"><value>Put all currently ungrouped final transcript entries into a new group.</value></data>
+  <data name="GroupDefaultName" xml:space="preserve"><value>Group {0}</value></data>
+  <data name="GroupEntryCount" xml:space="preserve"><value>{0} transcript entries</value></data>
+  <data name="GroupHint" xml:space="preserve"><value>Expand or collapse this group. Right-click for rename or Work IQ analysis; keyboard: Shift+F10.</value></data>
+  <data name="RenameGroup" xml:space="preserve"><value>Rename Group</value></data>
+  <data name="GroupName" xml:space="preserve"><value>Group name (1–120 characters)</value></data>
+  <data name="SaveGroupName" xml:space="preserve"><value>Save</value></data>
+  <data name="AnalyzeGroup" xml:space="preserve"><value>Analyze This Group with Work IQ</value></data>
+  <data name="AnalysisHistory" xml:space="preserve"><value>Select an analysis</value></data>
+  <data name="AnalysisHistoryHint" xml:space="preserve"><value>New analyses are selected automatically. Historical questions remain unchanged; choose a previous analysis to view them without sending another request.</value></data>
+  <data name="AnalysisAllScope" xml:space="preserve"><value>All chat</value></data>
+  <data name="AnalysisHistoryItem" xml:space="preserve"><value>Analysis {0} · {1} · {2}</value></data>
+  <data name="ImportConversation" xml:space="preserve"><value>Import JSON</value></data>
+  <data name="ImportHint" xml:space="preserve"><value>End the current conversation first. Import a saved record as a separate local copy; no listening or Work IQ requests start automatically.</value></data>
+  <data name="SaveNow" xml:space="preserve"><value>Save Now</value></data>
+  <data name="RecordNone" xml:space="preserve"><value>One JSON file per conversation</value></data>
+  <data name="RecordSaving" xml:space="preserve"><value>Saving JSON...</value></data>
+  <data name="RecordSavedAt" xml:space="preserve"><value>Last saved {0}</value></data>
+  <data name="RecordSaveFailed" xml:space="preserve"><value>Save failed — retry Save Now</value></data>
+  <data name="RecordPrivacy" xml:space="preserve"><value>Transcripts, groups, analysis and replies are saved automatically as readable JSON on this PC. End keeps the workspace visible. No audio or credentials are included. Protect these files: they may contain confidential conversation or workplace information.</value></data>
+  <data name="OpenRecordsFolder" xml:space="preserve"><value>Open Record Folder</value></data>
   <data name="PauseScrolling" xml:space="preserve"><value>Pause scrolling</value></data>
   <data name="ResumeScrolling" xml:space="preserve"><value>Resume scrolling</value></data>
   <data name="TranscriptCardHint" xml:space="preserve"><value>Left-click to ask or view the answer. Right-click to edit in the question box.</value></data>
-  <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · QUESTIONS</value></data>
+  <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · KNOWLEDGE &amp; IDEAS</value></data>
   <data name="AnalyzeConversation" xml:space="preserve"><value>Analyze All Chat</value></data>
-  <data name="QuestionsEmpty" xml:space="preserve"><value>Discovered questions will appear here. Choose a question when you want assistance; answers are not requested automatically.</value></data>
-  <data name="SuggestedQuestionHint" xml:space="preserve"><value>Click for assistance, view an existing reply, or retry a failed request.</value></data>
+  <data name="QuestionsEmpty" xml:space="preserve"><value>Find professional knowledge and creative ideas for customer conversations. Select a question to request help; answers are not fetched automatically.</value></data>
+  <data name="SuggestedQuestionHint" xml:space="preserve"><value>Request professional information or practical ideas for customer conversations, view a saved reply, or retry a failed request.</value></data>
   <data name="AnswersHeader" xml:space="preserve"><value>WORK IQ · ANSWER HISTORY</value></data>
   <data name="SelectQuestion" xml:space="preserve"><value>Select a question</value></data>
   <data name="CopyAnswer" xml:space="preserve"><value>Copy Answer</value></data>
@@ -82,7 +104,7 @@
   <data name="AnswerLanguage" xml:space="preserve"><value>Answer language</value></data>
   <data name="GroundingNote" xml:space="preserve"><value>Enterprise grounding: Work IQ (on). Web grounding control is unavailable in the CLI.</value></data>
   <data name="StoreAudio" xml:space="preserve"><value>Store audio</value></data>
-  <data name="StoreTranscript" xml:space="preserve"><value>Store transcript</value></data>
+  <data name="StoreTranscript" xml:space="preserve"><value>Save conversation records (JSON)</value></data>
   <data name="ClearAfterConversation" xml:space="preserve"><value>Clear after conversation</value></data>
   <data name="On" xml:space="preserve"><value>On</value></data>
   <data name="Off" xml:space="preserve"><value>Off</value></data>
@@ -314,4 +336,66 @@
   <data name="ErrorAzureService" xml:space="preserve"><value>{0} The service returned an error. Confirm the Azure AI Services resource supports Speech, then check resource status and network configuration.</value></data>
   <data name="ErrorAzureStopped" xml:space="preserve"><value>{0} The session stopped. Check the endpoint, Entra authorization and resource configuration before reconnecting.</value></data>
   <data name="ErrorAzureSdkInit" xml:space="preserve"><value>Azure AI Speech [{0}] SDK initialization or connection failed. Check the endpoint, Entra authorization and local runtime.</value></data>
+  <data name="ErrorNoUngroupedEntries" xml:space="preserve"><value>There are no ungrouped transcript entries.</value></data>
+  <data name="ErrorGroupName" xml:space="preserve"><value>Enter a group name between 1 and 120 characters.</value></data>
+  <data name="ErrorGroupMissing" xml:space="preserve"><value>This group has been cleared or belongs to another conversation.</value></data>
+  <data name="ErrorWorkspaceBusy" xml:space="preserve"><value>Wait for the conversation operation to finish.</value></data>
+  <data name="ErrorWorkspaceRequired" xml:space="preserve"><value>Start or import a conversation first.</value></data>
+  <data name="ErrorImportEndFirst" xml:space="preserve"><value>End the current conversation before importing a record.</value></data>
+  <data name="ErrorArchiveUnconfigured" xml:space="preserve"><value>Conversation record storage is not configured.</value></data>
+  <data name="ErrorArchiveSave" xml:space="preserve"><value>The conversation JSON could not be saved. Records remain in memory. Check disk space and folder access, then choose Save Now before starting or importing another conversation.</value></data>
+  <data name="ErrorRecordPicker" xml:space="preserve"><value>The JSON file picker could not be opened. No conversation was imported.</value></data>
+  <data name="ErrorRecordsFolder" xml:space="preserve"><value>The conversation record folder could not be opened. Check its location and access permissions.</value></data>
+  <data name="ErrorArchiveInterrupted" xml:space="preserve"><value>This request was interrupted before the conversation was saved. It was not resumed on import. Retry explicitly to submit it again.</value></data>
+  <data name="ErrorArchiveSize" xml:space="preserve"><value>The conversation archive exceeds the 64 MiB size limit.</value></data>
+  <data name="ErrorArchiveJson" xml:space="preserve"><value>The conversation archive is not valid JSON or contains invalid field values.</value></data>
+  <data name="ErrorArchiveSerialization" xml:space="preserve"><value>The conversation archive could not be serialized.</value></data>
+  <data name="ErrorArchiveCancelled" xml:space="preserve"><value>The conversation archive save was cancelled. Queue a snapshot again to retry.</value></data>
+  <data name="ErrorArchiveWrite" xml:space="preserve"><value>The conversation archive could not be saved. Queue a snapshot again to retry.</value></data>
+  <data name="ErrorArchiveFlush" xml:space="preserve"><value>Flush the current conversation archive before queuing another conversation.</value></data>
+  <data name="ErrorArchiveId" xml:space="preserve"><value>A conversation ID is required.</value></data>
+  <data name="ErrorArchiveDocument" xml:space="preserve"><value>Invalid conversation archive: The document is required.</value></data>
+  <data name="ErrorArchiveVersion" xml:space="preserve"><value>Invalid conversation archive: The archive version is not supported.</value></data>
+  <data name="ErrorArchiveGuidance" xml:space="preserve"><value>Invalid conversation archive: The analysis guidance version is invalid.</value></data>
+  <data name="ErrorArchiveEndTime" xml:space="preserve"><value>Invalid conversation archive: The end time precedes the start time.</value></data>
+  <data name="ErrorArchiveSettings" xml:space="preserve"><value>Invalid conversation archive: Settings are required.</value></data>
+  <data name="ErrorArchiveLanguage" xml:space="preserve"><value>Invalid conversation archive: The listening language must be Chinese or English.</value></data>
+  <data name="ErrorArchiveContextWindow" xml:space="preserve"><value>Invalid conversation archive: The context window is out of range.</value></data>
+  <data name="ErrorArchiveContextLimit" xml:space="preserve"><value>Invalid conversation archive: The context character limit is out of range.</value></data>
+  <data name="ErrorArchiveGroupMetadata" xml:space="preserve"><value>Invalid conversation archive: A group analysis must include both a group ID and number.</value></data>
+  <data name="ErrorArchiveGroupNumber" xml:space="preserve"><value>Invalid conversation archive: Group numbers must be positive.</value></data>
+  <data name="ErrorArchiveGroupTrigger" xml:space="preserve"><value>Invalid conversation archive: Group analysis metadata does not match its trigger.</value></data>
+  <data name="ErrorArchiveGroupNameId" xml:space="preserve"><value>Invalid conversation archive: A group name requires a group ID.</value></data>
+  <data name="ErrorArchiveQuestionCount" xml:space="preserve"><value>Invalid conversation archive: The added question count is out of range.</value></data>
+  <data name="ErrorArchiveCurrentAnalysis" xml:space="preserve"><value>Invalid conversation archive: The current analysis ID does not refer to a saved analysis.</value></data>
+  <data name="ErrorArchiveGroupNumbers" xml:space="preserve"><value>Invalid conversation archive: Group numbers must be positive and unique.</value></data>
+  <data name="ErrorArchiveGroupEmpty" xml:space="preserve"><value>Invalid conversation archive: A group must contain at least one transcript.</value></data>
+  <data name="ErrorArchiveGroupTranscript" xml:space="preserve"><value>Invalid conversation archive: A group refers to an unknown transcript.</value></data>
+  <data name="ErrorArchiveGroupOverlap" xml:space="preserve"><value>Invalid conversation archive: A transcript cannot belong to more than one group.</value></data>
+  <data name="ErrorArchiveNextGroup" xml:space="preserve"><value>Invalid conversation archive: The next group number must follow all saved groups.</value></data>
+  <data name="ErrorArchiveGroupAnalysisNumber" xml:space="preserve"><value>Invalid conversation archive: A group analysis has the wrong group number.</value></data>
+  <data name="ErrorArchiveGroupAnalysisMembers" xml:space="preserve"><value>Invalid conversation archive: A group analysis contains a transcript outside its group.</value></data>
+  <data name="ErrorArchiveHistoricalGroupId" xml:space="preserve"><value>Invalid conversation archive: A historical group ID conflicts with another record.</value></data>
+  <data name="ErrorArchiveHistoricalGroupNumber" xml:space="preserve"><value>Invalid conversation archive: A historical group ID has conflicting group numbers.</value></data>
+  <data name="ErrorArchiveQuestionEmpty" xml:space="preserve"><value>Invalid conversation archive: A suggested question cannot be empty.</value></data>
+  <data name="ErrorArchiveAnalysisQuestion" xml:space="preserve"><value>Invalid conversation archive: An analysis refers to an unknown suggested question.</value></data>
+  <data name="ErrorArchiveAnswerQuestionEmpty" xml:space="preserve"><value>Invalid conversation archive: An answer's question cannot be empty.</value></data>
+  <data name="ErrorArchiveAnswerTranscript" xml:space="preserve"><value>Invalid conversation archive: An answer's transcript ID refers to a different kind of record.</value></data>
+  <data name="ErrorArchiveAnswerQuestion" xml:space="preserve"><value>Invalid conversation archive: An answer refers to an unknown suggested question.</value></data>
+  <data name="ErrorArchiveTranscriptIds" xml:space="preserve"><value>Invalid conversation archive: Transcript IDs must be nonempty and unique in each snapshot.</value></data>
+  <data name="ErrorArchiveTranscriptId" xml:space="preserve"><value>Invalid conversation archive: A transcript ID conflicts with another record.</value></data>
+  <data name="ErrorArchiveTranscriptTime" xml:space="preserve"><value>Invalid conversation archive: A transcript ends before it starts.</value></data>
+  <data name="ErrorArchiveSpeaker" xml:space="preserve"><value>Invalid conversation archive: Speaker numbers must be positive.</value></data>
+  <data name="ErrorArchiveListNull" xml:space="preserve"><value>Invalid conversation archive: Lists cannot be null.</value></data>
+  <data name="ErrorArchiveListLimit" xml:space="preserve"><value>Invalid conversation archive: A list exceeds the archive item limit.</value></data>
+  <data name="ErrorArchiveTotalLimit" xml:space="preserve"><value>Invalid conversation archive: The archive exceeds the total item limit.</value></data>
+  <data name="ErrorArchiveListItem" xml:space="preserve"><value>Invalid conversation archive: Lists cannot contain null items.</value></data>
+  <data name="ErrorArchiveReferenceIds" xml:space="preserve"><value>Invalid conversation archive: Referenced IDs must be nonempty and unique.</value></data>
+  <data name="ErrorArchiveRecordIds" xml:space="preserve"><value>Invalid conversation archive: Record IDs must be nonempty and unique.</value></data>
+  <data name="ErrorArchiveReferenceId" xml:space="preserve"><value>Invalid conversation archive: Referenced IDs cannot be empty.</value></data>
+  <data name="ErrorArchiveTimestamp" xml:space="preserve"><value>Invalid conversation archive: A timestamp is invalid.</value></data>
+  <data name="ErrorArchiveEnum" xml:space="preserve"><value>Invalid conversation archive: An enum value is not supported.</value></data>
+  <data name="ErrorArchiveGroupBlank" xml:space="preserve"><value>Invalid conversation archive: A group name cannot be blank.</value></data>
+  <data name="ErrorArchiveTextLimit" xml:space="preserve"><value>Invalid conversation archive: A required text value is null or exceeds its length limit.</value></data>
+  <data name="ErrorArchiveQuestionConflict" xml:space="preserve"><value>Invalid conversation archive: A suggested question ID has conflicting snapshots.</value></data>
 </root>

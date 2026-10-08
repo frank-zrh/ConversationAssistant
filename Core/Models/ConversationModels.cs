@@ -24,10 +24,9 @@ public sealed class ConversationSettings
     public int MaxContextCharacters { get; set; } = 4000;
     public bool AutomaticAnalysis { get; set; } = true;
 
-    // V1 never writes conversation content or audio to disk.
     public bool StoreAudio => false;
-    public bool StoreTranscript => false;
-    public bool ClearAfterConversation => true;
+    public bool StoreTranscript => true;
+    public bool ClearAfterConversation => false;
     public bool WebGrounding => false;
 }
 
@@ -47,7 +46,7 @@ public sealed record WorkIqAnswer(string Text, IReadOnlyList<string> Sources, st
 
 public abstract class WorkIqRequest
 {
-    public Guid Id { get; } = Guid.NewGuid();
+    public Guid Id { get; init; } = Guid.NewGuid();
     public required DateTimeOffset Timestamp { get; init; }
     public bool IsManual { get; init; }
     private readonly TaskCompletionSource _explicitRequest =
@@ -70,13 +69,26 @@ public sealed class QuestionRequest : WorkIqRequest
 
 public sealed class ConversationSession
 {
-    public Guid SessionId { get; } = Guid.NewGuid();
+    public Guid SessionId { get; init; } = Guid.NewGuid();
     public DateTimeOffset StartTime { get; internal set; } = DateTimeOffset.Now;
     public DateTimeOffset? EndTime { get; internal set; }
     public string? WorkIqConversationId { get; internal set; }
     public required ConversationSettings Settings { get; init; }
     public List<TranscriptSegment> TranscriptSegments { get; } = [];
+    public List<TranscriptGroup> Groups { get; } = [];
+    public int NextGroupNumber { get; internal set; } = 1;
     public ConversationAnalysisRequest? Analysis { get; internal set; }
+    public List<ConversationAnalysisRequest> Analyses { get; } = [];
     public List<SuggestedQuestion> SuggestedQuestions { get; } = [];
     public List<QuestionRequest> Answers { get; } = [];
+}
+
+public sealed class TranscriptGroup
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public required int Number { get; init; }
+    public string? Name { get; internal set; }
+    public required DateTimeOffset Timestamp { get; init; }
+    public required IReadOnlyList<Guid> TranscriptIds { get; init; }
+    public bool IsExpanded { get; internal set; } = true;
 }
