@@ -41,6 +41,11 @@ internal sealed class ArchiveValidator
             EnumValue(analysis.Trigger);
             Require(analysis.GuidanceVersion >= 0, "The analysis guidance version is invalid.");
             Transcripts(analysis.Transcript);
+            Text(analysis.OverallContext);
+            if (analysis.StageContext is not null) Text(analysis.StageContext);
+            Text(analysis.PreviousStageSummaries);
+            Text(analysis.IntentSummary, 8000);
+            Text(analysis.StageSummary, 8000);
             Texts(analysis.ExistingQuestions);
             OptionalId(analysis.GroupId);
             GroupName(analysis.GroupName);

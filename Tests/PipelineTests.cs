@@ -924,7 +924,7 @@ public sealed partial class PipelineTests
             var call = Interlocked.Increment(ref _count);
             if (call == BlockCall || call == 1 && BlockFirst) return _first.Task.WaitAsync(token);
             if (Responses.TryDequeue(out var response)) return Task.FromResult(response);
-            var analysis = prompt.Contains("QUESTION DISCOVERY ONLY", StringComparison.Ordinal);
+            var analysis = prompt.Contains("CONVERSATION ASSISTANT: INTENT, STAGE SUMMARY AND QUESTION DISCOVERY.", StringComparison.Ordinal);
             return Task.FromResult(new WorkIqAnswer(analysis ? AnalysisReply : Reply, [],
                 conversationId ?? (analysis ? "analysis-conversation" : "answer-conversation")));
         }

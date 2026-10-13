@@ -145,6 +145,7 @@ public sealed partial class MainViewModel
 
     private void RefreshWorkspace()
     {
+        ResetAnswerPanel();
         SetPartial(null);
         TranscriptItems.Clear();
         TranscriptListItems.Clear();

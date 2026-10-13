@@ -14,6 +14,7 @@ public sealed class AnalysisRow(ConversationAnalysisRequest request, int number,
         Request.GroupName ?? Texts.Format("GroupDefaultName", Request.GroupNumber);
     public string Caption => Texts.Format("AnalysisHistoryItem", number,
         Request.Timestamp.ToLocalTime().ToString("MM-dd HH:mm:ss"), Scope);
+    public string Summary => Request.StageSummary;
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public void Refresh(UiText language)
@@ -22,5 +23,6 @@ public sealed class AnalysisRow(ConversationAnalysisRequest request, int number,
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Texts)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Scope)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Caption)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Summary)));
     }
 }

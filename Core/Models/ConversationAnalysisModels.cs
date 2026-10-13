@@ -7,6 +7,11 @@ public sealed class ConversationAnalysisRequest : WorkIqRequest
     public required IReadOnlyList<TranscriptSegment> Transcript { get; init; }
     public required IReadOnlyList<string> ExistingQuestions { get; init; }
     public required ConversationAnalysisTrigger Trigger { get; init; }
+    public string OverallContext { get; init; } = "";
+    public string? StageContext { get; init; }
+    public string PreviousStageSummaries { get; init; } = "";
+    public string IntentSummary { get; internal set; } = "";
+    public string StageSummary { get; internal set; } = "";
     // Older archives default to zero; their questions are not reused under newer guidance.
     public int GuidanceVersion { get; init; }
     public Guid? GroupId { get; init; }

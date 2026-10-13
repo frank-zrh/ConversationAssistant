@@ -6,12 +6,16 @@ using ConversationAssistant.Core.Conversation;
 namespace ConversationAssistant.Core.WorkIQ;
 
 public sealed record DiscoveredQuestion(string Question, string Reason);
+public sealed record DiscoveredAnalysis(string IntentSummary, string StageSummary,
+    IReadOnlyList<DiscoveredQuestion> Questions);
 
 public static partial class ConversationQuestionParser
 {
-    public static IReadOnlyList<DiscoveredQuestion> Parse(string response)
+    public static IReadOnlyList<DiscoveredQuestion> Parse(string response) => ParseAnalysis(response).Questions;
+
+    public static DiscoveredAnalysis ParseAnalysis(string response)
     {
-        const string invalid = "Work IQ returned an invalid question list. Retry conversation analysis.";
+        const string invalid = "Work IQ returned an invalid conversation analysis. Retry conversation analysis.";
         var json = response.Trim();
         if (json.StartsWith("```", StringComparison.Ordinal))
         {
@@ -47,7 +51,15 @@ public static partial class ConversationQuestionParser
                 if (seen.Add(QuestionKey(text)))
                     result.Add(new DiscoveredQuestion(text, reason.GetString()!.Trim()));
             }
-            return result;
+            return new DiscoveredAnalysis(Summary("intentSummary"), Summary("stageSummary"), result);
+
+            string Summary(string name)
+            {
+                if (!document.RootElement.TryGetProperty(name, out var value)) return "";
+                if (value.ValueKind != JsonValueKind.String || value.GetString()!.Length > 8000)
+                    throw new WorkIqException(invalid);
+                return value.GetString()!.Trim();
+            }
         }
         catch (JsonException error)
         {

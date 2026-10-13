@@ -260,6 +260,58 @@ public sealed class LocalizationTests
     }
 
     [TestMethod]
+    public void AnalysisWorkspaceUsesFortySixtyColumnsAndThreeLocalizedTabs()
+    {
+        var page = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "MainPage.xaml"));
+        XNamespace ui = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+        Assert.AreEqual(1, page.Descendants(ui + "Grid.ColumnDefinitions").Count(columns =>
+            columns.Elements().Select(column => (string?)column.Attribute("Width")).SequenceEqual(new[] { "2*", "3*" })));
+        var tabs = page.Descendants(ui + "TabView").Single(element => (string?)element.Attribute(x + "Name") == "AnalysisTabs");
+        CollectionAssert.AreEqual(new[]
+        {
+            "{Binding Texts[IntentTab]}", "{Binding Texts[StageSummariesTab]}", "{Binding Texts[RecommendedQuestionsTab]}"
+        }, tabs.Elements(ui + "TabViewItem").Select(tab => (string)tab.Attribute("Header")!).ToArray());
+        Assert.IsTrue(tabs.Elements(ui + "TabViewItem").All(tab => (string?)tab.Attribute("IsClosable") == "False"));
+        Assert.IsTrue(page.Descendants().Any(element => (string?)element.Attribute(x + "Name") == "AnswerHistoryPicker"));
+    }
+
+    [TestMethod]
+    public void AnswerPanelControlsBindReversibleLayoutAndKeepTheHeaderVisible()
+    {
+        var page = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "MainPage.xaml"));
+        XNamespace ui = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+        XElement Named(string name) => page.Descendants().Single(element => (string?)element.Attribute(x + "Name") == name);
+        var workspace = Named("WorkspaceLayout");
+        CollectionAssert.AreEqual(new[] { "{Binding AnalysisPanelHeight}", "{Binding AnswerPanelHeight}" },
+            workspace.Element(ui + "Grid.RowDefinitions")!.Elements().Select(row => (string)row.Attribute("Height")!).ToArray());
+        var toggle = Named("AnswerPanelToggleButton");
+        Assert.IsNull(toggle.Attribute("Visibility"));
+        Assert.AreEqual("ToggleAnswerPanel_Click", (string?)toggle.Attribute("Click"));
+        var expand = Named("AnswerPanelExpandButton");
+        Assert.AreEqual("ToggleAnswerPanelExpansion_Click", (string?)expand.Attribute("Click"));
+        Assert.AreEqual("{Binding AnswerPanelVisibility}", (string?)expand.Attribute("Visibility"));
+        Assert.AreEqual("{Binding AnswerPanelVisibility}", (string?)Named("AnswerContent").Attribute("Visibility"));
+        Assert.AreEqual("{Binding AnswerPanelVisibility}", (string?)Named("AnswerHistoryPicker").Attribute("Visibility"));
+        Assert.AreEqual("0", (string?)Named("AnalysisTabs").Attribute("SelectedIndex"));
+        foreach (var texts in new[] { English, Chinese })
+        {
+            StringAssert.Contains(texts["ExpandAnswerPanel"], "3/4");
+            StringAssert.Contains(texts["RestoreAnswerPanel"], "1/3");
+        }
+    }
+
+    [TestMethod]
+    public void RecommendedQuestionsWireSeparateSubmitAndEditGestures()
+    {
+        var page = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "MainPage.xaml"));
+        var button = page.Descendants().Single(element => (string?)element.Attribute("Click") == "SuggestedQuestion_Click");
+        Assert.AreEqual("SuggestedQuestion_RightTapped", (string?)button.Attribute("RightTapped"));
+        Assert.AreEqual("{Binding Texts[SuggestedQuestionHint]}", (string?)button.Attribute("ToolTipService.ToolTip"));
+    }
+
+    [TestMethod]
     public void MainPageOwnsNoUnlocalizedControlLabels()
     {
         var page = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "MainPage.xaml"));

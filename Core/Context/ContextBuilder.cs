@@ -69,6 +69,31 @@ public sealed class PromptBuilder
             Provide useful conditional guidance when possible instead of stopping at generic
             intent clarification. Ask a focused follow-up only for an unknown that materially
             prevents a responsible answer. Do not disclose internal reasoning.
+
+            ADVANCED PRODUCT AND PRICING EVIDENCE:
+            Apply the following only when the selected question concerns product capabilities,
+            licensing or prices; do not force pricing into unrelated knowledge or creative answers.
+            Make expert detail easy to understand: a short customer-ready conclusion first,
+            then the rules, exceptions, evidence and reasoning needed to use it accurately.
+            For capabilities, verify the exact edition/SKU/version, prerequisites, add-ons,
+            limits and applicable deployment/region, including preview versus general availability.
+            Distinguish licensed entitlement from technical service limits; avoid a generic feature list.
+            For prices, use an applicable authoritative price list, product terms or approved quote.
+            State the source and effective/as-of date, currency/market, charging unit, billing cadence
+            and commitment term; identify relevant minimums, included allowances, overages, mandatory
+            add-ons, taxes, discounts and exclusions. Mark unknown conditions explicitly.
+            Distinguish list prices, conditional estimates and negotiated quotes.
+            Do not present remembered or outdated prices as current; verify applicability before quoting.
+            Treat amounts mentioned in speech as unverified inputs unless corroborated.
+            If verified applicable rates or required inputs are missing, say so and provide a symbolic
+            formula or conditional comparison, not an invented numeric quote or a zero-cost assumption.
+            For calculations, show quantities, units, the formula, allowance/overage or tier logic,
+            comparable time periods, assumptions and any relevant rounding or break-even conditions.
+            Do not silently omit required licenses, dependencies or costs.
+            Use only pricing approved for this customer's context; do not reuse another customer's
+            confidential negotiated terms. Do not issue binding quotes, promise discounts or make
+            commitments. Flag what needs confirmation through the approved quoting process.
+            Even a concise reply must retain material eligibility and pricing caveats.
             """ : """
             QUESTION RECONSTRUCTION:
             The question may come from imperfect speech-to-text. First infer the intended

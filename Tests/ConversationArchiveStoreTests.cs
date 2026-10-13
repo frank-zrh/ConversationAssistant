@@ -25,6 +25,26 @@ public sealed class ConversationArchiveStoreTests
     }
 
     [TestMethod]
+    public async Task LegacyArchivesWithoutSummaryFieldsStillLoad()
+    {
+        var store = new JsonConversationArchiveStore(_directory);
+        var path = await store.SaveAsync(ConversationArchive.Capture(FullSession()));
+        var document = JsonNode.Parse(await File.ReadAllTextAsync(path))!;
+        foreach (var analysis in document["analyses"]!.AsArray())
+            foreach (var field in new[] { "overallContext", "stageContext", "previousStageSummaries", "intentSummary", "stageSummary" })
+                analysis!.AsObject().Remove(field);
+        await File.WriteAllTextAsync(path, document.ToJsonString());
+        var restored = (await store.LoadAsync(path)).Restore();
+        foreach (var analysis in restored.Analyses)
+        {
+            Assert.AreEqual("", analysis.IntentSummary);
+            Assert.AreEqual("", analysis.StageSummary);
+            Assert.AreEqual("", analysis.OverallContext);
+            Assert.IsNull(analysis.StageContext);
+        }
+    }
+
+    [TestMethod]
     public async Task RoundTripPreservesAllHistoryAndSemanticIdsInReadableUnicodeJson()
     {
         var original = FullSession();
@@ -91,6 +111,11 @@ public sealed class ConversationArchiveStoreTests
             Assert.AreEqual(expected.Timestamp, actual.Timestamp);
             Assert.AreEqual(expected.Trigger, actual.Trigger);
             Assert.AreEqual(expected.GuidanceVersion, actual.GuidanceVersion);
+            Assert.AreEqual(expected.OverallContext, actual.OverallContext);
+            Assert.AreEqual(expected.StageContext, actual.StageContext);
+            Assert.AreEqual(expected.PreviousStageSummaries, actual.PreviousStageSummaries);
+            Assert.AreEqual(expected.IntentSummary, actual.IntentSummary);
+            Assert.AreEqual(expected.StageSummary, actual.StageSummary);
             Assert.AreEqual(expected.IsManual, actual.IsManual);
             Assert.AreEqual(expected.Status, actual.Status);
             Assert.AreEqual(expected.Error, actual.Error);
@@ -750,12 +775,17 @@ public sealed class ConversationArchiveStoreTests
             Trigger = ConversationAnalysisTrigger.Group,
             GuidanceVersion = 1,
             Transcript = older,
+            OverallContext = "整体会话：产品销售与技术架构。",
+            StageContext = "本阶段：需求确认。",
+            PreviousStageSummaries = "先前阶段已讨论产品目标。",
             ExistingQuestions = new[] { "Earlier need?" },
             GroupId = historicalGroup.Id,
             GroupNumber = historicalGroup.Number,
             GroupName = "分析时的名称"
         };
         Set(firstAnalysis, nameof(WorkIqRequest.Status), QuestionStatus.Completed);
+        Set(firstAnalysis, nameof(ConversationAnalysisRequest.IntentSummary), "评估产品与安全架构是否适合客户。");
+        Set(firstAnalysis, nameof(ConversationAnalysisRequest.StageSummary), "确认部署需求与约束。");
         Set(firstAnalysis, nameof(ConversationAnalysisRequest.Questions), new[] { firstSuggestion });
         Set(firstAnalysis, nameof(ConversationAnalysisRequest.AddedQuestionCount), 1);
         Set(firstAnalysis, nameof(ConversationAnalysisRequest.Response), """{"questions":[{"question":"如何保留历史？","reason":"需要完整记录。"}]}""");

@@ -86,6 +86,11 @@ public sealed class ConversationArchive
                 Trigger = item.Trigger,
                 GuidanceVersion = item.GuidanceVersion,
                 Transcript = item.Transcript.Select(CaptureTranscript).ToArray(),
+                OverallContext = item.OverallContext,
+                StageContext = item.StageContext,
+                PreviousStageSummaries = item.PreviousStageSummaries,
+                IntentSummary = item.IntentSummary,
+                StageSummary = item.StageSummary,
                 ExistingQuestions = item.ExistingQuestions.ToArray(),
                 GroupId = item.GroupId,
                 GroupNumber = item.GroupNumber,
@@ -163,6 +168,11 @@ public sealed class ConversationArchive
             Trigger = item.Trigger,
             GuidanceVersion = item.GuidanceVersion,
             Transcript = item.Transcript.Select(RestoreTranscript).ToArray(),
+            OverallContext = item.OverallContext,
+            StageContext = item.StageContext,
+            PreviousStageSummaries = item.PreviousStageSummaries,
+            IntentSummary = item.IntentSummary,
+            StageSummary = item.StageSummary,
             ExistingQuestions = item.ExistingQuestions.ToArray(),
             GroupId = item.GroupId,
             GroupNumber = item.GroupNumber,
@@ -334,6 +344,11 @@ internal sealed record ArchiveAnalysis
     public required string? Error { get; init; }
     public required ConversationAnalysisTrigger Trigger { get; init; }
     public int GuidanceVersion { get; init; }
+    public string OverallContext { get; init; } = "";
+    public string? StageContext { get; init; }
+    public string PreviousStageSummaries { get; init; } = "";
+    public string IntentSummary { get; init; } = "";
+    public string StageSummary { get; init; } = "";
     public required ArchiveTranscript[] Transcript { get; init; }
     public required string[] ExistingQuestions { get; init; }
     public required Guid? GroupId { get; init; }

@@ -18,7 +18,7 @@ public sealed class ConversationSettings
     public AnswerStyle AnswerStyle { get; set; } = AnswerStyle.Concise;
     public string? InputDeviceId { get; set; }
     public string? OutputDeviceId { get; set; }
-    public AudioCaptureMode AudioMode { get; set; } = AudioCaptureMode.Microphone;
+    public AudioCaptureMode AudioMode { get; set; } = AudioCaptureMode.MicrophoneAndSystemAudio;
     public AudioCaptureOptions AudioCapture => new(AudioMode, InputDeviceId, OutputDeviceId);
     public TimeSpan ContextWindowDuration { get; set; } = TimeSpan.FromMinutes(3);
     public int MaxContextCharacters { get; set; } = 4000;

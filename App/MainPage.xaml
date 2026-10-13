@@ -83,8 +83,8 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="6*" />
-            <ColumnDefinition Width="5*" />
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="3*" />
         </Grid.ColumnDefinitions>
 
         <Grid Grid.ColumnSpan="2" ColumnSpacing="16">
@@ -206,8 +206,8 @@
 
         <Grid x:Name="WorkspaceLayout" Grid.Row="1" Grid.Column="1" Margin="8,0,0,0" RowSpacing="12">
             <Grid.RowDefinitions>
-                <RowDefinition Height="2*" />
-                <RowDefinition Height="3*" />
+                <RowDefinition Height="{Binding AnalysisPanelHeight}" />
+                <RowDefinition Height="{Binding AnswerPanelHeight}" />
             </Grid.RowDefinitions>
             <Border CornerRadius="12"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -248,28 +248,65 @@
                                    TextTrimming="CharacterEllipsis"
                                    ToolTipService.ToolTip="{Binding AnalysisStatus}" />
                     </Grid>
-                    <TextBlock Grid.Row="2" Text="{Binding Texts[QuestionsEmpty]}"
-                               Visibility="{Binding EmptySuggestionsVisibility}" TextWrapping="Wrap"
-                               VerticalAlignment="Center" Opacity=".65" />
-                    <ScrollViewer x:Name="SuggestedQuestionsScroll" Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding SuggestedQuestions}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                                            Padding="10" Margin="0,0,0,6" CornerRadius="8"
-                                            AutomationProperties.Name="{Binding AutomationLabel}"
-                                            ToolTipService.ToolTip="{Binding Texts[SuggestedQuestionHint]}"
-                                            Click="SuggestedQuestion_Click">
-                                        <StackPanel Spacing="4">
-                                            <TextBlock Text="{Binding Question}" TextWrapping="Wrap" FontWeight="SemiBold" />
-                                            <TextBlock Text="{Binding Reason}" TextWrapping="Wrap" Opacity=".8" />
-                                            <TextBlock Text="{Binding StatusText}" FontSize="12" Opacity=".7" />
-                                        </StackPanel>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                    <TabView x:Name="AnalysisTabs" Grid.Row="2" IsAddTabButtonVisible="False"
+                             CanDragTabs="False" CanReorderTabs="False" TabWidthMode="Equal" SelectedIndex="0">
+                        <TabViewItem Header="{Binding Texts[IntentTab]}" IsClosable="False">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Padding="8" Spacing="8">
+                                    <TextBlock Text="{Binding Texts[IntentHint]}" TextWrapping="Wrap" FontSize="12" Opacity=".7" />
+                                    <TextBlock Text="{Binding Texts[IntentEmpty]}" TextWrapping="Wrap" Opacity=".65"
+                                               Visibility="{Binding EmptyIntentVisibility}" />
+                                    <TextBlock Text="{Binding IntentSummary}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabViewItem>
+                        <TabViewItem Header="{Binding Texts[StageSummariesTab]}" IsClosable="False">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Padding="8" Spacing="8">
+                                    <TextBlock Text="{Binding Texts[StageSummariesEmpty]}" TextWrapping="Wrap" Opacity=".65"
+                                               Visibility="{Binding EmptyStageSummariesVisibility}" />
+                                    <ItemsControl ItemsSource="{Binding StageSummaries}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Padding="10" Margin="0,0,0,8" CornerRadius="8"
+                                                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                                                    <StackPanel Spacing="6">
+                                                        <TextBlock Text="{Binding Caption}" FontSize="12" Opacity=".7" TextWrapping="Wrap" />
+                                                        <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabViewItem>
+                        <TabViewItem Header="{Binding Texts[RecommendedQuestionsTab]}" IsClosable="False">
+                            <Grid Padding="8">
+                                <TextBlock Text="{Binding Texts[QuestionsEmpty]}" Visibility="{Binding EmptySuggestionsVisibility}"
+                                           TextWrapping="Wrap" VerticalAlignment="Center" Opacity=".65" />
+                                <ScrollViewer x:Name="SuggestedQuestionsScroll" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding SuggestedQuestions}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                        Padding="10" Margin="0,0,0,6" CornerRadius="8"
+                                                        AutomationProperties.Name="{Binding AutomationLabel}"
+                                                        ToolTipService.ToolTip="{Binding Texts[SuggestedQuestionHint]}"
+                                                        Click="SuggestedQuestion_Click" RightTapped="SuggestedQuestion_RightTapped">
+                                                    <StackPanel Spacing="4">
+                                                        <TextBlock Text="{Binding Question}" TextWrapping="Wrap" FontWeight="SemiBold" />
+                                                        <TextBlock Text="{Binding Reason}" TextWrapping="Wrap" Opacity=".8" />
+                                                        <TextBlock Text="{Binding StatusText}" FontSize="12" Opacity=".7" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Grid>
+                        </TabViewItem>
+                    </TabView>
                     <TextBlock Grid.Row="4" Text="{Binding AnalysisError}" TextWrapping="Wrap"
                                Foreground="IndianRed" MaxLines="3" />
                 </Grid>
@@ -277,13 +314,27 @@
         <Border Grid.Row="1" CornerRadius="12"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
-            <Grid x:Name="AssistantLayout" Padding="12" RowSpacing="8">
+            <Grid x:Name="AssistantLayout" Padding="12" RowSpacing="{Binding AnswerPanelRowSpacing}">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <ComboBox x:Name="AnswerHistoryPicker" Header="{Binding Texts[AnswersHeader]}" ItemsSource="{Binding Answers}"
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="AnswerPanelToggleButton" Content="{Binding AnswerPanelToggleText}"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            ToolTipService.ToolTip="{Binding Texts[AnswerPanelToggleHint]}"
+                            Click="ToggleAnswerPanel_Click" />
+                    <Button x:Name="AnswerPanelExpandButton" Grid.Column="1" Content="{Binding AnswerPanelSizeText}"
+                            Visibility="{Binding AnswerPanelVisibility}" Click="ToggleAnswerPanelExpansion_Click" />
+                </Grid>
+                <ComboBox x:Name="AnswerHistoryPicker" Grid.Row="1" Visibility="{Binding AnswerPanelVisibility}"
+                          Header="{Binding Texts[AnswersHeader]}" ItemsSource="{Binding Answers}"
                           HorizontalAlignment="Stretch"
                           PlaceholderText="{Binding Texts[SelectQuestion]}"
                           SelectedItem="{Binding SelectedAnswer, Mode=TwoWay}">
@@ -294,13 +345,13 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6">
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="6" Visibility="{Binding AnswerPanelVisibility}">
                     <Button Content="{Binding Texts[CopyAnswer]}" Click="CopyAnswer_Click" />
                     <Button Content="{Binding Texts[Retry]}" Click="Retry_Click" />
                     <Button Content="{Binding Texts[Dismiss]}" Click="Dismiss_Click" />
                     <Button x:Name="AnswerViewButton" Content="{Binding Texts[ViewOriginal]}" Click="AnswerView_Click" />
                 </StackPanel>
-                <Grid Grid.Row="1" RowSpacing="6">
+                <Grid x:Name="AnswerContent" Grid.Row="2" RowSpacing="6" Visibility="{Binding AnswerPanelVisibility}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />

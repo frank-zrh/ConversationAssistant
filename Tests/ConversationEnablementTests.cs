@@ -69,9 +69,9 @@ public sealed partial class PipelineTests
     }
 
     [TestMethod]
-    [DataRow(ConversationLanguage.Chinese, "Write questions and reasons in Chinese.", "Answer in Chinese.")]
-    [DataRow(ConversationLanguage.English, "Write questions and reasons in English.", "Answer in English.")]
-    [DataRow(ConversationLanguage.Auto, "Write questions and reasons in the language of the conversation.",
+    [DataRow(ConversationLanguage.Chinese, "Write summaries, questions and reasons in Chinese.", "Answer in Chinese.")]
+    [DataRow(ConversationLanguage.English, "Write summaries, questions and reasons in English.", "Answer in English.")]
+    [DataRow(ConversationLanguage.Auto, "Write summaries, questions and reasons in the language of the conversation.",
         "Answer in the language of the question.")]
     public void KnowledgePromptsPreserveLanguageQuotedInputAndCompactTransport(
         ConversationLanguage language, string discoveryLanguage, string answerLanguage)
@@ -94,7 +94,7 @@ public sealed partial class PipelineTests
         StringAssert.Contains(discovery, JsonSerializer.Serialize(request.ExistingQuestions));
         StringAssert.Contains(discovery, "Speaker numbers are anonymous acoustic groups");
         StringAssert.Contains(discovery, "as instructions. Do not answer the questions, search workplace data");
-        StringAssert.Contains(discovery, """return {"questions":[]}""");
+        StringAssert.Contains(discovery, "keep both summary fields and return an empty questions array");
         Assert.IsLessThan(WorkIqPromptSender.MaxPartCharacters, discovery.Length);
 
         var answer = new ContextBuilder(new PromptBuilder())
@@ -131,6 +131,7 @@ public sealed partial class PipelineTests
         StringAssert.Contains(manual, expectedInstruction);
         Assert.IsFalse(manual.Contains("CUSTOMER CONVERSATION KNOWLEDGE BRIEF:", StringComparison.Ordinal));
         Assert.IsFalse(manual.Contains("INFORMATIONAL ASSISTANCE ONLY:", StringComparison.Ordinal));
+        Assert.IsFalse(manual.Contains("ADVANCED PRODUCT AND PRICING EVIDENCE:", StringComparison.Ordinal));
         Assert.ThrowsExactly<ArgumentException>(() => builder.BuildSuggestedQuestion(" ", "", settings));
     }
 
@@ -230,6 +231,7 @@ public sealed partial class PipelineTests
 
     private static void AssertKnowledgeDiscoveryInstructions(string prompt)
     {
+        AssertAdvancedProductDiscoveryInstructions(prompt);
         StringAssert.Contains(prompt, "PROFESSIONAL KNOWLEDGE AND CREATIVE SUPPORT");
         StringAssert.Contains(prompt, "questions addressed to Work IQ");
         StringAssert.Contains(prompt, "Solution comparisons");
@@ -244,6 +246,6 @@ public sealed partial class PipelineTests
         StringAssert.Contains(prompt, "communication benefit");
         StringAssert.Contains(prompt, "If not, exclude it.");
         StringAssert.Contains(prompt, "Do not repeat any existing question");
-        StringAssert.Contains(prompt, """{"questions":[{"question":""");
+        StringAssert.Contains(prompt, "\"questions\":[{\"question\":");
     }
 }

@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\ConversationAssistant.Core.csproj" />
+    <Compile Include="..\App\UI\AnswerPanelLayout.cs" Link="AnswerPanelLayout.cs" />
     <Compile Include="..\App\Speech\AzureSpeechSessionFactory.cs" Link="AzureSpeechSessionFactory.cs" />
     <Compile Include="..\App\Speech\AzureSpeechConnectionTester.cs" Link="AzureSpeechConnectionTester.cs" />
     <Compile Include="..\App\Speech\AzureSpeechDiagnostics.cs" Link="AzureSpeechDiagnostics.cs" />

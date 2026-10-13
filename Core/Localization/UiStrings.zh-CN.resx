@@ -13,7 +13,7 @@
   <data name="AutoAnalysis" xml:space="preserve"><value>自动使用 Work IQ 分析</value></data>
   <data name="AutoAnalysisOn" xml:space="preserve"><value>自动分析：开</value></data>
   <data name="AutoAnalysisOff" xml:space="preserve"><value>自动分析：关</value></data>
-  <data name="AutoAnalysisHint" xml:space="preserve"><value>有新增会话时，每 5 分钟或累计 7 条最终转写，将全部聊天交给 Work IQ 提取问题；选择问题后才会获取答案。</value></data>
+  <data name="AutoAnalysisHint" xml:space="preserve"><value>有新增会话时，每 5 分钟或累计 7 条最终转写，分析整体意图、追加阶段总结并推荐问题；左键点击推荐问题或提交提问后获取答案。</value></data>
   <data name="Settings" xml:space="preserve"><value>设置</value></data>
   <data name="StartConversation" xml:space="preserve"><value>开始对话</value></data>
   <data name="EndConversation" xml:space="preserve"><value>结束对话</value></data>
@@ -51,11 +51,22 @@
   <data name="PauseScrolling" xml:space="preserve"><value>暂停滚动</value></data>
   <data name="ResumeScrolling" xml:space="preserve"><value>继续滚动</value></data>
   <data name="TranscriptCardHint" xml:space="preserve"><value>左键点击以提问或查看回复；右键点击可将原文复制到提问框中编辑。</value></data>
-  <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · 知识与创意</value></data>
+  <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · 对话分析</value></data>
+  <data name="IntentTab" xml:space="preserve"><value>意图总结</value></data>
+  <data name="StageSummariesTab" xml:space="preserve"><value>阶段总结</value></data>
+  <data name="RecommendedQuestionsTab" xml:space="preserve"><value>推荐问题</value></data>
+  <data name="IntentHint" xml:space="preserve"><value>最近一次成功分析得到的整体会话意图，包括目标、约束与待定事项。</value></data>
+  <data name="IntentEmpty" xml:space="preserve"><value>分析会话后，在此查看整体对话意图。</value></data>
+  <data name="StageSummariesEmpty" xml:space="preserve"><value>每次成功分析新增会话内容后，在此逐步追加简要阶段总结。</value></data>
   <data name="AnalyzeConversation" xml:space="preserve"><value>分析全部聊天</value></data>
-  <data name="QuestionsEmpty" xml:space="preserve"><value>这里提供能用于客户沟通的专业知识和创意问题。选择后再获取方案、依据或建议，不会自动请求答案。</value></data>
-  <data name="SuggestedQuestionHint" xml:space="preserve"><value>点击获取客户沟通需要的专业信息或创意建议；已有回复直接查看，失败时重试。</value></data>
+  <data name="QuestionsEmpty" xml:space="preserve"><value>根据整体意图与阶段总结推荐可向 Work IQ 询问的问题，尤其是产品销售、复杂功能与价格、技术架构。左键点击直接提问，右键点击填入提问框编辑后提交。</value></data>
+  <data name="SuggestedQuestionHint" xml:space="preserve"><value>左键点击提问、查看已有回复或重试失败请求；右键点击填入提问框，可修改后再提交。</value></data>
   <data name="AnswersHeader" xml:space="preserve"><value>WORK IQ · 问题回复</value></data>
+  <data name="ShowAnswerPanel" xml:space="preserve"><value>展开问题与回复（1/3）</value></data>
+  <data name="CollapseAnswerPanel" xml:space="preserve"><value>折叠问题与回复</value></data>
+  <data name="ExpandAnswerPanel" xml:space="preserve"><value>扩展至 3/4</value></data>
+  <data name="RestoreAnswerPanel" xml:space="preserve"><value>恢复至 1/3</value></data>
+  <data name="AnswerPanelToggleHint" xml:space="preserve"><value>点击展开或折叠下方问题区域；默认展开占 1/3 高度，扩展按钮可放大至 3/4。</value></data>
   <data name="SelectQuestion" xml:space="preserve"><value>选择问题</value></data>
   <data name="CopyAnswer" xml:space="preserve"><value>复制回复</value></data>
   <data name="Retry" xml:space="preserve"><value>重试</value></data>
@@ -253,7 +264,7 @@
   <data name="ErrorWorkIqService" xml:space="preserve"><value>Work IQ 无法回答此问题，请重试或检查权限。</value></data>
   <data name="ErrorWorkIqNoAnswer" xml:space="preserve"><value>Work IQ 未返回回复。</value></data>
   <data name="ErrorWorkIqInvalidJson" xml:space="preserve"><value>Work IQ 返回的 JSON 无效，请更新官方命令行工具。</value></data>
-  <data name="ErrorWorkIqInvalidQuestions" xml:space="preserve"><value>Work IQ 返回的问题列表无效，请重新分析对话。</value></data>
+  <data name="ErrorWorkIqInvalidQuestions" xml:space="preserve"><value>Work IQ 返回的对话分析结果无效，请重新分析对话。</value></data>
   <data name="ErrorWorkIqContinuation" xml:space="preserve"><value>Work IQ 未返回完整转写所需的会话 ID，分析未完成，请重试。</value></data>
   <data name="ErrorWorkIqEmpty" xml:space="preserve"><value>Work IQ 返回了空回复，请重试此请求。</value></data>
   <data name="ErrorWorkIqNoParts" xml:space="preserve"><value>Work IQ 请求没有可发送的内容片段。</value></data>

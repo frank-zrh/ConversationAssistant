@@ -440,12 +440,20 @@ public sealed partial class ConversationSessionManager
         var transcript = session.TranscriptSegments.Where(segment => ids is null || ids.Contains(segment.Id)).ToArray();
         var transcriptIds = transcript.Select(segment => segment.Id).ToHashSet();
         var previous = session.Analyses.LastOrDefault(item => item.GroupId == group?.Id &&
-            item.GuidanceVersion == ConversationAnalysisPrompt.CurrentGuidanceVersion &&
+            ConversationAnalysisPrompt.CanReuseQuestionsFrom(item.GuidanceVersion) &&
             item.Status == QuestionStatus.Completed && item.Transcript.All(segment => transcriptIds.Contains(segment.Id)));
         var questions = previous?.Questions.ToArray() ?? [];
+        var stages = session.Analyses.Where(item => item.GroupId == group?.Id &&
+            item.Status == QuestionStatus.Completed && !string.IsNullOrWhiteSpace(item.StageSummary) &&
+            item.Transcript.All(segment => transcriptIds.Contains(segment.Id))).ToArray();
+        var summarizedIds = stages.LastOrDefault()?.Transcript.Select(segment => segment.Id).ToHashSet() ?? [];
         var request = new ConversationAnalysisRequest
         {
             Transcript = transcript,
+            OverallContext = group is null ? "" : ConversationAnalysisPrompt.FormatTranscript(session.TranscriptSegments),
+            StageContext = ConversationAnalysisPrompt.FormatTranscript(
+                transcript.Where(segment => !summarizedIds.Contains(segment.Id)).ToArray()),
+            PreviousStageSummaries = string.Join(Environment.NewLine, stages.Select(item => item.StageSummary)),
             ExistingQuestions = questions.Select(question => question.Question).ToArray(),
             Questions = questions,
             Timestamp = _timeProvider.GetUtcNow(),
@@ -740,7 +748,7 @@ public sealed partial class ConversationSessionManager
                 request.Response = answer.Text;
                 request.Sources = answer.Sources.ToArray();
             }
-            var questions = ConversationQuestionParser.Parse(answer.Text);
+            var analysis = ConversationQuestionParser.ParseAnalysis(answer.Text);
             var context = ConversationAnalysisPrompt.FormatTranscript(request.Transcript);
             lock (_gate)
             {
@@ -752,7 +760,7 @@ public sealed partial class ConversationSessionManager
                 var result = request.Questions.ToList();
                 var existing = result.Select(question =>
                     ConversationQuestionParser.QuestionKey(question.Question)).ToHashSet(StringComparer.Ordinal);
-                foreach (var question in questions)
+                foreach (var question in analysis.Questions)
                 {
                     if (!existing.Add(ConversationQuestionParser.QuestionKey(question.Question))) continue;
                     var suggestion = new SuggestedQuestion
@@ -767,6 +775,8 @@ public sealed partial class ConversationSessionManager
                     request.AddedQuestionCount++;
                 }
                 request.Questions = result.ToArray();
+                request.IntentSummary = analysis.IntentSummary;
+                request.StageSummary = request.StageContext == "" ? "" : analysis.StageSummary;
                 if (request.GroupId is null) _analysisSchedule.Complete(request.Transcript.Count);
                 request.Status = QuestionStatus.Completed;
             }

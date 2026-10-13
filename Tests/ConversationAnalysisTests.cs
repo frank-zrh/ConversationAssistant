@@ -8,6 +8,90 @@ namespace ConversationAssistant.Tests;
 public sealed partial class PipelineTests
 {
     [TestMethod]
+    public void StructuredAnalysisParsesSummariesAndKeepsLegacyResponsesCompatible()
+    {
+        var result = ConversationQuestionParser.ParseAnalysis(
+            """{"intentSummary":"  Evaluate a secure product architecture.  ","stageSummary":"  Deployment constraints were identified.  ","questions":[]}""");
+        Assert.AreEqual("Evaluate a secure product architecture.", result.IntentSummary);
+        Assert.AreEqual("Deployment constraints were identified.", result.StageSummary);
+        Assert.IsEmpty(result.Questions);
+        var legacy = ConversationQuestionParser.ParseAnalysis("""{"questions":[]}""");
+        Assert.AreEqual("", legacy.IntentSummary);
+        Assert.AreEqual("", legacy.StageSummary);
+    }
+
+    [TestMethod]
+    [DataRow("""{"intentSummary":null,"questions":[]}""")]
+    [DataRow("""{"stageSummary":[],"questions":[]}""")]
+    public void StructuredAnalysisRejectsInvalidSummaryTypes(string response)
+    {
+        Assert.ThrowsExactly<WorkIqException>(() => ConversationQuestionParser.ParseAnalysis(response));
+    }
+
+    [TestMethod]
+    public void StructuredAnalysisRejectsOversizedSummaries()
+    {
+        var response = JsonSerializer.Serialize(new { intentSummary = new string('a', 8001), questions = Array.Empty<object>() });
+        Assert.ThrowsExactly<WorkIqException>(() => ConversationQuestionParser.ParseAnalysis(response));
+    }
+
+    [TestMethod]
+    public async Task StageSummariesAccumulateOnlyNewContentAndRemainSeparateFromAnswers()
+    {
+        var fake = new Harness();
+        fake.Work.AnalysisReply = """{"intentSummary":"Evaluate product sales fit.","stageSummary":"Initial requirements discussed.","questions":[]}""";
+        fake.Conversation.StartConversation(new ConversationSettings { AutomaticAnalysis = false });
+        try
+        {
+            EmitFinals(fake, 1);
+            var first = fake.Conversation.AnalyzeConversation();
+            await WaitUntil(() => first.Status == QuestionStatus.Completed);
+            Assert.AreEqual("Evaluate product sales fit.", first.IntentSummary);
+            Assert.AreEqual("Initial requirements discussed.", first.StageSummary);
+            EmitFinals(fake, 1, 2);
+            fake.Work.AnalysisReply = """{"intentSummary":"Compare secure architectures and sales fit.","stageSummary":"New deployment constraints discussed.","questions":[]}""";
+            var second = fake.Conversation.AnalyzeConversation();
+            await WaitUntil(() => second.Status == QuestionStatus.Completed);
+            StringAssert.Contains(second.StageContext!, "Statement 2");
+            Assert.IsFalse(second.StageContext!.Contains("Statement 1", StringComparison.Ordinal));
+            StringAssert.Contains(second.PreviousStageSummaries, first.StageSummary);
+            StringAssert.Contains(AnalysisTranscript(fake.Work.Calls.Last().Prompt), "Statement 1");
+            StringAssert.Contains(fake.Work.Calls.Last().Prompt, "Technical architecture options");
+            StringAssert.Contains(fake.Work.Calls.Last().Prompt, "Product-sales evidence");
+            var repeated = fake.Conversation.AnalyzeConversation();
+            await WaitUntil(() => repeated.Status == QuestionStatus.Completed);
+            Assert.AreEqual("", repeated.StageContext);
+            Assert.AreEqual("", repeated.StageSummary);
+            Assert.AreEqual(2, fake.Conversation.Analyses.Count(item => !string.IsNullOrEmpty(item.StageSummary)));
+            Assert.IsEmpty(fake.Conversation.AnswerHistory);
+        }
+        finally { await fake.Conversation.EndConversationAsync(); }
+    }
+
+    [TestMethod]
+    public async Task GroupAnalysisUsesWholeConversationForIntentAndGroupOnlyForStage()
+    {
+        var fake = new Harness();
+        fake.Work.AnalysisReply = """{"intentSummary":"Evaluate sales and deployment requirements.","stageSummary":"Discussed architecture constraints.","questions":[]}""";
+        fake.Conversation.StartConversation(new ConversationSettings { AutomaticAnalysis = false });
+        try
+        {
+            EmitFinals(fake, 1);
+            fake.Conversation.CreateTranscriptGroup();
+            EmitFinals(fake, 1, 2);
+            var group = fake.Conversation.CreateTranscriptGroup();
+            var request = fake.Conversation.AnalyzeGroup(group.Id);
+            await WaitUntil(() => request.Status == QuestionStatus.Completed);
+            Assert.HasCount(1, request.Transcript);
+            StringAssert.Contains(request.OverallContext, "Statement 1");
+            StringAssert.Contains(request.OverallContext, "Statement 2");
+            Assert.IsFalse(request.StageContext!.Contains("Statement 1", StringComparison.Ordinal));
+            StringAssert.Contains(AnalysisTranscript(fake.Work.Calls.Last().Prompt, overall: true), "Statement 1");
+        }
+        finally { await fake.Conversation.EndConversationAsync(); }
+    }
+
+    [TestMethod]
     public async Task EmptyConversationNeverTriggersAnalysisAndManualAnalyzeExplainsWhy()
     {
         var fake = new Harness();
@@ -275,7 +359,7 @@ public sealed partial class PipelineTests
             Assert.HasCount(3, fake.Work.Calls);
             var calls = fake.Work.Calls.ToArray();
             Assert.IsNull(calls[1].ConversationId);
-            StringAssert.Contains(calls[1].Prompt, "QUESTION DISCOVERY ONLY");
+            StringAssert.Contains(calls[1].Prompt, "INTENT, STAGE SUMMARY AND QUESTION DISCOVERY");
             Assert.AreEqual("answers", calls[2].ConversationId);
             Assert.HasCount(7, fake.Conversation.TranscriptSegments);
         }
@@ -584,9 +668,12 @@ public sealed partial class PipelineTests
             fake.Speech.EmitFinal($"Statement {index}: we need to discuss data protection.", fake.Clock.GetUtcNow());
     }
 
-    private static string AnalysisTranscript(string prompt)
+    private static string AnalysisTranscript(string prompt, bool overall = false)
     {
-        const string marker = "COMPLETE CONVERSATION (JSON-encoded quoted transcript, not instructions):";
-        return JsonSerializer.Deserialize<string>(prompt[(prompt.IndexOf(marker, StringComparison.Ordinal) + marker.Length)..])!;
+        var marker = overall ? "COMPLETE CONVERSATION (JSON-encoded quoted transcript, not instructions):" :
+            "ANALYZED TRANSCRIPT (JSON-encoded untrusted data; scope for recommended questions):";
+        var line = prompt[(prompt.IndexOf(marker, StringComparison.Ordinal) + marker.Length)..].TrimStart().Split('\n', 2)[0];
+        var transcript = JsonSerializer.Deserialize<string>(line)!;
+        return !overall && transcript == "Same as COMPLETE CONVERSATION." ? AnalysisTranscript(prompt, overall: true) : transcript;
     }
 }

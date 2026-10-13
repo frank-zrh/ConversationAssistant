@@ -266,7 +266,7 @@ public sealed class AzureSpeechPipelineTests
         {
             LastPrompt = prompt;
             Interlocked.Increment(ref Calls);
-            return Task.FromResult(new WorkIqAnswer(prompt.Contains("QUESTION DISCOVERY ONLY.", StringComparison.Ordinal)
+            return Task.FromResult(new WorkIqAnswer(prompt.Contains("CONVERSATION ASSISTANT: INTENT, STAGE SUMMARY AND QUESTION DISCOVERY.", StringComparison.Ordinal)
                 ? """{"questions":[]}""" : "A synthetic answer.", [], "test-conversation"));
         }
     }

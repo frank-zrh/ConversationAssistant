@@ -12,13 +12,25 @@ namespace ConversationAssistant.Tests;
 public sealed class AudioCaptureTests
 {
     [TestMethod]
-    public void SystemCaptureRequiresExplicitSelection()
+    public void ConversationDefaultsToMicrophoneAndSystemAudio()
     {
         var settings = new ConversationSettings();
-        Assert.AreEqual(AudioCaptureMode.Microphone, settings.AudioMode);
+        Assert.AreEqual(AudioCaptureMode.MicrophoneAndSystemAudio, settings.AudioMode);
         Assert.IsTrue(settings.AudioCapture.IncludesMicrophone);
-        Assert.IsFalse(settings.AudioCapture.IncludesSystemAudio);
+        Assert.IsTrue(settings.AudioCapture.IncludesSystemAudio);
         Assert.Throws<ArgumentOutOfRangeException>(() => new AudioCaptureOptions((AudioCaptureMode)99).Validate());
+    }
+
+    [TestMethod]
+    [DataRow(AudioCaptureMode.Microphone, true, false)]
+    [DataRow(AudioCaptureMode.SystemAudio, false, true)]
+    [DataRow(AudioCaptureMode.MicrophoneAndSystemAudio, true, true)]
+    public void ExplicitAudioModeSelectionOverridesTheDefault(AudioCaptureMode mode, bool microphone, bool systemAudio)
+    {
+        var settings = new ConversationSettings { AudioMode = mode };
+        Assert.AreEqual(mode, settings.AudioCapture.Mode);
+        Assert.AreEqual(microphone, settings.AudioCapture.IncludesMicrophone);
+        Assert.AreEqual(systemAudio, settings.AudioCapture.IncludesSystemAudio);
     }
 
     [TestMethod]

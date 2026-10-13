@@ -100,6 +100,13 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<TranscriptRow> TranscriptItems { get; } = [];
     public ObservableCollection<AnswerRow> Answers { get; } = [];
     public ObservableCollection<SuggestedQuestionRow> SuggestedQuestions { get; } = [];
+    public string IntentSummary => AnalysisHistory.LastOrDefault(row =>
+        row.Request.Status == QuestionStatus.Completed && !string.IsNullOrWhiteSpace(row.Request.IntentSummary))
+        ?.Request.IntentSummary ?? "";
+    public IReadOnlyList<AnalysisRow> StageSummaries => AnalysisHistory.Where(row =>
+        row.Request.Status == QuestionStatus.Completed && !string.IsNullOrWhiteSpace(row.Summary)).ToArray();
+    public Visibility EmptyIntentVisibility => string.IsNullOrWhiteSpace(IntentSummary) ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility EmptyStageSummariesVisibility => StageSummaries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     public ObservableCollection<AudioDeviceRow> AudioDevices { get; } = [];
     public ObservableCollection<AudioDeviceRow> OutputDevices { get; } = [];
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -212,6 +219,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             nameof(ScrollText), nameof(LastError), nameof(AnalysisStatus), nameof(AnalysisError),
             nameof(PendingAnalysisText), nameof(AnalysisScheduleText), nameof(RecordStatus),
             nameof(RecordPath), nameof(AutomaticAnalysis));
+        NotifyAnswerPanel();
     }
 
     public string StatusText => Texts[State switch
@@ -717,6 +725,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             var request = _conversation.AskManually(text);
             _followNewestAnswers = false;
             SelectAnswer(UpsertAnswer(request));
+            ShowAnswerPanel();
             return true;
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -742,6 +751,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             _followNewestAnswers = false;
             var request = _conversation.AskFromTranscript(segmentId);
             SelectAnswer(UpsertAnswer(request));
+            ShowAnswerPanel();
         }
         catch (InvalidOperationException error) { LastError = error.Message; }
     }
@@ -764,6 +774,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             _followNewestAnswers = false;
             var request = _conversation.AskSuggestedQuestion(questionId);
             SelectAnswer(UpsertAnswer(request));
+            ShowAnswerPanel();
         }
         catch (InvalidOperationException error) { LastError = error.Message; }
     }
@@ -870,7 +881,8 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         _pendingAnalysisCount = _conversation.PendingAnalysisCount;
         RefreshSelectedAnalysis();
         Notify(nameof(AnalysisScheduleText), nameof(PendingAnalysisText),
-            nameof(CanAnalyzeConversation), nameof(CanSignIn));
+            nameof(CanAnalyzeConversation), nameof(CanSignIn), nameof(IntentSummary), nameof(StageSummaries),
+            nameof(EmptyIntentVisibility), nameof(EmptyStageSummariesVisibility));
     }
 
     private void RefreshSelectedAnalysis()

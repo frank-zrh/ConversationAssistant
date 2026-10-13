@@ -351,10 +351,24 @@ public sealed partial class MainPage : Page
     private void Scroll_Click(object sender, RoutedEventArgs e) => _viewModel.ToggleScroll();
     private void ClearTranscript_Click(object sender, RoutedEventArgs e) => _viewModel.ClearTranscript();
     private void AnalyzeConversation_Click(object sender, RoutedEventArgs e) => _viewModel.AnalyzeConversation();
+    private void ToggleAnswerPanel_Click(object sender, RoutedEventArgs e) => _viewModel.ToggleAnswerPanel();
+    private void ToggleAnswerPanelExpansion_Click(object sender, RoutedEventArgs e) => _viewModel.ToggleAnswerPanelExpansion();
     private void SuggestedQuestion_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { DataContext: SuggestedQuestionRow question })
             _viewModel.OpenSuggestedQuestion(question.Id);
+        else
+            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorQuestionCard"]);
+    }
+    private void SuggestedQuestion_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is FrameworkElement { DataContext: SuggestedQuestionRow question })
+        {
+            AskBox.Text = question.Question;
+            AskBox.Focus(FocusState.Programmatic);
+            AskBox.Select(AskBox.Text.Length, 0);
+        }
         else
             _viewModel.ShowRenderingError(_viewModel.Texts["ErrorQuestionCard"]);
     }
