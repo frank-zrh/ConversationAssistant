@@ -62,7 +62,8 @@ public sealed class ConversationArchive
                 AnswerStyle = settings.AnswerStyle,
                 ContextWindowDuration = settings.ContextWindowDuration,
                 MaxContextCharacters = settings.MaxContextCharacters,
-                AutomaticAnalysis = settings.AutomaticAnalysis
+                AutomaticAnalysis = settings.AutomaticAnalysis,
+                DisplayLanguage = settings.DisplayLanguage
             },
             TranscriptSegments = session.TranscriptSegments.Select(CaptureTranscript).ToArray(),
             Groups = session.Groups.Select(item => new ArchiveGroup
@@ -101,6 +102,7 @@ public sealed class ConversationArchive
                 Sources = item.Sources.ToArray()
             }).ToArray(),
             SuggestedQuestions = suggestions.ToArray(),
+            ProductGuides = session.ProductGuides.Select(product => product.Snapshot()).ToArray(),
             Answers = session.Answers.Select(item => new ArchiveAnswer
             {
                 Id = item.Id,
@@ -135,11 +137,13 @@ public sealed class ConversationArchive
                 AnswerStyle = settings.AnswerStyle,
                 ContextWindowDuration = settings.ContextWindowDuration,
                 MaxContextCharacters = settings.MaxContextCharacters,
-                AutomaticAnalysis = false
+                AutomaticAnalysis = false,
+                DisplayLanguage = settings.DisplayLanguage
             },
             NextGroupNumber = data.NextGroupNumber
         };
         session.TranscriptSegments.AddRange(data.TranscriptSegments.Select(RestoreTranscript));
+        session.ProductGuides.AddRange(data.ProductGuides.Select(product => product.Snapshot()));
         session.Groups.AddRange(data.Groups.Select(item => new TranscriptGroup
         {
             Id = item.Id,
@@ -220,6 +224,7 @@ public sealed class ConversationArchive
             Sources = item.Sources.ToArray()
         }).ToArray(),
         SuggestedQuestions = _document.SuggestedQuestions.Select(item => item with { }).ToArray(),
+        ProductGuides = _document.ProductGuides.Select(product => product.Snapshot()).ToArray(),
         Answers = _document.Answers.Select(item => item with
         {
             Sources = item.Sources.ToArray()
@@ -301,6 +306,7 @@ internal sealed record ArchiveDocument
     public required Guid? AnalysisId { get; init; }
     public required ArchiveAnalysis[] Analyses { get; init; }
     public required ArchiveSuggestion[] SuggestedQuestions { get; init; }
+    public ProductGuide[] ProductGuides { get; init; } = [];
     public required ArchiveAnswer[] Answers { get; init; }
 }
 
@@ -312,6 +318,7 @@ internal sealed record ArchiveSettings
     public required TimeSpan ContextWindowDuration { get; init; }
     public required int MaxContextCharacters { get; init; }
     public required bool AutomaticAnalysis { get; init; }
+    public ConversationLanguage DisplayLanguage { get; init; } = ConversationLanguage.Chinese;
 }
 
 internal sealed record ArchiveTranscript

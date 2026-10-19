@@ -260,7 +260,7 @@ public sealed class LocalizationTests
     }
 
     [TestMethod]
-    public void AnalysisWorkspaceUsesFortySixtyColumnsAndThreeLocalizedTabs()
+    public void AnalysisWorkspaceUsesFortySixtyColumnsAndFourLocalizedTabs()
     {
         var page = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "MainPage.xaml"));
         XNamespace ui = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
@@ -270,7 +270,8 @@ public sealed class LocalizationTests
         var tabs = page.Descendants(ui + "TabView").Single(element => (string?)element.Attribute(x + "Name") == "AnalysisTabs");
         CollectionAssert.AreEqual(new[]
         {
-            "{Binding Texts[IntentTab]}", "{Binding Texts[StageSummariesTab]}", "{Binding Texts[RecommendedQuestionsTab]}"
+            "{Binding Texts[IntentTab]}", "{Binding Texts[StageSummariesTab]}", "{Binding Texts[RecommendedQuestionsTab]}",
+            "{Binding Texts[ProductGuideTab]}"
         }, tabs.Elements(ui + "TabViewItem").Select(tab => (string)tab.Attribute("Header")!).ToArray());
         Assert.IsTrue(tabs.Elements(ui + "TabViewItem").All(tab => (string?)tab.Attribute("IsClosable") == "False"));
         Assert.IsTrue(page.Descendants().Any(element => (string?)element.Attribute(x + "Name") == "AnswerHistoryPicker"));
@@ -289,9 +290,9 @@ public sealed class LocalizationTests
         var toggle = Named("AnswerPanelToggleButton");
         Assert.IsNull(toggle.Attribute("Visibility"));
         Assert.AreEqual("ToggleAnswerPanel_Click", (string?)toggle.Attribute("Click"));
-        var expand = Named("AnswerPanelExpandButton");
-        Assert.AreEqual("ToggleAnswerPanelExpansion_Click", (string?)expand.Attribute("Click"));
-        Assert.AreEqual("{Binding AnswerPanelVisibility}", (string?)expand.Attribute("Visibility"));
+        Assert.IsFalse(page.Descendants().Any(element => (string?)element.Attribute(x + "Name") == "AnswerPanelExpandButton"));
+        Assert.AreEqual("{Binding AnswerPanelToggleText}", (string?)toggle.Attribute("AutomationProperties.Name"));
+        Assert.AreEqual("{Binding AnswerPanelToggleGlyph}", (string?)toggle.Element(ui + "FontIcon")!.Attribute("Glyph"));
         Assert.AreEqual("{Binding AnswerPanelVisibility}", (string?)Named("AnswerContent").Attribute("Visibility"));
         Assert.AreEqual("{Binding AnswerPanelVisibility}", (string?)Named("AnswerHistoryPicker").Attribute("Visibility"));
         Assert.AreEqual("0", (string?)Named("AnalysisTabs").Attribute("SelectedIndex"));
@@ -309,6 +310,19 @@ public sealed class LocalizationTests
         var button = page.Descendants().Single(element => (string?)element.Attribute("Click") == "SuggestedQuestion_Click");
         Assert.AreEqual("SuggestedQuestion_RightTapped", (string?)button.Attribute("RightTapped"));
         Assert.AreEqual("{Binding Texts[SuggestedQuestionHint]}", (string?)button.Attribute("ToolTipService.ToolTip"));
+    }
+
+    [TestMethod]
+    public void ProductGuideCardsExpandLocallyWithoutRequestHandlers()
+    {
+        var page = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "MainPage.xaml"));
+        XNamespace ui = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+        var tab = page.Descendants(ui + "TabViewItem").Single(item => (string?)item.Attribute("Header") == "{Binding Texts[ProductGuideTab]}");
+        var card = tab.Descendants(ui + "Expander").Single();
+        Assert.AreEqual("{Binding IsExpanded, Mode=TwoWay}", (string?)card.Attribute("IsExpanded"));
+        Assert.IsFalse(card.DescendantsAndSelf().Attributes().Any(attribute => attribute.Name.LocalName == "Click"));
+        foreach (var property in new[] { "Overview", "LicensingAndPricing", "SuitableScenarios", "Limitations" })
+            Assert.IsTrue(card.Descendants().Any(element => (string?)element.Attribute("Text") == $"{{Binding Product.{property}}}"));
     }
 
     [TestMethod]

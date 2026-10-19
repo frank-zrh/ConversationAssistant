@@ -367,7 +367,7 @@ public sealed partial class PipelineTests
     }
 
     [TestMethod]
-    public async Task InvalidAnalysisKeepsPendingContentAndRetriesAfterFiveMinutesNotEveryTick()
+    public async Task InvalidAnalysisExhaustsAutomaticRecoveryBeforeScheduledRetry()
     {
         var fake = new Harness();
         fake.Work.AnalysisReply = "This is an answer, not a question list.";
@@ -381,16 +381,18 @@ public sealed partial class PipelineTests
             Assert.AreEqual(7, fake.Conversation.PendingAnalysisCount);
             Assert.IsEmpty(fake.Conversation.SuggestedQuestions);
             Assert.IsEmpty(fake.Conversation.Session!.Answers);
+            Assert.IsEmpty(fake.Conversation.ProductGuides);
+            Assert.IsTrue(fake.Conversation.Analyses.All(item => string.IsNullOrEmpty(item.StageSummary)));
             for (var index = 0; index < 20; index++) fake.Conversation.AnalyzeIfDue();
-            Assert.HasCount(1, fake.Work.Calls);
+            Assert.HasCount(WorkIqPromptSender.MaximumAnalysisAttempts, fake.Work.Calls);
             fake.Clock.Advance(TimeSpan.FromMinutes(5) - TimeSpan.FromSeconds(1));
             fake.Conversation.AnalyzeIfDue();
-            Assert.HasCount(1, fake.Work.Calls);
+            Assert.HasCount(WorkIqPromptSender.MaximumAnalysisAttempts, fake.Work.Calls);
             fake.Work.AnalysisReply = """{"questions":[]}""";
             fake.Clock.Advance(TimeSpan.FromSeconds(1));
             fake.Conversation.AnalyzeIfDue();
             await WaitUntil(() => fake.Conversation.Analysis?.Status == QuestionStatus.Completed);
-            Assert.HasCount(2, fake.Work.Calls);
+            Assert.HasCount(WorkIqPromptSender.MaximumAnalysisAttempts + 1, fake.Work.Calls);
             Assert.AreEqual(0, fake.Conversation.PendingAnalysisCount);
             Assert.HasCount(1, errors);
         }

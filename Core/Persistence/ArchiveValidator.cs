@@ -26,12 +26,36 @@ internal sealed class ArchiveValidator
         Require(data.Settings.Language is ConversationLanguage.Chinese or ConversationLanguage.English,
             "The listening language must be Chinese or English.");
         EnumValue(data.Settings.AnswerLanguage);
+        Require(data.Settings.DisplayLanguage is ConversationLanguage.Chinese or ConversationLanguage.English,
+            "The display language must be Chinese or English.");
         EnumValue(data.Settings.AnswerStyle);
         Require(data.Settings.ContextWindowDuration > TimeSpan.Zero &&
             data.Settings.ContextWindowDuration <= TimeSpan.FromDays(365), "The context window is out of range.");
         Require(data.Settings.MaxContextCharacters is > 0 and <= MaximumTextLength,
             "The context character limit is out of range.");
         Transcripts(data.TranscriptSegments);
+        List(data.ProductGuides);
+        var productKeys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var product in data.ProductGuides)
+        {
+            Text(product.Name, ProductGuide.MaximumNameLength);
+            Require(product.Name.Any(char.IsLetterOrDigit), "A product name cannot be empty.");
+            foreach (var text in new[] { product.Overview, product.LicensingAndPricing, product.SuitableScenarios, product.Limitations })
+            {
+                Text(text, ProductGuide.MaximumTextLength);
+                Require(!string.IsNullOrWhiteSpace(text), "A product guide section cannot be empty.");
+            }
+            Text(product.AdditionalNotes, ProductGuide.MaximumTextLength);
+            Require(product.Aliases is not null && product.Sources is not null, "Product metadata is required.");
+            Require(product.Aliases.Count <= ProductGuide.MaximumMetadataItems && product.Sources.Count <= ProductGuide.MaximumMetadataItems,
+                "Product metadata exceeds its item limit.");
+            Texts(product.Aliases.ToArray(), ProductGuide.MaximumNameLength);
+            Texts(product.Sources.ToArray(), 2048);
+            Require(product.Aliases.Concat(product.Sources).All(value => !string.IsNullOrWhiteSpace(value)),
+                "Product metadata cannot be empty.");
+            foreach (var key in product.IdentityNames.Select(ProductGuide.IdentityKey).Distinct(StringComparer.Ordinal))
+                Require(productKeys.Add(key), "Product identities must be unique.");
+        }
         var currentTranscriptIds = data.TranscriptSegments.Select(item => item.Id).ToHashSet();
         List(data.Analyses);
         foreach (var analysis in data.Analyses)

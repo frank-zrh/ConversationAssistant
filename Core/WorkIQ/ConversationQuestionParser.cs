@@ -2,12 +2,13 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using ConversationAssistant.Core.Conversation;
+using ConversationAssistant.Core.Models;
 
 namespace ConversationAssistant.Core.WorkIQ;
 
 public sealed record DiscoveredQuestion(string Question, string Reason);
 public sealed record DiscoveredAnalysis(string IntentSummary, string StageSummary,
-    IReadOnlyList<DiscoveredQuestion> Questions);
+    IReadOnlyList<DiscoveredQuestion> Questions, IReadOnlyList<ProductGuide> Products);
 
 public static partial class ConversationQuestionParser
 {
@@ -51,7 +52,8 @@ public static partial class ConversationQuestionParser
                 if (seen.Add(QuestionKey(text)))
                     result.Add(new DiscoveredQuestion(text, reason.GetString()!.Trim()));
             }
-            return new DiscoveredAnalysis(Summary("intentSummary"), Summary("stageSummary"), result);
+            return new DiscoveredAnalysis(Summary("intentSummary"), Summary("stageSummary"), result,
+                ParseProducts(document.RootElement, invalid));
 
             string Summary(string name)
             {
@@ -64,6 +66,65 @@ public static partial class ConversationQuestionParser
         catch (JsonException error)
         {
             throw new WorkIqException(invalid, error);
+        }
+        catch (ArgumentException error)
+        {
+            throw new WorkIqException(invalid, error);
+        }
+    }
+
+    private static IReadOnlyList<ProductGuide> ParseProducts(JsonElement root, string invalid)
+    {
+        if (!root.TryGetProperty("products", out var products)) return [];
+        if (products.ValueKind != JsonValueKind.Array || products.GetArrayLength() > 100)
+            throw new WorkIqException(invalid);
+        var result = new List<ProductGuide>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var item in products.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object) throw new WorkIqException(invalid);
+            var product = new ProductGuide
+            {
+                Name = Text(item, "name", ProductGuide.MaximumNameLength),
+                Aliases = Metadata(item, "aliases", ProductGuide.MaximumNameLength),
+                Overview = Text(item, "overview"),
+                LicensingAndPricing = Text(item, "licensingAndPricing"),
+                SuitableScenarios = Text(item, "suitableScenarios"),
+                Limitations = Text(item, "limitations"),
+                AdditionalNotes = Text(item, "additionalNotes", required: false),
+                Sources = Metadata(item, "sources", 2048)
+            };
+            if (!product.Name.Any(char.IsLetterOrDigit)) throw new WorkIqException(invalid);
+            var keys = product.IdentityNames.Select(ProductGuide.IdentityKey).ToArray();
+            if (!keys.Any(seen.Contains)) result.Add(product);
+            seen.UnionWith(keys);
+        }
+        return result;
+
+        string Text(JsonElement item, string name, int maximum = ProductGuide.MaximumTextLength, bool required = true)
+        {
+            if (!item.TryGetProperty(name, out var value))
+                return required ? throw new WorkIqException(invalid) : "";
+            if (value.ValueKind != JsonValueKind.String || value.GetString()!.Length > maximum)
+                throw new WorkIqException(invalid);
+            var text = value.GetString()!.Trim();
+            if (required && string.IsNullOrWhiteSpace(text)) throw new WorkIqException(invalid);
+            return text;
+        }
+
+        string[] Metadata(JsonElement item, string name, int maximum)
+        {
+            if (!item.TryGetProperty(name, out var values)) return [];
+            if (values.ValueKind != JsonValueKind.Array || values.GetArrayLength() > ProductGuide.MaximumMetadataItems)
+                throw new WorkIqException(invalid);
+            var result = new List<string>();
+            foreach (var value in values.EnumerateArray())
+            {
+                if (value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()) ||
+                    value.GetString()!.Length > maximum) throw new WorkIqException(invalid);
+                result.Add(value.GetString()!.Trim());
+            }
+            return result.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         }
     }
 

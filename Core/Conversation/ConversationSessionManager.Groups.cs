@@ -81,6 +81,7 @@ public sealed partial class ConversationSessionManager
             if (CurrentConversation is not { } session || _closing) return;
             session.Settings.Language = settings.Language;
             session.Settings.AnswerLanguage = settings.AnswerLanguage;
+            session.Settings.DisplayLanguage = settings.DisplayLanguage;
             session.Settings.AnswerStyle = settings.AnswerStyle;
             session.Settings.ContextWindowDuration = settings.ContextWindowDuration;
             session.Settings.MaxContextCharacters = settings.MaxContextCharacters;

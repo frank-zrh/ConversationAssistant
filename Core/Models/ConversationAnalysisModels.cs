@@ -6,6 +6,7 @@ public sealed class ConversationAnalysisRequest : WorkIqRequest
 {
     public required IReadOnlyList<TranscriptSegment> Transcript { get; init; }
     public required IReadOnlyList<string> ExistingQuestions { get; init; }
+    public IReadOnlyList<string> ExistingProductNames { get; internal set; } = [];
     public required ConversationAnalysisTrigger Trigger { get; init; }
     public string OverallContext { get; init; } = "";
     public string? StageContext { get; init; }

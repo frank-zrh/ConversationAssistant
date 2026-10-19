@@ -6,6 +6,18 @@ namespace ConversationAssistant.Tests;
 public sealed class AnswerPanelLayoutTests
 {
     [TestMethod]
+    public void SingleArrowCyclesThroughNormalExpandedAndCollapsed()
+    {
+        var layout = new AnswerPanelLayout();
+        foreach (var expected in new[] { AnswerPanelMode.Normal, AnswerPanelMode.Expanded, AnswerPanelMode.Collapsed,
+            AnswerPanelMode.Normal, AnswerPanelMode.Expanded, AnswerPanelMode.Collapsed })
+        {
+            layout.Cycle();
+            Assert.AreEqual(expected, layout.Mode);
+        }
+    }
+
+    [TestMethod]
     public void StartsCollapsedWithAnalysisUsingAllRemainingHeight()
     {
         var layout = new AnswerPanelLayout();

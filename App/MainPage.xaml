@@ -75,7 +75,7 @@
             TranscriptTemplate="{StaticResource TranscriptTemplate}"
             GroupTemplate="{StaticResource TranscriptGroupTemplate}" />
     </Page.Resources>
-      <Grid Padding="16" RowSpacing="10">
+      <Grid Padding="12" RowSpacing="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -87,35 +87,23 @@
             <ColumnDefinition Width="3*" />
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.ColumnSpan="2" ColumnSpacing="16">
+        <Grid x:Name="PageHeader" Grid.ColumnSpan="2" ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="5">
-                <TextBlock Text="{Binding Texts[AppTitle]}" FontSize="24" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Texts[AppTitle]}" FontSize="20" FontWeight="SemiBold" />
                 <StackPanel Orientation="Horizontal" Spacing="14">
                     <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusBrush}" FontWeight="SemiBold" />
                     <TextBlock Text="{Binding ListeningText}" Opacity=".7"
                                ToolTipService.ToolTip="{Binding Texts[AudioSharedHint]}" />
                     <TextBlock Text="{Binding TimerText}" FontFamily="Consolas" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="{Binding Texts[ListeningLanguage]}" VerticalAlignment="Center" />
-                    <ComboBox x:Name="LanguagePicker" Width="175"
-                              ItemsSource="{Binding SpeechLanguageOptions}" DisplayMemberPath="Label"
-                              SelectedIndex="{Binding SpeechLanguageIndex, Mode=TwoWay}"
-                              IsEnabled="{Binding CanChangeSpeechLanguage}"
-                              AutomationProperties.Name="{Binding Texts[ListeningLanguage]}"
-                              ToolTipService.ToolTip="{Binding Texts[LanguageHint]}" />
-                    <ToggleSwitch AutomationProperties.Name="{Binding Texts[AutoAnalysis]}"
-                                  OnContent="{Binding Texts[AutoAnalysisOn]}" OffContent="{Binding Texts[AutoAnalysisOff]}"
-                                  ToolTipService.ToolTip="{Binding Texts[AutoAnalysisHint]}"
-                                  IsOn="{Binding AutomaticAnalysis, Mode=TwoWay}" />
-                </StackPanel>
             </StackPanel>
             <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" MaxWidth="320">
-                <TextBlock Text="{Binding AuthText}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding AuthText}" TextTrimming="CharacterEllipsis" MaxLines="1"
+                           ToolTipService.ToolTip="{Binding AuthText}" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <Button x:Name="SignInButton" IsEnabled="{Binding CanSignIn}" Click="SignIn_Click"
                           AutomationProperties.Name="{Binding SignInButtonText}"
@@ -249,7 +237,7 @@
                                    ToolTipService.ToolTip="{Binding AnalysisStatus}" />
                     </Grid>
                     <TabView x:Name="AnalysisTabs" Grid.Row="2" IsAddTabButtonVisible="False"
-                             CanDragTabs="False" CanReorderTabs="False" TabWidthMode="Equal" SelectedIndex="0">
+                             CanDragTabs="False" CanReorderTabs="False" TabWidthMode="SizeToContent" SelectedIndex="0">
                         <TabViewItem Header="{Binding Texts[IntentTab]}" IsClosable="False">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel Padding="8" Spacing="8">
@@ -295,8 +283,8 @@
                                                         ToolTipService.ToolTip="{Binding Texts[SuggestedQuestionHint]}"
                                                         Click="SuggestedQuestion_Click" RightTapped="SuggestedQuestion_RightTapped">
                                                     <StackPanel Spacing="4">
-                                                        <TextBlock Text="{Binding Question}" TextWrapping="Wrap" FontWeight="SemiBold" />
-                                                        <TextBlock Text="{Binding Reason}" TextWrapping="Wrap" Opacity=".8" />
+                                                        <TextBlock Text="{Binding Question}" TextWrapping="Wrap" FontWeight="SemiBold"
+                                                                   ToolTipService.ToolTip="{Binding Reason}" />
                                                         <TextBlock Text="{Binding StatusText}" FontSize="12" Opacity=".7" />
                                                     </StackPanel>
                                                 </Button>
@@ -305,6 +293,38 @@
                                     </ItemsControl>
                                 </ScrollViewer>
                             </Grid>
+                        </TabViewItem>
+                        <TabViewItem Header="{Binding Texts[ProductGuideTab]}" IsClosable="False">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Padding="8" Spacing="8">
+                                    <TextBlock Text="{Binding Texts[ProductGuideHint]}" TextWrapping="Wrap" FontSize="12" Opacity=".7" />
+                                    <TextBlock Text="{Binding Texts[ProductGuideEmpty]}" TextWrapping="Wrap" Opacity=".65"
+                                               Visibility="{Binding EmptyProductGuidesVisibility}" />
+                                    <ItemsControl ItemsSource="{Binding ProductGuides}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                          Margin="0,0,0,8" IsExpanded="{Binding IsExpanded, Mode=TwoWay}"
+                                                          AutomationProperties.Name="{Binding Product.Name}">
+                                                    <Expander.Header>
+                                                        <TextBlock Text="{Binding Product.Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                                    </Expander.Header>
+                                                    <StackPanel Spacing="8">
+                                                        <ui:ProductGuideSection Text="{Binding Product.Overview}" />
+                                                        <TextBlock Text="{Binding Texts[ProductLicensingHeader]}" FontWeight="SemiBold" />
+                                                        <ui:ProductGuideSection Text="{Binding Product.LicensingAndPricing}" />
+                                                        <TextBlock Text="{Binding Texts[ProductScenariosHeader]}" FontWeight="SemiBold" />
+                                                        <ui:ProductGuideSection Text="{Binding Product.SuitableScenarios}" />
+                                                        <TextBlock Text="{Binding Texts[ProductLimitationsHeader]}" FontWeight="SemiBold" />
+                                                        <ui:ProductGuideSection Text="{Binding Product.Limitations}" />
+                                                        <ui:ProductGuideSection Text="{Binding AdditionalNotesText}" />
+                                                    </StackPanel>
+                                                </Expander>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </ScrollViewer>
                         </TabViewItem>
                     </TabView>
                     <TextBlock Grid.Row="4" Text="{Binding AnalysisError}" TextWrapping="Wrap"
@@ -321,18 +341,12 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Grid ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Button x:Name="AnswerPanelToggleButton" Content="{Binding AnswerPanelToggleText}"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                            ToolTipService.ToolTip="{Binding Texts[AnswerPanelToggleHint]}"
-                            Click="ToggleAnswerPanel_Click" />
-                    <Button x:Name="AnswerPanelExpandButton" Grid.Column="1" Content="{Binding AnswerPanelSizeText}"
-                            Visibility="{Binding AnswerPanelVisibility}" Click="ToggleAnswerPanelExpansion_Click" />
-                </Grid>
+                <Button x:Name="AnswerPanelToggleButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        AutomationProperties.Name="{Binding AnswerPanelToggleText}"
+                        AutomationProperties.HelpText="{Binding Texts[AnswerPanelToggleHint]}"
+                        ToolTipService.ToolTip="{Binding AnswerPanelToggleText}" Click="ToggleAnswerPanel_Click">
+                    <FontIcon Glyph="{Binding AnswerPanelToggleGlyph}" FontSize="16" />
+                </Button>
                 <ComboBox x:Name="AnswerHistoryPicker" Grid.Row="1" Visibility="{Binding AnswerPanelVisibility}"
                           Header="{Binding Texts[AnswersHeader]}" ItemsSource="{Binding Answers}"
                           HorizontalAlignment="Stretch"
@@ -377,6 +391,36 @@
                     <Flyout x:Key="SettingsFlyout">
                     <ScrollViewer MaxHeight="380" Width="360">
                         <StackPanel Spacing="12" Padding="4,10">
+                            <Grid RowSpacing="6" ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="{Binding Texts[ListeningLanguage]}" VerticalAlignment="Center" />
+                                <ComboBox x:Name="LanguagePicker" Grid.Column="1" HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding SpeechLanguageOptions}" DisplayMemberPath="Label"
+                                          SelectedIndex="{Binding SpeechLanguageIndex, Mode=TwoWay}"
+                                          IsEnabled="{Binding CanChangeSpeechLanguage}"
+                                          AutomationProperties.Name="{Binding Texts[ListeningLanguage]}"
+                                          ToolTipService.ToolTip="{Binding Texts[LanguageHint]}" />
+                                <TextBlock Grid.Row="1" Text="{Binding Texts[AnalysisLanguage]}" VerticalAlignment="Center" />
+                                <ComboBox x:Name="AnalysisLanguagePicker" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding AnalysisLanguageOptions}" DisplayMemberPath="Label"
+                                          SelectedIndex="{Binding AnalysisLanguageIndex, Mode=TwoWay}"
+                                          AutomationProperties.Name="{Binding Texts[AnalysisLanguage]}"
+                                          ToolTipService.ToolTip="{Binding Texts[AnalysisLanguageHint]}" />
+                                <TextBlock Grid.Row="2" Text="{Binding Texts[DisplayLanguage]}" VerticalAlignment="Center" />
+                                <ComboBox x:Name="DisplayLanguagePicker" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding DisplayLanguageOptions}" DisplayMemberPath="Label"
+                                          SelectedIndex="{Binding DisplayLanguageIndex, Mode=TwoWay}"
+                                          AutomationProperties.Name="{Binding Texts[DisplayLanguage]}"
+                                          ToolTipService.ToolTip="{Binding Texts[DisplayLanguageHint]}" />
+                            </Grid>
                             <TextBlock Text="{Binding ModelStatus}" TextWrapping="Wrap" />
                             <TextBlock Text="{Binding Texts[SpeakerAccuracyHint]}" TextWrapping="Wrap" Opacity=".7" />
                             <StackPanel Spacing="8">
@@ -445,9 +489,6 @@
                             <TextBlock Text="{Binding Texts[AnswerStyle]}" />
                             <ComboBox x:Name="StylePicker" ItemsSource="{Binding AnswerStyleOptions}" DisplayMemberPath="Label"
                                       SelectedIndex="{Binding AnswerStyleIndex, Mode=TwoWay}" />
-                            <TextBlock Text="{Binding Texts[AnswerLanguage]}" />
-                            <ComboBox x:Name="AnswerLanguagePicker" ItemsSource="{Binding AnswerLanguageOptions}" DisplayMemberPath="Label"
-                                      SelectedIndex="{Binding AnswerLanguageIndex, Mode=TwoWay}" />
                             <TextBlock Text="{Binding Texts[GroundingNote]}"
                                        TextWrapping="Wrap" />
                             <ToggleSwitch Header="{Binding Texts[StoreAudio]}" IsOn="False" IsEnabled="False"

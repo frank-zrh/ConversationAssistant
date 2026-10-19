@@ -11,19 +11,17 @@ public sealed partial class MainViewModel
         ? new GridLength(_answerPanelLayout.AnswerWeight, GridUnitType.Star) : GridLength.Auto;
     public Visibility AnswerPanelVisibility => _answerPanelLayout.IsOpen ? Visibility.Visible : Visibility.Collapsed;
     public double AnswerPanelRowSpacing => _answerPanelLayout.IsOpen ? 8 : 0;
-    public string AnswerPanelToggleText => Texts[_answerPanelLayout.IsOpen ? "CollapseAnswerPanel" : "ShowAnswerPanel"];
-    public string AnswerPanelSizeText => Texts[_answerPanelLayout.Mode == AnswerPanelMode.Expanded
-        ? "RestoreAnswerPanel" : "ExpandAnswerPanel"];
+    public string AnswerPanelToggleText => Texts[_answerPanelLayout.Mode switch
+    {
+        AnswerPanelMode.Normal => "ExpandAnswerPanel",
+        AnswerPanelMode.Expanded => "CollapseAnswerPanel",
+        _ => "ShowAnswerPanel"
+    }];
+    public string AnswerPanelToggleGlyph => _answerPanelLayout.Mode == AnswerPanelMode.Expanded ? "\uE70D" : "\uE70E";
 
     public void ToggleAnswerPanel()
     {
-        _answerPanelLayout.ToggleVisibility();
-        NotifyAnswerPanel();
-    }
-
-    public void ToggleAnswerPanelExpansion()
-    {
-        _answerPanelLayout.ToggleExpansion();
+        _answerPanelLayout.Cycle();
         NotifyAnswerPanel();
     }
 
@@ -40,5 +38,5 @@ public sealed partial class MainViewModel
     }
 
     private void NotifyAnswerPanel() => Notify(nameof(AnalysisPanelHeight), nameof(AnswerPanelHeight),
-        nameof(AnswerPanelVisibility), nameof(AnswerPanelRowSpacing), nameof(AnswerPanelToggleText), nameof(AnswerPanelSizeText));
+        nameof(AnswerPanelVisibility), nameof(AnswerPanelRowSpacing), nameof(AnswerPanelToggleText), nameof(AnswerPanelToggleGlyph));
 }

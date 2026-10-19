@@ -352,7 +352,6 @@ public sealed partial class MainPage : Page
     private void ClearTranscript_Click(object sender, RoutedEventArgs e) => _viewModel.ClearTranscript();
     private void AnalyzeConversation_Click(object sender, RoutedEventArgs e) => _viewModel.AnalyzeConversation();
     private void ToggleAnswerPanel_Click(object sender, RoutedEventArgs e) => _viewModel.ToggleAnswerPanel();
-    private void ToggleAnswerPanelExpansion_Click(object sender, RoutedEventArgs e) => _viewModel.ToggleAnswerPanelExpansion();
     private void SuggestedQuestion_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { DataContext: SuggestedQuestionRow question })

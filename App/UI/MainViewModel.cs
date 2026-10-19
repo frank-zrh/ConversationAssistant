@@ -92,6 +92,8 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
     public ConversationSettings Settings { get; } = new();
     public UiText Texts { get; private set; } = UiText.For(ConversationLanguage.Chinese);
     public IReadOnlyList<LocalizedOption> SpeechLanguageOptions { get; } = Options("ChineseSpeech", "EnglishSpeech");
+    public IReadOnlyList<LocalizedOption> AnalysisLanguageOptions { get; } = Options("Chinese", "English");
+    public IReadOnlyList<LocalizedOption> DisplayLanguageOptions { get; } = Options("Chinese", "English");
     public IReadOnlyList<LocalizedOption> SpeechProviderOptions { get; } = Options("AzureProvider", "WhisperProvider");
     public IReadOnlyList<LocalizedOption> ContextOptions { get; } = Options("ShortContext", "MediumContext", "LongContext");
     public IReadOnlyList<LocalizedOption> AnswerStyleOptions { get; } = Options("Concise", "Balanced", "Detailed");
@@ -193,6 +195,30 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
                 return;
             }
             Settings.Language = language;
+            _conversation.UpdateWorkspacePreferences(Settings);
+            Notify(nameof(SpeechLanguageIndex));
+        }
+    }
+
+    public int AnalysisLanguageIndex
+    {
+        get => Settings.AnalysisLanguage == ConversationLanguage.Chinese ? 0 : 1;
+        set
+        {
+            if (value is < 0 or > 1) throw new ArgumentOutOfRangeException(nameof(value));
+            Settings.AnalysisLanguage = value == 0 ? ConversationLanguage.Chinese : ConversationLanguage.English;
+            _conversation.UpdateWorkspacePreferences(Settings);
+            Notify(nameof(AnalysisLanguageIndex), nameof(AnswerLanguageIndex));
+        }
+    }
+
+    public int DisplayLanguageIndex
+    {
+        get => Settings.DisplayLanguage == ConversationLanguage.Chinese ? 0 : 1;
+        set
+        {
+            if (value is < 0 or > 1) throw new ArgumentOutOfRangeException(nameof(value));
+            Settings.DisplayLanguage = value == 0 ? ConversationLanguage.Chinese : ConversationLanguage.English;
             RefreshLanguage();
             _conversation.UpdateWorkspacePreferences(Settings);
         }
@@ -200,19 +226,22 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
 
     private void RefreshLanguage()
     {
-        var language = Settings.Language;
+        var language = Settings.DisplayLanguage;
         Texts = UiText.For(language);
-        foreach (var options in new[] { SpeechLanguageOptions, SpeechProviderOptions, ContextOptions,
+        foreach (var options in new[] { SpeechLanguageOptions, AnalysisLanguageOptions, DisplayLanguageOptions,
+            SpeechProviderOptions, ContextOptions,
             AnswerStyleOptions, AnswerLanguageOptions, AudioModeOptions })
             foreach (var option in options) option.UpdateLanguage(Texts);
         foreach (var row in TranscriptItems) row.UpdateLanguage(Texts);
         foreach (var row in SuggestedQuestions) row.UpdateLanguage(Texts);
+        foreach (var row in ProductGuides) row.UpdateLanguage(Texts);
         foreach (var row in Answers) row.UpdateLanguage(Texts);
         foreach (var row in _groupRows.Values) row.Refresh(Texts);
         foreach (var row in AnalysisHistory) row.Refresh(Texts);
         foreach (var row in AudioDevices) row.UpdateLanguage(Texts);
         foreach (var row in OutputDevices) row.UpdateLanguage(Texts);
-        Notify(nameof(Texts), nameof(SpeechLanguageIndex), nameof(StatusText), nameof(ListeningText),
+        Notify(nameof(Texts), nameof(SpeechLanguageIndex), nameof(AnalysisLanguageIndex),
+            nameof(DisplayLanguageIndex), nameof(StatusText), nameof(ListeningText),
             nameof(AuthText), nameof(SignInButtonText), nameof(SignInButtonHint), nameof(PartialText),
             nameof(SpeechConnectionButtonText),
             nameof(SpeechEndpointPreview), nameof(SpeechSettingsStatus), nameof(ModelStatus),
@@ -862,6 +891,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
 
     private void RefreshAnalysis()
     {
+        RefreshProductGuides();
         var analyses = _conversation.Analyses;
         foreach (var request in analyses)
         {

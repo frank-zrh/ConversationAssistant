@@ -8,6 +8,42 @@ public static class WorkIqPromptSender
     // Leave room for Windows command-line quoting, the executable, account and conversation ID.
     public const int MaxPartCharacters = 10_000;
 
+    public const int MaximumAnalysisAttempts = 3;
+
+    public static async Task<(WorkIqAnswer Answer, DiscoveredAnalysis Analysis)> AskAnalysisAsync(
+        IWorkIqClient client, string prompt, string? conversationId, CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            // Re-send the complete request (including every multipart chunk), never
+            // publish or adopt conversation IDs from a malformed response.
+            var retryPrompt = attempt == 1 ? prompt : prompt + "\n\n" +
+                "FORMAT RECOVERY: A previous response failed JSON/schema validation. " +
+                "Return only one complete JSON object matching the requested schema. " +
+                "Use JSON string escapes for table newlines. Do not include prose or fences. " +
+                "Do not invent missing facts; use the schema's empty arrays or explicit unknowns.";
+            var answer = await AskAsync(client, retryPrompt, conversationId, cancellationToken)
+                .ConfigureAwait(false);
+            try
+            {
+                var analysis = ConversationQuestionParser.ParseAnalysis(answer.Text);
+                cancellationToken.ThrowIfCancellationRequested();
+                return (answer, analysis);
+            }
+            catch (WorkIqException error)
+            {
+                if (attempt >= MaximumAnalysisAttempts)
+                    throw new WorkIqException(
+                        "Work IQ analysis could not be validated after three automatic attempts. No partial results were saved.", error);
+                // Only schema failures are retried here; auth, process failures and
+                // caller cancellation must not turn into repeated external requests.
+                await Task.Delay(TimeSpan.FromMilliseconds(250 * attempt), cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+    }
+
     public static async Task<WorkIqAnswer> AskAsync(IWorkIqClient client, string prompt,
         string? conversationId, CancellationToken cancellationToken)
     {

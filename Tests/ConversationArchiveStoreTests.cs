@@ -45,6 +45,20 @@ public sealed class ConversationArchiveStoreTests
     }
 
     [TestMethod]
+    public async Task LegacyArchiveWithoutDisplayLanguageDefaultsToChinese()
+    {
+        var store = new JsonConversationArchiveStore(_directory);
+        var path = await store.SaveAsync(ConversationArchive.Capture(FullSession()));
+        var document = JsonNode.Parse(await File.ReadAllTextAsync(path))!;
+        document["settings"]!.AsObject().Remove("displayLanguage");
+        await File.WriteAllTextAsync(path, document.ToJsonString());
+        var settings = (await store.LoadAsync(path)).Restore().Settings;
+        Assert.AreEqual(ConversationLanguage.Chinese, settings.DisplayLanguage);
+        Assert.AreEqual(ConversationLanguage.Chinese, settings.Language);
+        Assert.AreEqual(ConversationLanguage.English, settings.AnalysisLanguage);
+    }
+
+    [TestMethod]
     public async Task RoundTripPreservesAllHistoryAndSemanticIdsInReadableUnicodeJson()
     {
         var original = FullSession();

@@ -36,7 +36,7 @@ public sealed class PromptBuilder
 
     private static string Build(string question, string recentConversation, ConversationSettings settings, bool suggested)
     {
-        var language = settings.AnswerLanguage switch
+        var language = settings.AnalysisLanguage switch
         {
             ConversationLanguage.Chinese => "Answer in Chinese.",
             ConversationLanguage.English => "Answer in English.",

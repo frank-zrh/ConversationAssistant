@@ -2,6 +2,12 @@
 
 Windows WinUI 3 / .NET 10 desktop application. **Supports speaker-labeled transcript groups, Work IQ analysis history, linked replies, and importable JSON conversation records.** Continues to use Microsoft Entra ID identities in the target resource tenant to access Azure AI Speech, without using a resource key. Azure Speech and Work IQ share a sign-in entry point while managing their own credentials separately; Whisper offline mode can also be selected explicitly. Transcription and Q&A run independently.
 
+## Animated demo
+
+[Watch the Power Platform GIF tour](docs/demos/conversation-assistant-power-platform.gif) · [Storyboard and regeneration instructions](docs/demos/README.md)
+
+A fictional UI simulation covering settings, English listening/analysis/display, Power Platform conversations, product tables, questions and answers, automatic retry recovery, and JSON records. No live service calls or verified pricing are shown.
+
 ## Prerequisites
 
 - Windows 11 (x64), .NET 10 SDK, and Windows App SDK build dependencies (restored through NuGet); Windows Developer Mode is required for packaged debugging. To use a microphone, allow desktop app access in Windows privacy settings. **Windows SAPI language packs are no longer required.**

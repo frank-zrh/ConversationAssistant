@@ -76,6 +76,10 @@ public sealed partial class ConversationSessionManager
     {
         get { lock (_gate) return CurrentConversation?.Analysis?.Questions.ToArray() ?? []; }
     }
+    public IReadOnlyList<ProductGuide> ProductGuides
+    {
+        get { lock (_gate) return CurrentConversation?.ProductGuides.ToArray() ?? []; }
+    }
     public int PendingAnalysisCount
     {
         get { lock (_gate) return Session is null ? 0 : _analysisSchedule.PendingCount; }
@@ -563,15 +567,17 @@ public sealed partial class ConversationSessionManager
     {
         ConversationSession session;
         QuestionRequest? request;
+        bool accepted;
         lock (_gate)
         {
             session = RequireWorkspaceLocked();
             request = session.Answers.Find(x => x.Id == requestId && x.Status == QuestionStatus.Failed);
             if (request is null) return false;
             RetryLocked(request);
+            accepted = request.Status == QuestionStatus.Pending;
         }
         PublishRequest(request);
-        return request.Status == QuestionStatus.Pending;
+        return accepted;
     }
 
     private void RetryLocked(QuestionRequest request)
@@ -735,12 +741,12 @@ public sealed partial class ConversationSessionManager
                 return;
             }
             _analysisCancellation = cancellation;
+            request.ExistingProductNames = session.ProductGuides.SelectMany(product => product.IdentityNames)
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         }
         try
         {
-            var prompt = ConversationAnalysisPrompt.Build(request, session.Settings);
-            // Discovery has its own conversation so JSON output does not contaminate answer history.
-            var answer = await WorkIqPromptSender.AskAsync(_workIq, prompt, null, cancellation.Token)
+            var (answer, analysis) = await WorkIqPromptSender.AskAnalysisAsync(_workIq, ConversationAnalysisPrompt.Build(request, session.Settings), null, cancellation.Token)
                 .ConfigureAwait(false);
             cancellation.Token.ThrowIfCancellationRequested();
             lock (_gate)
@@ -748,7 +754,6 @@ public sealed partial class ConversationSessionManager
                 request.Response = answer.Text;
                 request.Sources = answer.Sources.ToArray();
             }
-            var analysis = ConversationQuestionParser.ParseAnalysis(answer.Text);
             var context = ConversationAnalysisPrompt.FormatTranscript(request.Transcript);
             lock (_gate)
             {
@@ -777,6 +782,15 @@ public sealed partial class ConversationSessionManager
                 request.Questions = result.ToArray();
                 request.IntentSummary = analysis.IntentSummary;
                 request.StageSummary = request.StageContext == "" ? "" : analysis.StageSummary;
+                var productKeys = session.ProductGuides.SelectMany(product => product.IdentityNames)
+                    .Select(ProductGuide.IdentityKey).ToHashSet(StringComparer.Ordinal);
+                foreach (var product in analysis.Products)
+                {
+                    var keys = product.IdentityNames.Select(ProductGuide.IdentityKey).ToArray();
+                    if (keys.Any(productKeys.Contains)) continue;
+                    session.ProductGuides.Add(product);
+                    productKeys.UnionWith(keys);
+                }
                 if (request.GroupId is null) _analysisSchedule.Complete(request.Transcript.Count);
                 request.Status = QuestionStatus.Completed;
             }

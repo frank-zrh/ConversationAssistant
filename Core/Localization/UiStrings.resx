@@ -4,12 +4,17 @@
   <resheader name="version"><value>2.0</value></resheader>
   <data name="AppTitle" xml:space="preserve"><value>Conversation Assistant</value></data>
   <data name="ListeningLanguage" xml:space="preserve"><value>Listening language</value></data>
+  <data name="AnalysisLanguage" xml:space="preserve"><value>Analysis language</value></data>
+  <data name="ErrorAnalysisRetryExhausted" xml:space="preserve"><value>Work IQ analysis could not be validated after three automatic attempts. No partial results were saved.</value></data>
+  <data name="DisplayLanguage" xml:space="preserve"><value>Display language</value></data>
+  <data name="AnalysisLanguageHint" xml:space="preserve"><value>Language for new analyses, product guides and answers. Existing content is unchanged.</value></data>
+  <data name="DisplayLanguageHint" xml:space="preserve"><value>Change interface labels only, independently of listening and analysis.</value></data>
   <data name="ChineseSpeech" xml:space="preserve"><value>Chinese (zh-CN)</value></data>
   <data name="EnglishSpeech" xml:space="preserve"><value>English (en-US)</value></data>
   <data name="Chinese" xml:space="preserve"><value>Chinese</value></data>
   <data name="English" xml:space="preserve"><value>English</value></data>
   <data name="AutomaticLanguage" xml:space="preserve"><value>Auto</value></data>
-  <data name="LanguageHint" xml:space="preserve"><value>Pause listening to change language. The interface updates immediately; Resume applies the new speech language.</value></data>
+  <data name="LanguageHint" xml:space="preserve"><value>Pause listening to change speech recognition language. Resume applies it; analysis and display languages are unchanged.</value></data>
   <data name="AutoAnalysis" xml:space="preserve"><value>Automatically analyze with Work IQ</value></data>
   <data name="AutoAnalysisOn" xml:space="preserve"><value>Auto analyze: On</value></data>
   <data name="AutoAnalysisOff" xml:space="preserve"><value>Auto analyze: Off</value></data>
@@ -55,6 +60,17 @@
   <data name="IntentTab" xml:space="preserve"><value>Intent</value></data>
   <data name="StageSummariesTab" xml:space="preserve"><value>Stage summaries</value></data>
   <data name="RecommendedQuestionsTab" xml:space="preserve"><value>Recommended questions</value></data>
+  <data name="ProductGuideTab" xml:space="preserve"><value>Product guide</value></data>
+  <data name="ProductGuideHint" xml:space="preserve"><value>Products are collected during conversation analysis. Open a cached card to view details; opening it does not send another Work IQ request.</value></data>
+  <data name="ProductGuideEmpty" xml:space="preserve"><value>Analyze a conversation mentioning products to populate this guide.</value></data>
+  <data name="ProductGuideCaveat" xml:space="preserve"><value>Reference only: capabilities, licensing and prices depend on version, region and date. Verify current official terms before making commitments.</value></data>
+  <data name="ProductOverviewHeader" xml:space="preserve"><value>Capabilities</value></data>
+  <data name="ProductLicensingHeader" xml:space="preserve"><value>Licensing and pricing</value></data>
+  <data name="ProductScenariosHeader" xml:space="preserve"><value>Suitable scenarios</value></data>
+  <data name="ProductLimitationsHeader" xml:space="preserve"><value>Limitations and unsuitable scenarios</value></data>
+  <data name="ProductNotesHeader" xml:space="preserve"><value>Additional notes</value></data>
+  <data name="ProductSourcesHeader" xml:space="preserve"><value>Sources</value></data>
+  <data name="ProductInfoUnavailable" xml:space="preserve"><value>Not supplied or not verified.</value></data>
   <data name="IntentHint" xml:space="preserve"><value>Latest successful analysis of the whole conversation, including goals, constraints and open decisions.</value></data>
   <data name="IntentEmpty" xml:space="preserve"><value>Analyze the conversation to see its overall intent.</value></data>
   <data name="StageSummariesEmpty" xml:space="preserve"><value>Concise summaries of new conversation content accumulate here after each successful analysis.</value></data>
@@ -66,7 +82,7 @@
   <data name="CollapseAnswerPanel" xml:space="preserve"><value>Collapse questions &amp; answers</value></data>
   <data name="ExpandAnswerPanel" xml:space="preserve"><value>Expand to 3/4</value></data>
   <data name="RestoreAnswerPanel" xml:space="preserve"><value>Restore to 1/3</value></data>
-  <data name="AnswerPanelToggleHint" xml:space="preserve"><value>Open or collapse the lower panel. It opens at one-third height; the size button enlarges it to three-quarters.</value></data>
+  <data name="AnswerPanelToggleHint" xml:space="preserve"><value>Up expands: collapsed → 1/3 → 3/4. Down collapses the panel. Click repeatedly to cycle through the sizes.</value></data>
   <data name="SelectQuestion" xml:space="preserve"><value>Select a question</value></data>
   <data name="CopyAnswer" xml:space="preserve"><value>Copy Answer</value></data>
   <data name="Retry" xml:space="preserve"><value>Retry</value></data>

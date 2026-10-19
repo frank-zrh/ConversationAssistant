@@ -24,7 +24,9 @@ public sealed partial class PipelineTests
     [DataRow(1, true)]
     [DataRow(2, true)]
     [DataRow(3, true)]
-    [DataRow(4, false)]
+    [DataRow(4, true)]
+    [DataRow(5, true)]
+    [DataRow(6, false)]
     public void ProductGuidanceOnlyReusesCompatibleKnowledgeVersions(int version, bool compatible)
     {
         Assert.AreEqual(compatible, ConversationAnalysisPrompt.CanReuseQuestionsFrom(version));
@@ -185,24 +187,28 @@ public sealed partial class PipelineTests
     private static void AssertAdvancedProductDiscoveryInstructions(string prompt)
     {
         StringAssert.Contains(prompt, "ADDITIONAL ADVANCED PRODUCT AND PRICING QUESTIONS:");
-        StringAssert.Contains(prompt, "In addition to the general knowledge and creative suggestions");
-        StringAssert.Contains(prompt, "append 2-4 NEW");
+        StringAssert.Contains(prompt, "Append 2-4 NEW");
         StringAssert.Contains(prompt, "SAME questions array");
-        StringAssert.Contains(prompt, "at least one feature/capability question and one pricing/licensing question");
-        StringAssert.Contains(prompt, "Do not replace useful general or creative suggestions");
-        StringAssert.Contains(prompt, "Pricing need not be explicitly mentioned");
-        StringAssert.Contains(prompt, "no relevant product context");
-        StringAssert.Contains(prompt, "return fewer; never pad, repeat existing questions");
+        StringAssert.Contains(prompt, "Include distinct feature/capability and pricing/licensing gaps");
+        StringAssert.Contains(prompt, "Preserve useful general/creative questions");
+        StringAssert.Contains(prompt, "implicit cost implications qualify");
+        StringAssert.Contains(prompt, "Every question needs a transcript-supported product/use case");
+        StringAssert.Contains(prompt, "Never pad, duplicate");
+        StringAssert.Contains(prompt, "this is not a quota");
         StringAssert.Contains(prompt, "DIFFICULTY MEANS EXPERT DETAIL, NOT DIFFICULT WORDING:");
         StringAssert.Contains(prompt, "authoritative reference, cross-condition reasoning");
         StringAssert.Contains(prompt, "multi-step comparison/calculation");
-        StringAssert.Contains(prompt, "edition/version/SKU differences");
+        StringAssert.Contains(prompt, "SKU/version differences");
         StringAssert.Contains(prompt, "entitlement versus technical limits");
-        StringAssert.Contains(prompt, "charging units, included capacity and overages");
+        StringAssert.Contains(prompt, "charging units, allowances/overages");
         StringAssert.Contains(prompt, "total-cost/break-even comparisons");
-        StringAssert.Contains(prompt, "Ask WHICH conditions apply instead of assuming");
+        StringAssert.Contains(prompt, "Ask WHICH conditions apply; do not assume");
         StringAssert.Contains(prompt, "hard-to-remember");
-        StringAssert.Contains(prompt, "avoids an incorrect promise or quote");
-        StringAssert.Contains(prompt, "not facts about any product");
+        StringAssert.Contains(prompt, "risk of a wrong promise/quote");
+        StringAssert.Contains(prompt, "never invented product facts");
+        StringAssert.Contains(prompt, "Each question asks ONE hard thing in ONE short sentence");
+        StringAssert.Contains(prompt, "not the clickable question");
+        StringAssert.Contains(prompt, "licensingAndPricing MUST be a compact Markdown pipe table");
+        StringAssert.Contains(prompt, "limitations MUST be a compact Markdown pipe table");
     }
 }

@@ -14,7 +14,17 @@ public enum QuestionStatus { Pending, Processing, Completed, Ignored, Failed, Ca
 public sealed class ConversationSettings
 {
     public ConversationLanguage Language { get; set; } = ConversationLanguage.Chinese;
-    public ConversationLanguage AnswerLanguage { get; set; } = ConversationLanguage.Auto;
+    // Retain the archive/API field name for older records. Analysis and answers
+    // share an explicit output language, independent of speech and interface text.
+    public ConversationLanguage AnswerLanguage { get; set; } = ConversationLanguage.Chinese;
+    [System.Text.Json.Serialization.JsonIgnore]
+    public ConversationLanguage AnalysisLanguage
+    {
+        get => AnswerLanguage == ConversationLanguage.English ? ConversationLanguage.English : ConversationLanguage.Chinese;
+        set => AnswerLanguage = value is ConversationLanguage.Chinese or ConversationLanguage.English
+            ? value : throw new ArgumentOutOfRangeException(nameof(value));
+    }
+    public ConversationLanguage DisplayLanguage { get; set; } = ConversationLanguage.Chinese;
     public AnswerStyle AnswerStyle { get; set; } = AnswerStyle.Concise;
     public string? InputDeviceId { get; set; }
     public string? OutputDeviceId { get; set; }
@@ -80,6 +90,7 @@ public sealed class ConversationSession
     public ConversationAnalysisRequest? Analysis { get; internal set; }
     public List<ConversationAnalysisRequest> Analyses { get; } = [];
     public List<SuggestedQuestion> SuggestedQuestions { get; } = [];
+    public List<ProductGuide> ProductGuides { get; } = [];
     public List<QuestionRequest> Answers { get; } = [];
 }
 

@@ -103,7 +103,8 @@ public sealed partial class PipelineTests
     public void ChineseIsTheExplicitDefaultSpeechLanguage()
     {
         Assert.AreEqual(ConversationLanguage.Chinese, new ConversationSettings().Language);
-        Assert.AreEqual(ConversationLanguage.Auto, new ConversationSettings().AnswerLanguage);
+        Assert.AreEqual(ConversationLanguage.Chinese, new ConversationSettings().AnalysisLanguage);
+        Assert.AreEqual(ConversationLanguage.Chinese, new ConversationSettings().DisplayLanguage);
     }
 
     [TestMethod]

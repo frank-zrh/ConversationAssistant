@@ -151,6 +151,7 @@ public sealed partial class MainViewModel
         TranscriptListItems.Clear();
         _groupRows.Clear();
         SuggestedQuestions.Clear();
+        ProductGuides.Clear();
         AnalysisHistory.Clear();
         Answers.Clear();
         _latestAnalysisId = null;
@@ -161,6 +162,7 @@ public sealed partial class MainViewModel
         {
             Settings.Language = session.Settings.Language;
             Settings.AnswerLanguage = session.Settings.AnswerLanguage;
+            Settings.DisplayLanguage = session.Settings.DisplayLanguage;
             Settings.AnswerStyle = session.Settings.AnswerStyle;
             Settings.ContextWindowDuration = session.Settings.ContextWindowDuration;
             Settings.MaxContextCharacters = session.Settings.MaxContextCharacters;
@@ -173,7 +175,8 @@ public sealed partial class MainViewModel
         Tick();
         RefreshRecordStatus();
         Notify(nameof(SelectedAnalysis), nameof(ContextWindowIndex), nameof(AnswerStyleIndex),
-            nameof(AnswerLanguageIndex));
+            nameof(AnswerLanguageIndex), nameof(SpeechLanguageIndex),
+            nameof(AnalysisLanguageIndex), nameof(DisplayLanguageIndex));
         NotifyWorkspaceControls();
     }
 

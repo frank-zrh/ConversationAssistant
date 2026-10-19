@@ -21,6 +21,13 @@ internal sealed class AnswerPanelLayout
 
     public void ToggleVisibility() => Mode = IsOpen ? AnswerPanelMode.Collapsed : AnswerPanelMode.Normal;
 
+    public void Cycle() => Mode = Mode switch
+    {
+        AnswerPanelMode.Collapsed => AnswerPanelMode.Normal,
+        AnswerPanelMode.Normal => AnswerPanelMode.Expanded,
+        _ => AnswerPanelMode.Collapsed
+    };
+
     public void ToggleExpansion() => Mode = Mode == AnswerPanelMode.Expanded
         ? AnswerPanelMode.Normal : AnswerPanelMode.Expanded;
 

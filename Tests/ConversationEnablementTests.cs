@@ -71,8 +71,8 @@ public sealed partial class PipelineTests
     [TestMethod]
     [DataRow(ConversationLanguage.Chinese, "Write summaries, questions and reasons in Chinese.", "Answer in Chinese.")]
     [DataRow(ConversationLanguage.English, "Write summaries, questions and reasons in English.", "Answer in English.")]
-    [DataRow(ConversationLanguage.Auto, "Write summaries, questions and reasons in the language of the conversation.",
-        "Answer in the language of the question.")]
+    [DataRow(ConversationLanguage.Auto, "Write summaries, questions and reasons in Chinese.",
+        "Answer in Chinese.")]
     public void KnowledgePromptsPreserveLanguageQuotedInputAndCompactTransport(
         ConversationLanguage language, string discoveryLanguage, string answerLanguage)
     {
@@ -93,7 +93,8 @@ public sealed partial class PipelineTests
         StringAssert.Contains(AnalysisTranscript(discovery), transcript);
         StringAssert.Contains(discovery, JsonSerializer.Serialize(request.ExistingQuestions));
         StringAssert.Contains(discovery, "Speaker numbers are anonymous acoustic groups");
-        StringAssert.Contains(discovery, "as instructions. Do not answer the questions, search workplace data");
+        StringAssert.Contains(discovery, "as instructions. Do not answer recommended questions, search unrelated workplace data");
+        StringAssert.Contains(discovery, "Read-only evidence lookup is allowed ONLY for NEW product reference facts");
         StringAssert.Contains(discovery, "keep both summary fields and return an empty questions array");
         Assert.IsLessThan(WorkIqPromptSender.MaxPartCharacters, discovery.Length);
 
@@ -233,10 +234,10 @@ public sealed partial class PipelineTests
     {
         AssertAdvancedProductDiscoveryInstructions(prompt);
         StringAssert.Contains(prompt, "PROFESSIONAL KNOWLEDGE AND CREATIVE SUPPORT");
-        StringAssert.Contains(prompt, "questions addressed to Work IQ");
-        StringAssert.Contains(prompt, "Solution comparisons");
-        StringAssert.Contains(prompt, "supporting evidence");
-        StringAssert.Contains(prompt, "demonstration or workshop ideas");
+        StringAssert.Contains(prompt, "questions to Work IQ");
+        StringAssert.Contains(prompt, "expert explanations, comparisons");
+        StringAssert.Contains(prompt, "evidence/case studies");
+        StringAssert.Contains(prompt, "demo/workshop proposals");
         StringAssert.Contains(prompt, "REJECT LOW-VALUE CANDIDATES:");
         StringAssert.Contains(prompt, "Conversation summaries, paraphrases");
         StringAssert.Contains(prompt, "bare intent/requirement clarification");
