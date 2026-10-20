@@ -6,6 +6,7 @@
     xmlns:ui="using:ConversationAssistant_App.UI"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Page.Resources>
+        <ui:QuestionAnswerFontWeightConverter x:Key="QuestionAnswerFontWeightConverter" />
         <Style x:Key="TranscriptCardStyle" TargetType="Button">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -168,6 +169,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Button x:Name="CreateGroupButton" Content="{Binding Texts[CreateGroup]}"
@@ -178,7 +180,11 @@
                             Click="ImportConversation_Click" ToolTipService.ToolTip="{Binding Texts[ImportHint]}" />
                     <Button x:Name="SaveRecordButton" Grid.Column="2" Content="{Binding Texts[SaveNow]}"
                             IsEnabled="{Binding CanSaveConversation}" Click="SaveRecord_Click" />
-                    <TextBlock Grid.Column="3" Text="{Binding RecordStatus}" FontSize="12"
+                    <Button x:Name="ViewSessionButton" Grid.Column="3" Content="{Binding Texts[ViewSession]}"
+                            IsEnabled="{Binding CanViewSession}" Click="ViewSession_Click"
+                            AutomationProperties.Name="{Binding Texts[ViewSession]}"
+                            ToolTipService.ToolTip="{Binding Texts[ViewSessionHint]}" />
+                    <TextBlock Grid.Column="4" Text="{Binding RecordStatus}" FontSize="12"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                                ToolTipService.ToolTip="{Binding RecordPath}" />
                 </Grid>
@@ -283,7 +289,8 @@
                                                         ToolTipService.ToolTip="{Binding Texts[SuggestedQuestionHint]}"
                                                         Click="SuggestedQuestion_Click" RightTapped="SuggestedQuestion_RightTapped">
                                                     <StackPanel Spacing="4">
-                                                        <TextBlock Text="{Binding Question}" TextWrapping="Wrap" FontWeight="SemiBold"
+                                                        <TextBlock Text="{Binding Question}" TextWrapping="Wrap"
+                                                                   FontWeight="{Binding IsAnswered, Converter={StaticResource QuestionAnswerFontWeightConverter}}"
                                                                    ToolTipService.ToolTip="{Binding Reason}" />
                                                         <TextBlock Text="{Binding StatusText}" FontSize="12" Opacity=".7" />
                                                     </StackPanel>
@@ -498,6 +505,7 @@
                             <ToggleSwitch Header="{Binding Texts[ClearAfterConversation]}" IsOn="False" IsEnabled="False"
                                           OnContent="{Binding Texts[On]}" OffContent="{Binding Texts[Off]}" />
                             <TextBlock Text="{Binding Texts[RecordPrivacy]}" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Texts[SessionLogPrivacy]}" TextWrapping="Wrap" />
                             <TextBlock Text="{Binding RecordPath}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
                             <Button Content="{Binding Texts[OpenRecordsFolder]}" Click="OpenRecordsFolder_Click" />
                         </StackPanel>

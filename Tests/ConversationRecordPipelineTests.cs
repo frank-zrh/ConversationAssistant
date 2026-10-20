@@ -147,8 +147,9 @@ public sealed partial class PipelineTests
             Assert.HasCount(1, first.Transcript);
             Assert.HasCount(1, first.Questions);
             Assert.HasCount(2, second.Transcript);
-            Assert.HasCount(2, second.Questions);
-            Assert.AreSame(original, second.Questions[0]);
+            Assert.HasCount(1, second.Questions);
+            Assert.AreEqual("Who owns deployment?", second.Questions[0].Question);
+            Assert.IsFalse(second.Questions.Any(question => question.Id == original.Id));
             fake.Conversation.ClearTranscript();
             Assert.IsNull(fake.Conversation.Analysis);
             Assert.HasCount(2, fake.Conversation.Analyses);

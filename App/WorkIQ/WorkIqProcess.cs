@@ -2,10 +2,11 @@ using System.ComponentModel;
 using System.Diagnostics;
 using ConversationAssistant.Core.Conversation;
 using ConversationAssistant.Core.Authentication;
+using ConversationAssistant.Core.WorkIQ;
 
 namespace ConversationAssistant_App.WorkIQ;
 
-public sealed class WorkIqProcess
+public sealed class WorkIqProcess(WorkIqDiagnostics diagnostics)
 {
     public string? Account { get; set; }
     public static string ResolveExecutable()
@@ -45,6 +46,11 @@ public sealed class WorkIqProcess
         foreach (var argument in WorkIqAccountArguments.WithAccount(arguments, Account))
             start.ArgumentList.Add(argument);
         using var process = new Process { StartInfo = start };
+        var context = diagnostics.Capture();
+        var operation = arguments.FirstOrDefault() ?? "unknown";
+        var timer = Stopwatch.StartNew();
+        await diagnostics.WriteAsync(context, "CliStarted", new { Operation = operation, Executable = start.FileName })
+            .ConfigureAwait(false);
         try
         {
             process.Start();
@@ -53,6 +59,12 @@ public sealed class WorkIqProcess
             await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
             var result = await stdout.ConfigureAwait(false);
             var error = await stderr.ConfigureAwait(false);
+            await diagnostics.WriteAsync(context, "CliCompleted", new
+            {
+                Operation = operation, ElapsedMs = timer.ElapsedMilliseconds, process.ExitCode,
+                Stdout = operation == "ask" ? result : "[authentication output omitted]",
+                Stderr = operation == "ask" ? error : "[authentication output omitted]"
+            }).ConfigureAwait(false);
             if (process.ExitCode != 0)
                 throw new WorkIqException(
                     error.Contains("EULA", StringComparison.OrdinalIgnoreCase)
@@ -64,11 +76,28 @@ public sealed class WorkIqProcess
         {
             if (!process.HasExited) process.Kill(entireProcessTree: true);
             await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+            await diagnostics.WriteAsync(context, "CliCancelled", new
+            {
+                Operation = operation, ElapsedMs = timer.ElapsedMilliseconds,
+                CallerCancelled = cancellationToken.IsCancellationRequested
+            }).ConfigureAwait(false);
             throw;
         }
         catch (Win32Exception ex)
         {
+            await diagnostics.WriteAsync(context, "CliFailed", new
+            {
+                Operation = operation, ElapsedMs = timer.ElapsedMilliseconds, Error = ex.ToString()
+            }).ConfigureAwait(false);
             throw new WorkIqException("Cannot start Work IQ CLI. Check the executable path.", ex);
+        }
+        catch (Exception error)
+        {
+            await diagnostics.WriteAsync(context, "CliFailed", new
+            {
+                Operation = operation, ElapsedMs = timer.ElapsedMilliseconds, Error = error.ToString()
+            }).ConfigureAwait(false);
+            throw;
         }
     }
 }

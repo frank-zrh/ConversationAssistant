@@ -4,6 +4,7 @@ using ConversationAssistant.Core.Persistence;
 using ConversationAssistant.Core.Settings;
 using ConversationAssistant.Core.Speech;
 using ConversationAssistant.Core.Transcript;
+using ConversationAssistant.Core.WorkIQ;
 using ConversationAssistant_App.Audio;
 using ConversationAssistant_App.Authentication;
 using ConversationAssistant_App.Speech;
@@ -44,10 +45,13 @@ public partial class App : Application
         services.AddSingleton<ITranscriptEngine, TranscriptEngine>();
         services.AddSingleton<PromptBuilder>();
         services.AddSingleton<IContextBuilder, ContextBuilder>();
+        services.AddSingleton<WorkIqDiagnostics>();
         services.AddSingleton<WorkIqProcess>();
         services.AddSingleton<INetworkStatus, NetworkStatus>();
         services.AddSingleton<IAuthenticationService, AuthenticationService>();
-        services.AddSingleton<IWorkIqClient, WorkIqClient>();
+        services.AddSingleton<WorkIqClient>();
+        services.AddSingleton<IWorkIqClient>(provider => new LoggedWorkIqClient(
+            provider.GetRequiredService<WorkIqClient>(), provider.GetRequiredService<WorkIqDiagnostics>()));
         services.AddSingleton<IConversationArchiveStore>(_ =>
             new JsonConversationArchiveStore(ConversationRecordLocation.DirectoryPath));
         services.AddSingleton<ConversationSessionManager>();

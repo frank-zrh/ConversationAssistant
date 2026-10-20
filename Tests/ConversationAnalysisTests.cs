@@ -394,7 +394,7 @@ public sealed partial class PipelineTests
             await WaitUntil(() => fake.Conversation.Analysis?.Status == QuestionStatus.Completed);
             Assert.HasCount(WorkIqPromptSender.MaximumAnalysisAttempts + 1, fake.Work.Calls);
             Assert.AreEqual(0, fake.Conversation.PendingAnalysisCount);
-            Assert.HasCount(1, errors);
+            Assert.IsEmpty(errors);
         }
         finally { await fake.Conversation.EndConversationAsync(); }
     }

@@ -1,4 +1,6 @@
 using ConversationAssistant_App.UI;
+using System.Diagnostics;
+using System.ComponentModel;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -18,6 +20,28 @@ public sealed partial class MainPage
 
     private void CreateGroup_Click(object sender, RoutedEventArgs e) => _viewModel.CreateGroup();
     private async void SaveRecord_Click(object sender, RoutedEventArgs e) => await _viewModel.SaveRecordAsync();
+
+    private async void ViewSession_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_viewModel.CanViewSession) return;
+        try
+        {
+            var path = await _viewModel.PrepareSessionLogAsync();
+            if (path is null || !File.Exists(path)) throw new FileNotFoundException();
+            var start = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "notepad.exe"))
+            {
+                UseShellExecute = false
+            };
+            start.ArgumentList.Add(path);
+            using var process = Process.Start(start);
+            if (process is null) _viewModel.ShowRenderingError(_viewModel.Texts["ErrorSessionLogOpen"]);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or
+            InvalidOperationException or Win32Exception)
+        {
+            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorSessionLogOpen"]);
+        }
+    }
 
     private void Group_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {

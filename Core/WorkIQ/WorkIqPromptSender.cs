@@ -11,7 +11,8 @@ public static class WorkIqPromptSender
     public const int MaximumAnalysisAttempts = 3;
 
     public static async Task<(WorkIqAnswer Answer, DiscoveredAnalysis Analysis)> AskAnalysisAsync(
-        IWorkIqClient client, string prompt, string? conversationId, CancellationToken cancellationToken)
+        IWorkIqClient client, string prompt, string? conversationId, CancellationToken cancellationToken,
+        WorkIqDiagnostics? diagnostics = null)
     {
         for (var attempt = 1; ; attempt++)
         {
@@ -33,6 +34,12 @@ public static class WorkIqPromptSender
             }
             catch (WorkIqException error)
             {
+                if (diagnostics is not null)
+                    await diagnostics.WriteAsync(diagnostics.Capture(), "AnalysisValidationFailed", new
+                    {
+                        Attempt = attempt, MaximumAttempts = MaximumAnalysisAttempts, Error = error.ToString(),
+                        WillRetry = attempt < MaximumAnalysisAttempts
+                    }).ConfigureAwait(false);
                 if (attempt >= MaximumAnalysisAttempts)
                     throw new WorkIqException(
                         "Work IQ analysis could not be validated after three automatic attempts. No partial results were saved.", error);

@@ -14,6 +14,7 @@ public sealed partial class ConversationSessionManager
     private readonly IAuthenticationService _auth;
     private readonly INetworkStatus _network;
     private readonly IWorkIqClient _workIq;
+    private readonly WorkIqDiagnostics _workIqDiagnostics;
     private readonly ITranscriptEngine _transcript;
     private readonly IContextBuilder _contextBuilder;
     private readonly TimeProvider _timeProvider;
@@ -74,7 +75,12 @@ public sealed partial class ConversationSessionManager
     }
     public IReadOnlyList<SuggestedQuestion> SuggestedQuestions
     {
-        get { lock (_gate) return CurrentConversation?.Analysis?.Questions.ToArray() ?? []; }
+        get
+        {
+            lock (_gate)
+                return CurrentConversation is { Analysis: { } analysis } session
+                    ? GetRecommendationBacklogLocked(session, analysis) : [];
+        }
     }
     public IReadOnlyList<ProductGuide> ProductGuides
     {
@@ -97,13 +103,16 @@ public sealed partial class ConversationSessionManager
     public ConversationSessionManager(IAudioCaptureService audio, ISpeechRecognitionService speech,
         IAuthenticationService auth, INetworkStatus network, IWorkIqClient workIq, ITranscriptEngine transcript,
         IContextBuilder contextBuilder, TimeProvider? timeProvider = null,
-        IConversationArchiveStore? archiveStore = null)
+        IConversationArchiveStore? archiveStore = null, WorkIqDiagnostics? workIqDiagnostics = null)
     {
         _audio = audio;
         _speech = speech;
         _auth = auth;
         _network = network;
-        _workIq = workIq;
+        _workIqDiagnostics = workIqDiagnostics ?? new WorkIqDiagnostics();
+        _workIq = workIq is LoggedWorkIqClient ? workIq : new LoggedWorkIqClient(workIq, _workIqDiagnostics);
+        _workIqDiagnostics.Failed += _ => ErrorOccurred?.Invoke(
+            "The Work IQ session log could not be written. Analysis will continue; check the record folder.");
         _transcript = transcript;
         _contextBuilder = contextBuilder;
         _timeProvider = timeProvider ?? TimeProvider.System;
@@ -158,7 +167,9 @@ public sealed partial class ConversationSessionManager
             _workIqBusy = false;
             Session = new ConversationSession { Settings = settings, StartTime = _timeProvider.GetUtcNow() };
             CurrentConversation = Session;
+            _userQuestionHistory.Clear();
             PersistLocked(Session);
+            _workIqDiagnostics.BindConversation(Session.SessionId, RecordPath);
         }
         ConversationChanged?.Invoke();
         _transcript.Clear();
@@ -392,6 +403,7 @@ public sealed partial class ConversationSessionManager
             session.Analysis = null;
             session.TranscriptSegments.Clear();
             session.Groups.Clear();
+            _userQuestionHistory.Clear();
             _analysisSchedule.Reset();
             _buffer?.Clear();
             _transcript.Clear();
@@ -459,6 +471,7 @@ public sealed partial class ConversationSessionManager
                 transcript.Where(segment => !summarizedIds.Contains(segment.Id)).ToArray()),
             PreviousStageSummaries = string.Join(Environment.NewLine, stages.Select(item => item.StageSummary)),
             ExistingQuestions = questions.Select(question => question.Question).ToArray(),
+            UserQuestionInteractions = SnapshotUserQuestionsLocked(),
             Questions = questions,
             Timestamp = _timeProvider.GetUtcNow(),
             Trigger = trigger,
@@ -480,7 +493,7 @@ public sealed partial class ConversationSessionManager
 
     public QuestionRequest? GetAnswerForSuggestion(Guid questionId)
     {
-        lock (_gate) return CurrentConversation?.Answers.FirstOrDefault(x => x.SuggestedQuestionId == questionId);
+        lock (_gate) return CurrentConversation is { } session ? FindSuggestionAnswer(session, questionId) : null;
     }
 
     public QuestionRequest AskSuggestedQuestion(Guid questionId)
@@ -492,10 +505,11 @@ public sealed partial class ConversationSessionManager
             var session = RequireWorkspaceLocked();
             var question = session.SuggestedQuestions.FirstOrDefault(x => x.Id == questionId)
                 ?? throw new InvalidOperationException("This question has been cleared or belongs to another conversation.");
-            if (session.Answers.FirstOrDefault(x => x.SuggestedQuestionId == questionId) is { } existing)
+            if (FindSuggestionAnswer(session, questionId) is { } existing)
             {
                 request = existing;
-                changed = ReactivateRequestLocked(request);
+                if (request.Status != QuestionStatus.Completed)
+                    changed = ReactivateRequestLocked(request);
             }
             else
             {
@@ -511,6 +525,7 @@ public sealed partial class ConversationSessionManager
                 QueueLocked(request);
                 changed = true;
             }
+            RecordUserQuestionLocked(request);
         }
         if (changed) PublishRequest(request);
         return request;
@@ -558,6 +573,7 @@ public sealed partial class ConversationSessionManager
                 QueueLocked(request);
                 changed = true;
             }
+            RecordUserQuestionLocked(request);
         }
         if (changed) PublishRequest(request);
         return request;
@@ -573,6 +589,7 @@ public sealed partial class ConversationSessionManager
             session = RequireWorkspaceLocked();
             request = session.Answers.Find(x => x.Id == requestId && x.Status == QuestionStatus.Failed);
             if (request is null) return false;
+            RecordUserQuestionLocked(request);
             RetryLocked(request);
             accepted = request.Status == QuestionStatus.Pending;
         }
@@ -622,6 +639,7 @@ public sealed partial class ConversationSessionManager
                 session.Answers.FirstOrDefault(x => x.TranscriptSegmentId == transcriptSegmentId) is { } existing)
                 return existing;
             session.Answers.Add(request);
+            if (manual) RecordUserQuestionLocked(request);
             QueueLocked(request);
         }
         PublishRequest(request);
@@ -654,6 +672,15 @@ public sealed partial class ConversationSessionManager
                     request.Status = QuestionStatus.Processing;
                     _workIqBusy = true;
                 }
+                using var logScope = _workIqDiagnostics.BeginRequest(session.SessionId, request.Id,
+                    request is ConversationAnalysisRequest ? "Analysis" : "Question");
+                var logContext = _workIqDiagnostics.Capture();
+                await _workIqDiagnostics.WriteAsync(logContext, "RequestStarted", new
+                {
+                    request.Timestamp, request.IsManual,
+                    Trigger = (request as ConversationAnalysisRequest)?.Trigger.ToString(),
+                    TranscriptCount = (request as ConversationAnalysisRequest)?.Transcript.Count
+                }).ConfigureAwait(false);
                 PublishRequest(request);
                 if (Session == session && !_paused) SetState(ConversationUiState.Thinking);
                 try
@@ -687,8 +714,7 @@ public sealed partial class ConversationSessionManager
                 {
                     request.Status = QuestionStatus.Cancelled;
                 }
-                catch (Exception ex) when (ex is WorkIqException or
-                    System.Net.Http.HttpRequestException or InvalidOperationException or TimeoutException)
+                catch (Exception ex) when (ex is not OutOfMemoryException)
                 {
                     lock (_gate)
                     {
@@ -700,10 +726,16 @@ public sealed partial class ConversationSessionManager
                                 _analysisSchedule.Fail(_timeProvider.GetUtcNow());
                         }
                     }
-                    if (request.Status == QuestionStatus.Failed) ErrorOccurred?.Invoke(ex.Message);
+                    if (request.Status == QuestionStatus.Failed && request is not ConversationAnalysisRequest)
+                        ErrorOccurred?.Invoke(ex.Message);
                 }
                 finally
                 {
+                    await _workIqDiagnostics.WriteAsync(logContext, "RequestFinished", new
+                    {
+                        Status = request.Status.ToString(), request.Error,
+                        PendingTranscriptCount = PendingAnalysisCount
+                    }).ConfigureAwait(false);
                     PublishRequest(request);
                     lock (_gate) _workIqBusy = false;
                     if (Session == session)
@@ -746,7 +778,8 @@ public sealed partial class ConversationSessionManager
         }
         try
         {
-            var (answer, analysis) = await WorkIqPromptSender.AskAnalysisAsync(_workIq, ConversationAnalysisPrompt.Build(request, session.Settings), null, cancellation.Token)
+            var (answer, analysis) = await WorkIqPromptSender.AskAnalysisAsync(_workIq,
+                ConversationAnalysisPrompt.Build(request, session.Settings), null, cancellation.Token, _workIqDiagnostics)
                 .ConfigureAwait(false);
             cancellation.Token.ThrowIfCancellationRequested();
             lock (_gate)
@@ -762,18 +795,29 @@ public sealed partial class ConversationSessionManager
                     request.Status = QuestionStatus.Cancelled;
                     return;
                 }
-                var result = request.Questions.ToList();
-                var existing = result.Select(question =>
-                    ConversationQuestionParser.QuestionKey(question.Question)).ToHashSet(StringComparer.Ordinal);
+                var candidates = request.Questions.GroupBy(question =>
+                    ConversationQuestionParser.QuestionKey(question.Question))
+                    .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+                var alreadyRequested = session.Answers
+                    .Where(answer => answer.Status is not (QuestionStatus.Cancelled or QuestionStatus.Ignored))
+                    .Select(answer => ConversationQuestionParser.QuestionKey(answer.Question))
+                    .ToHashSet(StringComparer.Ordinal);
+                var result = new List<SuggestedQuestion>();
+                var existing = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var question in analysis.Questions)
                 {
-                    if (!existing.Add(ConversationQuestionParser.QuestionKey(question.Question))) continue;
+                    if (result.Count == ConversationAnalysisPrompt.MaximumRecommendedQuestions) break;
+                    var key = ConversationQuestionParser.QuestionKey(question.Question);
+                    if (alreadyRequested.Contains(key) || !existing.Add(key)) continue;
+                    if (candidates.TryGetValue(key, out var candidate))
+                    {
+                        result.Add(candidate);
+                        continue;
+                    }
                     var suggestion = new SuggestedQuestion
                     {
-                        Question = question.Question,
-                        Reason = question.Reason,
-                        ContextUsed = context,
-                        Timestamp = request.Timestamp
+                        Question = question.Question, Reason = question.Reason,
+                        ContextUsed = context, Timestamp = request.Timestamp
                     };
                     session.SuggestedQuestions.Add(suggestion);
                     result.Add(suggestion);

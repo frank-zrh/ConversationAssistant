@@ -479,7 +479,22 @@ def render(scene: Scene, index: int, phase: float, previous_cursor: tuple[int, i
     return c.image
 
 
-def generate(output: Path):
+def playback_durations(durations: list[int], speed: float) -> list[int]:
+    elapsed = scaled_elapsed = 0
+    result = []
+    for duration in durations:
+        elapsed += duration
+        boundary = round(elapsed / speed / 10) * 10
+        if boundary - scaled_elapsed < 10:
+            raise ValueError("Playback speed exceeds GIF's 10 ms frame resolution.")
+        result.append(boundary - scaled_elapsed)
+        scaled_elapsed = boundary
+    return result
+
+
+def generate(output: Path, speed: float = 1.0):
+    if not math.isfinite(speed) or speed <= 0:
+        raise ValueError("Playback speed must be a finite positive number.")
     output.mkdir(parents=True, exist_ok=True)
     frames, durations, stills = [], [], []
     previous = SCENES[0].cursor
@@ -491,6 +506,8 @@ def generate(output: Path):
             if phase == 1.0:
                 stills.append(image)
         previous = scene.cursor
+    base_duration = sum(durations)
+    durations = playback_durations(durations, speed)
     # One global palette keeps UI colors consistent, with no dither on small text.
     sample = Image.new("RGB", (480 * 6, 300 * 6), BG)
     for index, image in enumerate(stills):
@@ -503,7 +520,11 @@ def generate(output: Path):
     stills[16].save(output / "conversation-assistant-power-platform-preview.png", optimize=True)
     sample.save(output / "conversation-assistant-power-platform-storyboard.png", optimize=True)
     manifest = {"simulation": True, "languages": LANGUAGES, "size": [WIDTH, HEIGHT],
-                "duration_ms": sum(durations), "products": PRODUCTS, "scenes": [asdict(scene) for scene in SCENES]}
+                "duration_ms": sum(durations), "base_duration_ms": base_duration,
+                "playback_speed": speed, "products": PRODUCTS,
+                "scenes": [dict(asdict(scene), hold_ms=durations[index * 4 + 3],
+                                duration_ms=sum(durations[index * 4:index * 4 + 4]))
+                           for index, scene in enumerate(SCENES)]}
     (output / "conversation-assistant-power-platform.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     validate(destination, manifest)
 
@@ -528,5 +549,7 @@ def validate(path: Path, manifest: dict):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "docs" / "demos")
+    parser.add_argument("--speed", type=float, default=1.0,
+                        help="Playback multiplier; use 3 for three times the original speed.")
     args = parser.parse_args()
-    generate(args.output)
+    generate(args.output, args.speed)

@@ -47,6 +47,11 @@
   <data name="ImportConversation" xml:space="preserve"><value>Import JSON</value></data>
   <data name="ImportHint" xml:space="preserve"><value>End the current conversation first. Import a saved record as a separate local copy; no listening or Work IQ requests start automatically.</value></data>
   <data name="SaveNow" xml:space="preserve"><value>Save Now</value></data>
+  <data name="ViewSession" xml:space="preserve"><value>View Log</value></data>
+  <data name="ViewSessionHint" xml:space="preserve"><value>Open this conversation's Work IQ call log in Notepad. Includes prompts, responses and errors; protect confidential content.</value></data>
+  <data name="SessionLogPrivacy" xml:space="preserve"><value>A companion .workiq.log stores detailed Work IQ requests, replies and failures beside each conversation JSON. Common credential formats are redacted, but conversation and workplace content remain readable. Protect these local files.</value></data>
+  <data name="ErrorSessionLogOpen" xml:space="preserve"><value>The session log could not be opened in Notepad. Check the record folder permissions and Notepad installation.</value></data>
+  <data name="ErrorSessionLogWrite" xml:space="preserve"><value>The Work IQ session log could not be written. Analysis will continue; check the record folder.</value></data>
   <data name="RecordNone" xml:space="preserve"><value>One JSON file per conversation</value></data>
   <data name="RecordSaving" xml:space="preserve"><value>Saving JSON...</value></data>
   <data name="RecordSavedAt" xml:space="preserve"><value>Last saved {0}</value></data>
@@ -75,8 +80,8 @@
   <data name="IntentEmpty" xml:space="preserve"><value>Analyze the conversation to see its overall intent.</value></data>
   <data name="StageSummariesEmpty" xml:space="preserve"><value>Concise summaries of new conversation content accumulate here after each successful analysis.</value></data>
   <data name="AnalyzeConversation" xml:space="preserve"><value>Analyze All Chat</value></data>
-  <data name="QuestionsEmpty" xml:space="preserve"><value>Questions based on conversation intent and stage summaries appear here, especially product sales, advanced features/pricing and technical architecture. Left-click to ask Work IQ; right-click to edit in the question box.</value></data>
-  <data name="SuggestedQuestionHint" xml:space="preserve"><value>Left-click to ask, view a saved reply or retry a failed request. Right-click to fill the question box for editing before submission.</value></data>
+  <data name="QuestionsEmpty" xml:space="preserve"><value>Focused recommendations follow this discussion and your question choices. Keep up to ten unanswered questions; answered questions stay in bold and open their saved result. Right-click to edit.</value></data>
+  <data name="SuggestedQuestionHint" xml:space="preserve"><value>Unanswered: click to ask or view progress. Answered (bold): open the saved result without another Work IQ call. Failed requests can be retried. Right-click to edit.</value></data>
   <data name="AnswersHeader" xml:space="preserve"><value>WORK IQ · ANSWER HISTORY</value></data>
   <data name="ShowAnswerPanel" xml:space="preserve"><value>Show questions &amp; answers (1/3)</value></data>
   <data name="CollapseAnswerPanel" xml:space="preserve"><value>Collapse questions &amp; answers</value></data>

@@ -919,13 +919,16 @@ public sealed partial class PipelineTests
         public string AnalysisReply { get; set; } =
             """{"questions":[{"question":"How should we design DLP?","reason":"The conversation needs a data protection strategy."}]}""";
         public ConcurrentQueue<WorkIqAnswer> Responses { get; } = new();
+        public ConcurrentQueue<Exception> Failures { get; } = new();
         public Task<WorkIqAnswer> AskAsync(string prompt, string? conversationId, CancellationToken token)
         {
             Calls.Enqueue((prompt, conversationId));
             var call = Interlocked.Increment(ref _count);
+            if (Failures.TryDequeue(out var failure)) return Task.FromException<WorkIqAnswer>(failure);
             if (call == BlockCall || call == 1 && BlockFirst) return _first.Task.WaitAsync(token);
             if (Responses.TryDequeue(out var response)) return Task.FromResult(response);
             var analysis = prompt.Contains("CONVERSATION ASSISTANT: INTENT, STAGE SUMMARY AND QUESTION DISCOVERY.", StringComparison.Ordinal);
+            analysis |= prompt.Contains("--- BEGIN REQUEST PART ---", StringComparison.Ordinal) && conversationId == "analysis-conversation";
             return Task.FromResult(new WorkIqAnswer(analysis ? AnalysisReply : Reply, [],
                 conversationId ?? (analysis ? "analysis-conversation" : "answer-conversation")));
         }

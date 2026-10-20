@@ -1,5 +1,6 @@
 using ConversationAssistant.Core.Models;
 using ConversationAssistant.Core.Persistence;
+using ConversationAssistant.Core.WorkIQ;
 
 namespace ConversationAssistant.Core.Conversation;
 
@@ -9,6 +10,8 @@ public sealed partial class ConversationSessionManager
     private ConversationArchiveWriter? _archiveWriter;
     private InvalidDataException? _snapshotFailure;
     public string? RecordPath { get; private set; }
+    public string? WorkIqLogPath => RecordPath is null ? null : WorkIqDiagnostics.GetPath(RecordPath);
+    public Task FlushWorkIqLogAsync() => _workIqDiagnostics.FlushAsync();
     public DateTimeOffset? LastSavedAt { get; private set; }
     public bool HasSaveError { get; private set; }
     public event Action? ArchiveUpdated;
@@ -65,6 +68,7 @@ public sealed partial class ConversationSessionManager
     public async Task FlushArchiveAsync()
     {
         if (_archiveWriter is not null) await _archiveWriter.FlushAsync().ConfigureAwait(false);
+        await _workIqDiagnostics.FlushAsync().ConfigureAwait(false);
         lock (_gate)
             if (_snapshotFailure is { } failure)
                 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();
@@ -95,6 +99,7 @@ public sealed partial class ConversationSessionManager
             lock (_gate)
             {
                 CurrentConversation = restored;
+                _userQuestionHistory.Clear();
                 RecordPath = recordPath;
                 LastSavedAt = _timeProvider.GetUtcNow();
                 HasSaveError = false;
@@ -103,6 +108,7 @@ public sealed partial class ConversationSessionManager
                 _capturing = false;
                 _workIqBusy = false;
                 _analysisSchedule.Reset();
+                _workIqDiagnostics.BindConversation(restored.SessionId, recordPath);
             }
             _transcript.Clear();
             ConversationChanged?.Invoke();

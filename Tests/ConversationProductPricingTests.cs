@@ -26,7 +26,8 @@ public sealed partial class PipelineTests
     [DataRow(3, true)]
     [DataRow(4, true)]
     [DataRow(5, true)]
-    [DataRow(6, false)]
+    [DataRow(6, true)]
+    [DataRow(7, false)]
     public void ProductGuidanceOnlyReusesCompatibleKnowledgeVersions(int version, bool compatible)
     {
         Assert.AreEqual(compatible, ConversationAnalysisPrompt.CanReuseQuestionsFrom(version));
@@ -118,13 +119,12 @@ public sealed partial class PipelineTests
             await WaitUntil(() => current.Status == QuestionStatus.Completed);
             Assert.AreEqual(ConversationAnalysisPrompt.CurrentGuidanceVersion, current.GuidanceVersion);
             Assert.AreEqual(KnowledgeQuestion, current.ExistingQuestions.Single());
-            Assert.HasCount(3, current.Questions);
+            Assert.HasCount(2, current.Questions);
             Assert.AreEqual(2, current.AddedQuestionCount);
-            Assert.AreSame(restoredFirst.Questions.Single(), current.Questions[0]);
-            Assert.AreEqual(originalQuestion.Id, current.Questions[0].Id);
-            Assert.AreEqual(FeatureQuestion, current.Questions[1].Question);
-            Assert.AreEqual(PricingQuestion, current.Questions[2].Question);
-            Assert.AreEqual(PricingReason, current.Questions[2].Reason);
+            Assert.IsFalse(current.Questions.Any(question => question.Id == originalQuestion.Id));
+            Assert.AreEqual(FeatureQuestion, current.Questions[0].Question);
+            Assert.AreEqual(PricingQuestion, current.Questions[1].Question);
+            Assert.AreEqual(PricingReason, current.Questions[1].Reason);
             Assert.HasCount(1, restoredFirst.Questions);
             Assert.HasCount(1, fake.Conversation.AnswerHistory);
             Assert.AreEqual(originalAnswer.Answer, fake.Conversation.AnswerHistory.Single().Answer);
@@ -133,18 +133,19 @@ public sealed partial class PipelineTests
             if (group is not null)
                 Assert.IsFalse(AnalysisTranscript(fake.Work.Calls.Last().Prompt).Contains("lunch", StringComparison.Ordinal));
 
-            var pricingAnswer = fake.Conversation.AskSuggestedQuestion(current.Questions[2].Id);
+            var pricingAnswer = fake.Conversation.AskSuggestedQuestion(current.Questions[1].Id);
             await WaitUntil(() => pricingAnswer.Status == QuestionStatus.Completed);
             StringAssert.Contains(fake.Work.Calls.Last().Prompt, "ADVANCED PRODUCT AND PRICING EVIDENCE:");
             StringAssert.Contains(fake.Work.Calls.Last().Prompt, PricingQuestion);
-            Assert.AreEqual(current.Questions[2].ContextUsed, pricingAnswer.ContextUsed);
-            Assert.AreSame(pricingAnswer, fake.Conversation.AskSuggestedQuestion(current.Questions[2].Id));
+            Assert.AreEqual(current.Questions[1].ContextUsed, pricingAnswer.ContextUsed);
+            Assert.AreSame(pricingAnswer, fake.Conversation.AskSuggestedQuestion(current.Questions[1].Id));
             Assert.HasCount(calls + 2, fake.Work.Calls);
             await fake.Conversation.SaveConversationAsync();
             var saved = (await store.LoadAsync(fake.Conversation.RecordPath!)).Restore();
             CollectionAssert.AreEqual(new[] { 1, ConversationAnalysisPrompt.CurrentGuidanceVersion },
                 saved.Analyses.Select(item => item.GuidanceVersion).ToArray());
-            Assert.AreEqual(originalQuestion.Id, saved.Analyses[1].Questions[0].Id);
+            Assert.AreEqual(originalQuestion.Id, saved.Analyses[0].Questions[0].Id);
+            Assert.AreEqual(FeatureQuestion, saved.Analyses[1].Questions[0].Question);
             Assert.AreEqual(pricingAnswer.Id, saved.Answers.Last().Id);
             CollectionAssert.AreEqual(originalBytes, await File.ReadAllBytesAsync(sourcePath));
             Assert.IsFalse(fake.Conversation.IsListening);
@@ -186,27 +187,21 @@ public sealed partial class PipelineTests
 
     private static void AssertAdvancedProductDiscoveryInstructions(string prompt)
     {
-        StringAssert.Contains(prompt, "ADDITIONAL ADVANCED PRODUCT AND PRICING QUESTIONS:");
-        StringAssert.Contains(prompt, "Append 2-4 NEW");
-        StringAssert.Contains(prompt, "SAME questions array");
-        StringAssert.Contains(prompt, "Include distinct feature/capability and pricing/licensing gaps");
-        StringAssert.Contains(prompt, "Preserve useful general/creative questions");
-        StringAssert.Contains(prompt, "implicit cost implications qualify");
-        StringAssert.Contains(prompt, "Every question needs a transcript-supported product/use case");
-        StringAssert.Contains(prompt, "Never pad, duplicate");
-        StringAssert.Contains(prompt, "this is not a quota");
+        StringAssert.Contains(prompt, "USER-LIKELY NEXT QUESTIONS:");
+        StringAssert.Contains(prompt, "Return 0-3 questions TOTAL");
+        StringAssert.Contains(prompt, "normally just 1-2");
+        StringAssert.Contains(prompt, "ranked by likelihood");
+        StringAssert.Contains(prompt, "not a quota");
+        StringAssert.Contains(prompt, "no extra feature or licensing quota");
+        StringAssert.Contains(prompt, "Ground topics in the ANALYZED TRANSCRIPT");
+        StringAssert.Contains(prompt, "USER QUESTION ACTIONS");
+        StringAssert.Contains(prompt, "Return fewer or none when the evidence is weak; never pad");
         StringAssert.Contains(prompt, "DIFFICULTY MEANS EXPERT DETAIL, NOT DIFFICULT WORDING:");
-        StringAssert.Contains(prompt, "authoritative reference, cross-condition reasoning");
-        StringAssert.Contains(prompt, "multi-step comparison/calculation");
-        StringAssert.Contains(prompt, "SKU/version differences");
+        StringAssert.Contains(prompt, "authoritative reference or comparison/calculation only when useful");
         StringAssert.Contains(prompt, "entitlement versus technical limits");
-        StringAssert.Contains(prompt, "charging units, allowances/overages");
-        StringAssert.Contains(prompt, "total-cost/break-even comparisons");
-        StringAssert.Contains(prompt, "Ask WHICH conditions apply; do not assume");
-        StringAssert.Contains(prompt, "hard-to-remember");
-        StringAssert.Contains(prompt, "risk of a wrong promise/quote");
+        StringAssert.Contains(prompt, "never assume a rate, restriction or discount");
         StringAssert.Contains(prompt, "never invented product facts");
-        StringAssert.Contains(prompt, "Each question asks ONE hard thing in ONE short sentence");
+        StringAssert.Contains(prompt, "Each question asks ONE useful thing in ONE short sentence");
         StringAssert.Contains(prompt, "not the clickable question");
         StringAssert.Contains(prompt, "licensingAndPricing MUST be a compact Markdown pipe table");
         StringAssert.Contains(prompt, "limitations MUST be a compact Markdown pipe table");

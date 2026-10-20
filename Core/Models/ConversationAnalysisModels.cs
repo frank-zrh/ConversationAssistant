@@ -2,11 +2,14 @@ namespace ConversationAssistant.Core.Models;
 
 public enum ConversationAnalysisTrigger { Manual, Interval, MessageCount, Group }
 
+public sealed record UserQuestionInteraction(string Question, string Action, string Status, bool Truncated = false);
+
 public sealed class ConversationAnalysisRequest : WorkIqRequest
 {
     public required IReadOnlyList<TranscriptSegment> Transcript { get; init; }
     public required IReadOnlyList<string> ExistingQuestions { get; init; }
     public IReadOnlyList<string> ExistingProductNames { get; internal set; } = [];
+    public IReadOnlyList<UserQuestionInteraction> UserQuestionInteractions { get; init; } = [];
     public required ConversationAnalysisTrigger Trigger { get; init; }
     public string OverallContext { get; init; } = "";
     public string? StageContext { get; init; }

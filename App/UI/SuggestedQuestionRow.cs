@@ -12,6 +12,7 @@ public sealed class SuggestedQuestionRow(SuggestedQuestion question,
     public Guid Id => question.Id;
     public string Question => question.Question;
     public string Reason => question.Reason;
+    public bool IsAnswered => _status == QuestionStatus.Completed;
     public UiText Texts { get; private set; } = UiText.For(language);
     public string StatusText => _status is null
         ? Texts["SuggestionUnasked"] : TranscriptCardAppearance.For(_status, Texts.Language).StatusText;
@@ -36,6 +37,7 @@ public sealed class SuggestedQuestionRow(SuggestedQuestion question,
 
     private void NotifyStatus()
     {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsAnswered)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StatusText)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutomationLabel)));
     }

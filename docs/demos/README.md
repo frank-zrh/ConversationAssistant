@@ -39,7 +39,7 @@ The 33 scenes follow a fictional field-service discovery meeting involving **Pow
 
 | File | Purpose |
 | --- | --- |
-| [Animated GIF](conversation-assistant-power-platform.gif) | 1440 × 900, looping, 110 encoded frames, 121.8 seconds, approximately 1.03 MiB |
+| [Animated GIF](conversation-assistant-power-platform.gif) | 1440 × 900, looping, 110 encoded frames, 40.6 seconds at 3× speed, approximately 1.03 MiB |
 | [Preview](conversation-assistant-power-platform-preview.png) | Full-resolution product-guide example |
 | [Storyboard sheet](conversation-assistant-power-platform-storyboard.png) | Static overview of the 33 scenes, read left-to-right and top-to-bottom |
 | [Scene manifest](conversation-assistant-power-platform.json) | Machine-readable languages, scene captions, products and timing |
@@ -47,7 +47,7 @@ The 33 scenes follow a fictional field-service discovery meeting involving **Pow
 
 ## Regenerate
 
-From the repository root, run `python tools/generate_demo_gif.py`.
+From the repository root, run `python tools/generate_demo_gif.py --speed 3` to reproduce the current 3× animation. The scene content is unchanged; the original 121.8-second tour now plays in 40.6 seconds. Omit `--speed` for the original pacing. GIF timing is rounded cumulatively to its 10 ms resolution to avoid accumulating playback drift.
 
 Requires Python 3.10+, Pillow, and either Windows Segoe UI or Linux DejaVu Sans fonts. These are documentation-generation requirements only; no application runtime packages are added. Use `--output <directory>` to write the assets elsewhere. The script performs no network access and never loads user settings, recordings or credentials.
 

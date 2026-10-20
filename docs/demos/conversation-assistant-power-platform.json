@@ -9,7 +9,9 @@
     1440,
     900
   ],
-  "duration_ms": 121800,
+  "duration_ms": 40600,
+  "base_duration_ms": 121800,
+  "playback_speed": 3.0,
   "products": [
     "Power Apps",
     "Power Automate",
@@ -23,397 +25,430 @@
       "key": "welcome",
       "title": "A Power Platform meeting, with useful answers close at hand",
       "caption": "Fictional scenario: field service, approvals, analytics, customer portals and an agent.",
-      "hold_ms": 2800,
+      "hold_ms": 930,
       "count": 0,
       "tab": "Intent",
       "cursor": [
         1333,
         157
-      ]
+      ],
+      "duration_ms": 1030
     },
     {
       "key": "languages",
       "title": "Three independent languages. All English for this tour.",
       "caption": "Listening: English (en-US). Analysis: English. Display: English. Settings stay off the workspace.",
-      "hold_ms": 4000,
+      "hold_ms": 1340,
       "count": 0,
       "tab": "Intent",
       "cursor": [
         1333,
         157
-      ]
+      ],
+      "duration_ms": 1440
     },
     {
       "key": "azure",
       "title": "Configure Azure Speech with an organizational identity",
       "caption": "Endpoint, tenant, application client ID and audio consent; no resource key. Values shown are placeholders.",
-      "hold_ms": 4200,
+      "hold_ms": 1400,
       "count": 0,
       "tab": "Intent",
       "cursor": [
         1333,
         157
-      ]
+      ],
+      "duration_ms": 1500
     },
     {
       "key": "offline",
       "title": "Or explicitly select Whisper offline recognition",
       "caption": "Local speech and speaker models are provisioned ahead of time. Work IQ remains a separate online service.",
-      "hold_ms": 3200,
+      "hold_ms": 1060,
       "count": 0,
       "tab": "Intent",
       "cursor": [
         1333,
         157
-      ]
+      ],
+      "duration_ms": 1160
     },
     {
       "key": "audio",
       "title": "Hear both sides through shared-mode audio",
       "caption": "Choose microphone, system audio or both; match Teams devices, refresh endpoints and review privacy.",
-      "hold_ms": 4000,
+      "hold_ms": 1340,
       "count": 0,
       "tab": "Intent",
       "cursor": [
         1333,
         157
-      ]
+      ],
+      "duration_ms": 1440
     },
     {
       "key": "preferences",
       "title": "Set context and answer style without taking workspace height",
       "caption": "Automatic analysis is enabled. Audio storage is off; readable conversation JSON stays on this PC.",
-      "hold_ms": 4000,
+      "hold_ms": 1330,
       "count": 0,
       "tab": "Intent",
       "cursor": [
         1333,
         157
-      ]
+      ],
+      "duration_ms": 1430
     },
     {
       "key": "signin",
       "title": "Sign in once; keep service credentials separate",
       "caption": "Simulated sign-in only. Speech uses Entra authorization; Work IQ uses its own account-bound CLI session.",
-      "hold_ms": 2600,
+      "hold_ms": 870,
       "count": 0,
       "tab": "Intent",
       "cursor": [
         1225,
         157
-      ]
+      ],
+      "duration_ms": 970
     },
     {
       "key": "start",
       "title": "Start Conversation",
       "caption": "English recognition begins; no question is sent just because speech is detected.",
-      "hold_ms": 1800,
+      "hold_ms": 600,
       "count": 0,
       "tab": "Intent",
       "cursor": [
         128,
         764
-      ]
+      ],
+      "duration_ms": 700
     },
     {
       "key": "listen1",
       "title": "Capture the Power Apps and automation requirements",
       "caption": "Final transcript cards retain speaker labels; partial speech stays separate until finalized.",
-      "hold_ms": 2400,
+      "hold_ms": 800,
       "count": 2,
       "tab": "Intent",
       "cursor": [
         300,
         425
-      ]
+      ],
+      "duration_ms": 900
     },
     {
       "key": "listen2",
       "title": "Keep listening while the scenario gets richer",
       "caption": "Power BI, Power Pages and Copilot Studio enter the same conversation.",
-      "hold_ms": 2800,
+      "hold_ms": 930,
       "count": 5,
       "tab": "Intent",
       "cursor": [
         310,
         555
-      ]
+      ],
+      "duration_ms": 1030
     },
     {
       "key": "listen3",
       "title": "Seven final utterances trigger automatic analysis",
       "caption": "The complete conversation supports overall intent; the current stage provides focused new context.",
-      "hold_ms": 2800,
+      "hold_ms": 930,
       "count": 7,
       "tab": "Intent",
       "cursor": [
         1250,
         223
-      ]
+      ],
+      "duration_ms": 1030
     },
     {
       "key": "group",
       "title": "Group and rename the licensing discussion",
       "caption": "Create a transcript group, collapse or expand it, then rename it or analyze only that group.",
-      "hold_ms": 3300,
+      "hold_ms": 1100,
       "count": 7,
       "tab": "Intent",
       "cursor": [
         480,
         359
-      ]
+      ],
+      "duration_ms": 1200
     },
     {
       "key": "intent",
       "title": "Intent: understand the decision, not just the words",
       "caption": "The whole conversation informs goals, constraints and open decisions. Unsupported assumptions stay explicit.",
-      "hold_ms": 3600,
+      "hold_ms": 1200,
       "count": 7,
       "tab": "Intent",
       "cursor": [
         638,
         316
-      ]
+      ],
+      "duration_ms": 1300
     },
     {
       "key": "stages",
       "title": "Stage summaries build a useful meeting history",
       "caption": "Each successful analysis appends only new stage content. Select earlier analyses without sending a request.",
-      "hold_ms": 3400,
+      "hold_ms": 1140,
       "count": 7,
       "tab": "Stage summaries",
       "cursor": [
         795,
         316
-      ]
+      ],
+      "duration_ms": 1240
     },
     {
       "key": "questions",
       "title": "Difficult questions. Simple, clickable wording.",
       "caption": "Recommend hard-to-remember rules and tradeoffs. Keep background in hover details, not long question labels.",
-      "hold_ms": 3800,
+      "hold_ms": 1260,
       "count": 7,
       "tab": "Recommended questions",
       "cursor": [
         850,
         410
-      ]
+      ],
+      "duration_ms": 1360
     },
     {
       "key": "question_hint",
       "title": "Hover for context; click for a reference answer",
       "caption": "A click asks Work IQ. A right-click fills the question box so the user can edit before asking.",
-      "hold_ms": 3000,
+      "hold_ms": 1000,
       "count": 7,
       "tab": "Recommended questions",
       "cursor": [
         914,
         411
-      ]
+      ],
+      "duration_ms": 1100
     },
     {
       "key": "guide_apps",
       "title": "Product guide: Power Apps and Dataverse",
       "caption": "Only conversation-relevant facts. Licensing and limitations are tables, without a reference-link appendix.",
-      "hold_ms": 5000,
+      "hold_ms": 1670,
       "count": 7,
       "tab": "Product guide",
       "cursor": [
         1258,
         316
-      ]
+      ],
+      "duration_ms": 1770
     },
     {
       "key": "guide_automate",
       "title": "Product guide: Power Automate",
       "caption": "Separate user eligibility, flow ownership, connector dependencies and capacity assumptions.",
-      "hold_ms": 4300,
+      "hold_ms": 1430,
       "count": 7,
       "tab": "Product guide",
       "cursor": [
         1258,
         316
-      ]
+      ],
+      "duration_ms": 1530
     },
     {
       "key": "guide_bi",
       "title": "Product guide: Power BI",
       "caption": "Show sharing prerequisites and capacity choices as conditions to verify, not an unconditional promise.",
-      "hold_ms": 4300,
+      "hold_ms": 1440,
       "count": 7,
       "tab": "Product guide",
       "cursor": [
         1258,
         316
-      ]
+      ],
+      "duration_ms": 1540
     },
     {
       "key": "guide_pages",
       "title": "Product guide: Power Pages",
       "caption": "External identities, access scope and usage inputs belong beside the cost model.",
-      "hold_ms": 4300,
+      "hold_ms": 1430,
       "count": 7,
       "tab": "Product guide",
       "cursor": [
         1258,
         316
-      ]
+      ],
+      "duration_ms": 1530
     },
     {
       "key": "guide_copilot",
       "title": "Product guide: Copilot Studio",
       "caption": "Agent actions, data boundaries and consumption assumptions are relevant to this customer scenario.",
-      "hold_ms": 4300,
+      "hold_ms": 1430,
       "count": 7,
       "tab": "Product guide",
       "cursor": [
         1258,
         316
-      ]
+      ],
+      "duration_ms": 1530
     },
     {
       "key": "answer",
       "title": "Ask the selected question while listening continues",
       "caption": "Questions and answers have their own history. The conversation does not stop for Work IQ.",
-      "hold_ms": 3700,
+      "hold_ms": 1240,
       "count": 7,
       "tab": "Recommended questions",
       "cursor": [
         825,
         408
-      ]
+      ],
+      "duration_ms": 1340
     },
     {
       "key": "expand",
       "title": "Expand the answer panel for the detail that matters",
       "caption": "Read the conclusion, a small comparison table and concrete next checks; copy, retry or dismiss locally.",
-      "hold_ms": 4500,
+      "hold_ms": 1500,
       "count": 7,
       "tab": "Recommended questions",
       "cursor": [
         985,
         353
-      ]
+      ],
+      "duration_ms": 1600
     },
     {
       "key": "original",
       "title": "Inspect the original answer, then return to rich view",
       "caption": "Raw Markdown remains available when needed. Copy Answer preserves the response text.",
-      "hold_ms": 3100,
+      "hold_ms": 1030,
       "count": 7,
       "tab": "Recommended questions",
       "cursor": [
         943,
         695
-      ]
+      ],
+      "duration_ms": 1130
     },
     {
       "key": "edit",
       "title": "Edit a recommendation or ask manually",
       "caption": "Right-click a question or transcript card to prefill the question box. Ctrl+Enter submits the edited request.",
-      "hold_ms": 3400,
+      "hold_ms": 1130,
       "count": 7,
       "tab": "Recommended questions",
       "cursor": [
         900,
         765
-      ]
+      ],
+      "duration_ms": 1230
     },
     {
       "key": "retry",
       "title": "Malformed analysis? Recover automatically.",
       "caption": "Illustrated internal flow: retry schema validation up to three attempts. No partial analysis is committed.",
-      "hold_ms": 3200,
+      "hold_ms": 1070,
       "count": 7,
       "tab": "Stage summaries",
       "cursor": [
         1180,
         580
-      ]
+      ],
+      "duration_ms": 1170
     },
     {
       "key": "recovered",
       "title": "Recovery succeeds without asking the user to reanalyze",
       "caption": "Only a validated result updates intent, stage summaries, recommendations and product guides.",
-      "hold_ms": 2700,
+      "hold_ms": 900,
       "count": 7,
       "tab": "Stage summaries",
       "cursor": [
         1180,
         580
-      ]
+      ],
+      "duration_ms": 1000
     },
     {
       "key": "pause",
       "title": "Pause listening without losing the workspace",
       "caption": "Existing transcripts, analyses and answers remain available. Recognition settings can now be changed.",
-      "hold_ms": 2800,
+      "hold_ms": 930,
       "count": 7,
       "tab": "Recommended questions",
       "cursor": [
         358,
         765
-      ]
+      ],
+      "duration_ms": 1030
     },
     {
       "key": "resume",
       "title": "Resume listening in English",
       "caption": "Audio sources reopen with the selected devices. Analysis and display languages remain English.",
-      "hold_ms": 2400,
+      "hold_ms": 800,
       "count": 7,
       "tab": "Recommended questions",
       "cursor": [
         466,
         765
-      ]
+      ],
+      "duration_ms": 900
     },
     {
       "key": "save",
       "title": "Save the conversation as readable JSON",
       "caption": "Transcripts, groups, analysis, product guides and replies are retained. No audio or credentials are saved.",
-      "hold_ms": 3100,
+      "hold_ms": 1040,
       "count": 7,
       "tab": "Stage summaries",
       "cursor": [
         300,
         278
-      ]
+      ],
+      "duration_ms": 1140
     },
     {
       "key": "end",
       "title": "End the conversation; keep the reference workspace",
       "caption": "End stops capture but leaves the conversation visible. Copy, inspect or export the saved results.",
-      "hold_ms": 2300,
+      "hold_ms": 760,
       "count": 7,
       "tab": "Product guide",
       "cursor": [
         248,
         765
-      ]
+      ],
+      "duration_ms": 860
     },
     {
       "key": "import",
       "title": "Import a record without restarting listening or Work IQ",
       "caption": "A saved JSON record opens as a separate local copy. Inspect history, then explicitly ask for new analysis.",
-      "hold_ms": 3300,
+      "hold_ms": 1100,
       "count": 7,
       "tab": "Stage summaries",
       "cursor": [
         201,
         278
-      ]
+      ],
+      "duration_ms": 1200
     },
     {
       "key": "finish",
       "title": "Less configuration chrome. More room for the conversation.",
       "caption": "English throughout. Power Platform scenario. Simulated UI and responses; no live service calls or real quotes.",
-      "hold_ms": 3500,
+      "hold_ms": 1170,
       "count": 7,
       "tab": "Product guide",
       "cursor": [
         1330,
         157
-      ]
+      ],
+      "duration_ms": 1270
     }
   ]
 }

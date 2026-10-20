@@ -22,6 +22,14 @@ public sealed partial class MainViewModel
     public bool CanSaveConversation => !WorkspaceBusy && !_savingRecord &&
         _conversation.CurrentConversation is not null;
     public string RecordPath => _conversation.RecordPath ?? "";
+    public bool CanViewSession => !WorkspaceBusy && !string.IsNullOrWhiteSpace(_conversation.WorkIqLogPath);
+    public async Task<string?> PrepareSessionLogAsync()
+    {
+        var path = _conversation.WorkIqLogPath;
+        if (path is null) return null;
+        await _conversation.FlushWorkIqLogAsync();
+        return path;
+    }
     public string RecordStatus => _conversation.CurrentConversation is null ? Texts["RecordNone"] :
         _conversation.HasSaveError ? Texts["RecordSaveFailed"] :
         _savingRecord || _conversation.LastSavedAt is null ? Texts["RecordSaving"] :
@@ -223,11 +231,11 @@ public sealed partial class MainViewModel
     }
 
     private void RefreshRecordStatus() => Notify(nameof(RecordStatus), nameof(RecordPath),
-        nameof(CanSaveConversation));
+        nameof(CanSaveConversation), nameof(CanViewSession));
 
     private void NotifyWorkspaceControls() => Notify(nameof(CanStart), nameof(CanEnd), nameof(CanPause),
         nameof(CanResume), nameof(CanSignIn), nameof(CanEditSpeechSettings), nameof(CanChangeSpeechLanguage),
         nameof(CanChangeAudioSettings), nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice),
         nameof(CanAnalyzeConversation), nameof(CanCreateGroup), nameof(CanImportConversation),
-        nameof(CanSaveConversation), nameof(ListeningText), nameof(RecordStatus), nameof(RecordPath));
+        nameof(CanSaveConversation), nameof(CanViewSession), nameof(ListeningText), nameof(RecordStatus), nameof(RecordPath));
 }

@@ -879,6 +879,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
     {
         if (!_conversation.AnswerHistory.Any(item => item.Id == request.Id)) return;
         UpsertAnswer(request);
+        RefreshSelectedAnalysis();
         if (request.Status == QuestionStatus.Completed)
         {
             LastError = "";
@@ -930,21 +931,16 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             QuestionStatus.Cancelled => new UiMessage("AnalysisCancelled"),
             _ => new UiMessage("AnalysisIdle")
         }, nameof(AnalysisStatus));
-        var questions = analysis?.Questions ?? [];
-        var ids = questions.Select(question => question.Id).ToHashSet();
-        for (var index = SuggestedQuestions.Count - 1; index >= 0; index--)
-            if (!ids.Contains(SuggestedQuestions[index].Id)) SuggestedQuestions.RemoveAt(index);
-        foreach (var question in questions)
+        var questions = analysis is null ? [] : _conversation.GetSuggestedQuestionsForAnalysis(analysis.Id);
+        var existingRows = SuggestedQuestions.ToDictionary(row => row.Id);
+        var rows = questions.Select(question => existingRows.TryGetValue(question.Id, out var row)
+            ? row : new SuggestedQuestionRow(question, Texts.Language)).ToArray();
+        foreach (var row in rows)
         {
-            var row = SuggestedQuestions.FirstOrDefault(item => item.Id == question.Id);
-            if (row is null)
-            {
-                row = new SuggestedQuestionRow(question, Texts.Language);
-                SuggestedQuestions.Add(row);
-            }
-            if (_conversation.GetAnswerForSuggestion(question.Id) is { } request)
+            if (_conversation.GetAnswerForSuggestion(row.Id) is { } request)
                 row.UpdateRequest(request);
         }
+        Synchronize(SuggestedQuestions, rows);
         Notify(nameof(EmptySuggestionsVisibility));
     }
 

@@ -23,7 +23,10 @@ internal sealed class ConversationAnalysisSchedule
     public ConversationAnalysisTrigger? DueTrigger(DateTimeOffset now)
     {
         if (PendingCount == 0) return null;
-        if (_totalCount - _attemptedCount >= BatchSize)
+        // A failed batch is still pending. New speech may complete that batch;
+        // do not require seven additional turns or spin on unchanged content.
+        if (_totalCount - _attemptedCount >= BatchSize ||
+            _retryAfter is not null && _totalCount > _attemptedCount && PendingCount >= BatchSize)
             return ConversationAnalysisTrigger.MessageCount;
         var deadline = _retryAfter ?? _pendingSince?.Add(Interval);
         return deadline is not null && now >= deadline

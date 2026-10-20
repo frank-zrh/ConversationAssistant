@@ -214,7 +214,8 @@ public sealed partial class PipelineTests
             var repeated = Analyze();
             await WaitUntil(() => repeated.Status == QuestionStatus.Completed);
             Assert.AreEqual(KnowledgeQuestion, repeated.ExistingQuestions.Single());
-            Assert.AreSame(freshQuestion, repeated.Questions.Single());
+            Assert.IsEmpty(repeated.Questions);
+            Assert.AreSame(freshQuestion, current.Questions.Single());
             await fake.Conversation.SaveConversationAsync();
             var restored = (await store.LoadAsync(fake.Conversation.RecordPath!)).Restore();
             CollectionAssert.AreEqual(new[] { 0, ConversationAnalysisPrompt.CurrentGuidanceVersion,
@@ -234,19 +235,19 @@ public sealed partial class PipelineTests
     {
         AssertAdvancedProductDiscoveryInstructions(prompt);
         StringAssert.Contains(prompt, "PROFESSIONAL KNOWLEDGE AND CREATIVE SUPPORT");
-        StringAssert.Contains(prompt, "questions to Work IQ");
+        StringAssert.Contains(prompt, "requests to Work IQ");
         StringAssert.Contains(prompt, "expert explanations, comparisons");
         StringAssert.Contains(prompt, "evidence/case studies");
         StringAssert.Contains(prompt, "demo/workshop proposals");
         StringAssert.Contains(prompt, "REJECT LOW-VALUE CANDIDATES:");
         StringAssert.Contains(prompt, "Conversation summaries, paraphrases");
         StringAssert.Contains(prompt, "bare intent/requirement clarification");
-        StringAssert.Contains(prompt, "Questions already answered by the transcript");
+        StringAssert.Contains(prompt, "questions already answered by the transcript");
         StringAssert.Contains(prompt, "QUALITY CHECK BEFORE RETURNING EACH ITEM:");
         StringAssert.Contains(prompt, "practical");
         StringAssert.Contains(prompt, "communication benefit");
         StringAssert.Contains(prompt, "If not, exclude it.");
-        StringAssert.Contains(prompt, "Do not repeat any existing question");
+        StringAssert.Contains(prompt, "Do not repeat questions the user already asked");
         StringAssert.Contains(prompt, "\"questions\":[{\"question\":");
     }
 }
