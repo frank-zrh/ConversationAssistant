@@ -52,8 +52,8 @@ public partial class App : Application
         services.AddSingleton<WorkIqClient>();
         services.AddSingleton<IWorkIqClient>(provider => new LoggedWorkIqClient(
             provider.GetRequiredService<WorkIqClient>(), provider.GetRequiredService<WorkIqDiagnostics>()));
-        services.AddSingleton<IConversationArchiveStore>(_ =>
-            new JsonConversationArchiveStore(ConversationRecordLocation.DirectoryPath));
+        services.AddSingleton(_ => new JsonConversationArchiveStore(ConversationRecordLocation.DirectoryPath));
+        services.AddSingleton<IConversationArchiveStore>(provider => provider.GetRequiredService<JsonConversationArchiveStore>());
         services.AddSingleton<ConversationSessionManager>();
         services.AddSingleton<MainViewModel>();
         Services = services.BuildServiceProvider();

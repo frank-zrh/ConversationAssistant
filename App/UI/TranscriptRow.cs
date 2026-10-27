@@ -4,7 +4,6 @@ using ConversationAssistant.Core.Transcript;
 using ConversationAssistant.Core.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
-using Windows.UI;
 
 namespace ConversationAssistant_App.UI;
 
@@ -21,18 +20,15 @@ public sealed class TranscriptRow(TranscriptSegment segment,
     public Guid? QuestionId { get; private set; }
     public UiText Texts { get; private set; } = UiText.For(language);
     public string StatusText => TranscriptCardAppearance.For(_status, Texts.Language).StatusText;
-    public string AutomationLabel => $"{Time} {SpeakerText}: {Text} — {StatusText}";
-    public Brush CardBackground
+    public string AutomationLabel => $"{Time} {SpeakerText}: {Text}";
+    public Brush CardBackground => (Brush)Application.Current.Resources[_status switch
     {
-        get
-        {
-            var color = TranscriptCardAppearance.For(_status).BackgroundArgb;
-            return new SolidColorBrush(Color.FromArgb((byte)(color >> 24), (byte)(color >> 16),
-                (byte)(color >> 8), (byte)color));
-        }
-    }
-    public Brush SelectionBorder => new SolidColorBrush(_selected
-        ? Color.FromArgb(255, 37, 99, 235) : Color.FromArgb(255, 205, 214, 220));
+        QuestionStatus.Completed => "TeamsCompletedBrush",
+        QuestionStatus.Pending or QuestionStatus.Processing => "TeamsPendingBrush",
+        QuestionStatus.Failed => "TeamsFailedBrush",
+        _ => "TeamsSurfaceBrush"
+    }];
+    public Brush SelectionBorder => (Brush)Application.Current.Resources[_selected ? "TeamsAccentBrush" : "TeamsStrokeBrush"];
     public Thickness SelectionThickness => new(_selected ? 2 : 1);
     public bool IsSelected
     {
@@ -45,6 +41,8 @@ public sealed class TranscriptRow(TranscriptSegment segment,
         }
     }
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void RefreshAppearance() => Notify(nameof(CardBackground), nameof(SelectionBorder));
 
     public void UpdateLanguage(UiText texts)
     {

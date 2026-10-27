@@ -4,58 +4,30 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="using:ConversationAssistant_App.UI"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource TeamsCanvasBrush}" Foreground="{ThemeResource TeamsTextBrush}"
+    FontFamily="Segoe UI Variable" FontSize="14">
     <Page.Resources>
         <ui:QuestionAnswerFontWeightConverter x:Key="QuestionAnswerFontWeightConverter" />
-        <Style x:Key="TranscriptCardStyle" TargetType="Button">
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="Padding" Value="12" />
-            <Setter Property="Foreground" Value="#1F2937" />
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="UseSystemFocusVisuals" Value="True" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="{TemplateBinding CornerRadius}"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter Content="{TemplateBinding Content}"
-                                              ContentTemplate="{TemplateBinding ContentTemplate}"
-                                              Foreground="{TemplateBinding Foreground}"
-                                              HorizontalContentAlignment="Stretch" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         <DataTemplate x:Key="TranscriptTemplate">
-            <Button Style="{StaticResource TranscriptCardStyle}" Margin="0,0,0,10"
+            <Border Margin="0,0,0,6" Padding="10,8" CornerRadius="8"
                     Background="{Binding CardBackground}" BorderBrush="{Binding SelectionBorder}"
                     BorderThickness="{Binding SelectionThickness}"
-                    AutomationProperties.Name="{Binding AutomationLabel}"
-                    AutomationProperties.HelpText="{Binding Texts[TranscriptCardHint]}"
-                    ToolTipService.ToolTip="{Binding Texts[TranscriptCardHint]}"
-                    Click="TranscriptCard_Click" RightTapped="TranscriptCard_RightTapped">
-                <StackPanel Spacing="7">
+                    AutomationProperties.Name="{Binding AutomationLabel}">
+                <StackPanel Spacing="5">
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding Time}" Opacity=".75" FontSize="12"
-                                   Foreground="#1F2937" FontFamily="Consolas" />
+                        <TextBlock Text="{Binding Time}" FontSize="11"
+                                   Foreground="{ThemeResource TeamsSecondaryTextBrush}" FontFamily="Consolas" />
                         <TextBlock Grid.Column="1" Text="{Binding SpeakerText}" FontSize="12"
-                                   Foreground="#1F2937" FontWeight="SemiBold" TextWrapping="Wrap" />
-                        <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="12"
-                                   Foreground="#374151" HorizontalAlignment="Right" TextWrapping="Wrap" />
+                                   Foreground="{ThemeResource TeamsSecondaryTextBrush}" FontWeight="SemiBold" TextWrapping="Wrap" />
                     </Grid>
-                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="16" Foreground="#1F2937" />
+                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="14" LineHeight="21"
+                               Foreground="{ThemeResource TeamsTextBrush}" IsTextSelectionEnabled="True" />
                 </StackPanel>
-            </Button>
+            </Border>
         </DataTemplate>
         <DataTemplate x:Key="TranscriptGroupTemplate">
             <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
@@ -76,7 +48,7 @@
             TranscriptTemplate="{StaticResource TranscriptTemplate}"
             GroupTemplate="{StaticResource TranscriptGroupTemplate}" />
     </Page.Resources>
-      <Grid Padding="12" RowSpacing="8">
+      <Grid Padding="10" RowSpacing="6">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -93,19 +65,19 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <StackPanel Spacing="5">
-                <TextBlock Text="{Binding Texts[AppTitle]}" FontSize="20" FontWeight="SemiBold" />
-                <StackPanel Orientation="Horizontal" Spacing="14">
+            <StackPanel Spacing="2">
+                <TextBlock Text="{Binding Texts[AppTitle]}" FontSize="16" FontWeight="SemiBold" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
                     <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusBrush}" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding ListeningText}" Opacity=".7"
+                    <TextBlock Text="{Binding ListeningText}" FontSize="12" Foreground="{ThemeResource TeamsSecondaryTextBrush}"
                                ToolTipService.ToolTip="{Binding Texts[AudioSharedHint]}" />
-                    <TextBlock Text="{Binding TimerText}" FontFamily="Consolas" />
+                    <TextBlock Text="{Binding TimerText}" FontSize="12" FontFamily="Consolas" />
                 </StackPanel>
             </StackPanel>
-            <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" MaxWidth="320">
-                <TextBlock Text="{Binding AuthText}" TextTrimming="CharacterEllipsis" MaxLines="1"
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" MaxWidth="320">
+                <TextBlock Text="{Binding AuthText}" TextTrimming="CharacterEllipsis" MaxLines="1" MaxWidth="150"
+                           VerticalAlignment="Center" FontSize="12" Foreground="{ThemeResource TeamsSecondaryTextBrush}"
                            ToolTipService.ToolTip="{Binding AuthText}" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
                   <Button x:Name="SignInButton" IsEnabled="{Binding CanSignIn}" Click="SignIn_Click"
                           AutomationProperties.Name="{Binding SignInButtonText}"
                           ToolTipService.ToolTip="{Binding SignInButtonHint}">
@@ -117,12 +89,14 @@
                                      Visibility="{Binding SignInVisibility}" />
                       </Grid>
                   </Button>
-                  <Button Content="{Binding Texts[Settings]}" Click="Settings_Click" />
-                </StackPanel>
+                  <Button x:Name="SettingsButton" Width="32" Padding="0" Click="Settings_Click"
+                          AutomationProperties.Name="{Binding Texts[Settings]}" ToolTipService.ToolTip="{Binding Texts[Settings]}">
+                      <FontIcon Glyph="&#xE713;" FontSize="16" />
+                  </Button>
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnSpacing="8">
+        <Grid x:Name="ConversationComposer" Grid.Row="2" Grid.ColumnSpan="2" ColumnSpacing="6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -131,71 +105,146 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Button Content="{Binding Texts[StartConversation]}" IsEnabled="{Binding CanStart}" Click="Start_Click" />
-            <Button Grid.Column="1" Content="{Binding Texts[EndConversation]}" IsEnabled="{Binding CanEnd}" Click="End_Click" />
-            <Button Grid.Column="2" Content="{Binding Texts[PauseListening]}" IsEnabled="{Binding CanPause}" Click="Pause_Click" />
-            <Button Grid.Column="3" Content="{Binding Texts[Resume]}" IsEnabled="{Binding CanResume}" Click="Resume_Click" />
+            <Button x:Name="StartConversationButton" Style="{StaticResource TeamsPrimaryButtonStyle}"
+                    Content="{Binding Texts[StartConversation]}" IsEnabled="{Binding CanStart}" Click="Start_Click" />
+            <Button x:Name="EndConversationButton" Grid.Column="1" Width="32" Padding="0"
+                    IsEnabled="{Binding CanEnd}" Click="End_Click"
+                    AutomationProperties.Name="{Binding Texts[EndConversation]}" ToolTipService.ToolTip="{Binding Texts[EndConversation]}">
+                <FontIcon Glyph="&#xE71A;" FontSize="14" />
+            </Button>
+            <Button x:Name="PauseListeningButton" Grid.Column="2" Width="32" Padding="0"
+                    IsEnabled="{Binding CanPause}" Click="Pause_Click"
+                    AutomationProperties.Name="{Binding Texts[PauseListening]}" ToolTipService.ToolTip="{Binding Texts[PauseListening]}">
+                <FontIcon Glyph="&#xE769;" FontSize="14" />
+            </Button>
+            <Button x:Name="ResumeListeningButton" Grid.Column="3" Width="32" Padding="0"
+                    IsEnabled="{Binding CanResume}" Click="Resume_Click"
+                    AutomationProperties.Name="{Binding Texts[Resume]}" ToolTipService.ToolTip="{Binding Texts[Resume]}">
+                <FontIcon Glyph="&#xE768;" FontSize="14" />
+            </Button>
             <TextBox x:Name="AskBox" Grid.Column="4" PlaceholderText="{Binding Texts[ManualQuestionPlaceholder]}"
                      KeyDown="AskBox_KeyDown" />
-            <Button Grid.Column="5" Content="{Binding Texts[Ask]}" Click="Ask_Click" />
+            <Button x:Name="SendQuestionButton" Grid.Column="5" Style="{StaticResource TeamsPrimaryButtonStyle}"
+                    Content="{Binding Texts[Ask]}" Click="Ask_Click" />
         </Grid>
         <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Text="{Binding LastError}"
-                   Foreground="IndianRed" TextWrapping="Wrap" MaxLines="3" />
+                   Foreground="{ThemeResource TeamsDangerBrush}" TextWrapping="Wrap" MaxLines="3" />
 
         <Border Grid.Row="1" Margin="0,0,8,0" CornerRadius="12"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
-            <Grid Padding="16" RowSpacing="12">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding Texts[LiveTranscript]}" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    <Button Grid.Column="1" Content="{Binding Texts[CopyTranscript]}" Click="CopyTranscript_Click" />
-                    <Button Grid.Column="2" Content="{Binding Texts[ClearTranscript]}" Click="ClearTranscript_Click" />
-                    <Button Grid.Column="3" Content="{Binding ScrollText}" Click="Scroll_Click" />
-                </Grid>
-                <Grid Grid.Row="1" ColumnSpacing="6">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Button x:Name="CreateGroupButton" Content="{Binding Texts[CreateGroup]}"
-                            IsEnabled="{Binding CanCreateGroup}" Click="CreateGroup_Click"
-                            ToolTipService.ToolTip="{Binding Texts[CreateGroupHint]}" />
-                    <Button x:Name="ImportConversationButton" Grid.Column="1"
-                            Content="{Binding Texts[ImportConversation]}" IsEnabled="{Binding CanImportConversation}"
-                            Click="ImportConversation_Click" ToolTipService.ToolTip="{Binding Texts[ImportHint]}" />
-                    <Button x:Name="SaveRecordButton" Grid.Column="2" Content="{Binding Texts[SaveNow]}"
-                            IsEnabled="{Binding CanSaveConversation}" Click="SaveRecord_Click" />
-                    <Button x:Name="ViewSessionButton" Grid.Column="3" Content="{Binding Texts[ViewSession]}"
-                            IsEnabled="{Binding CanViewSession}" Click="ViewSession_Click"
-                            AutomationProperties.Name="{Binding Texts[ViewSession]}"
-                            ToolTipService.ToolTip="{Binding Texts[ViewSessionHint]}" />
-                    <TextBlock Grid.Column="4" Text="{Binding RecordStatus}" FontSize="12"
-                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                               ToolTipService.ToolTip="{Binding RecordPath}" />
-                </Grid>
-                <ScrollViewer x:Name="TranscriptScroll" Grid.Row="2"
-                              VerticalScrollBarVisibility="Auto">
-                    <ItemsControl x:Name="TranscriptList" ItemsSource="{Binding TranscriptListItems}"
-                                  ItemTemplateSelector="{StaticResource TranscriptSelector}" />
-                </ScrollViewer>
-                <TextBlock Grid.Row="3" Text="{Binding PartialText}" Opacity=".65"
-                           TextWrapping="Wrap" FontStyle="Italic" />
-            </Grid>
+                Background="{ThemeResource TeamsSurfaceBrush}"
+                BorderBrush="{ThemeResource TeamsStrokeBrush}" BorderThickness="1">
+            <TabView x:Name="TranscriptTabs" IsAddTabButtonVisible="False" CanDragTabs="False"
+                     CanReorderTabs="False" TabWidthMode="SizeToContent" SelectedIndex="0"
+                     SelectionChanged="TranscriptTabs_SelectionChanged">
+                <TabViewItem x:Name="LiveTranscriptTab" Header="{Binding Texts[LiveTranscript]}" IsClosable="False">
+                    <Grid Padding="10" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid x:Name="TranscriptToolbar" ColumnSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding RecordStatus}" FontSize="11" Foreground="{ThemeResource TeamsSecondaryTextBrush}"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                       ToolTipService.ToolTip="{Binding RecordPath}" />
+                            <Button Grid.Column="1" Content="{Binding ScrollText}" Click="Scroll_Click" />
+                            <DropDownButton x:Name="TranscriptActionsButton" Grid.Column="2" Width="48"
+                                            AutomationProperties.Name="{Binding Texts[ConversationActions]}"
+                                            ToolTipService.ToolTip="{Binding Texts[ConversationActions]}">
+                                <FontIcon Glyph="&#xE712;" FontSize="16" />
+                                <DropDownButton.Flyout>
+                                    <MenuFlyout Opening="ActionMenu_Opening">
+                                        <MenuFlyoutItem x:Name="NewChatMenuItem" Text="{Binding Texts[NewChat]}"
+                                                        IsEnabled="{Binding CanNewChat}" Click="NewChat_Click" />
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Text="{Binding Texts[CopyTranscript]}" Click="CopyTranscript_Click" />
+                                        <MenuFlyoutItem Text="{Binding Texts[ClearTranscript]}" Click="ClearTranscript_Click" />
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem x:Name="CreateGroupMenuItem" Text="{Binding Texts[CreateGroup]}"
+                                                        IsEnabled="{Binding CanCreateGroup}" Click="CreateGroup_Click" />
+                                        <MenuFlyoutItem x:Name="SaveRecordMenuItem" Text="{Binding Texts[SaveNow]}"
+                                                        IsEnabled="{Binding CanSaveConversation}" Click="SaveRecord_Click" />
+                                        <MenuFlyoutItem x:Name="ViewSessionMenuItem" Text="{Binding Texts[ViewSession]}"
+                                                        IsEnabled="{Binding CanViewSession}" Click="ViewSession_Click"
+                                                        ToolTipService.ToolTip="{Binding Texts[ViewSessionHint]}" />
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Text="{Binding Texts[OpenRecordsFolder]}" Click="OpenRecordsFolder_Click" />
+                                    </MenuFlyout>
+                                </DropDownButton.Flyout>
+                            </DropDownButton>
+                        </Grid>
+                        <ScrollViewer x:Name="TranscriptScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="TranscriptList" ItemsSource="{Binding TranscriptListItems}"
+                                          ItemTemplateSelector="{StaticResource TranscriptSelector}" />
+                        </ScrollViewer>
+                        <TextBlock Grid.Row="2" Text="{Binding PartialText}" Foreground="{ThemeResource TeamsSecondaryTextBrush}"
+                                   TextWrapping="Wrap" FontStyle="Italic" />
+                    </Grid>
+                </TabViewItem>
+                <TabViewItem x:Name="HistoryTab" Header="{Binding Texts[HistoryTitle]}" IsClosable="False">
+                    <Grid Padding="12" RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="RefreshHistoryButton" Content="{Binding Texts[HistoryRefresh]}"
+                                    IsEnabled="{Binding CanRefreshHistory}" Click="RefreshHistory_Click" />
+                            <ProgressRing Width="20" Height="20" IsActive="{Binding IsHistoryLoading}" />
+                        </StackPanel>
+                        <TextBlock Grid.Row="1" Text="{Binding HistoryStatus}" TextWrapping="Wrap" FontSize="12" />
+                        <TextBlock Grid.Row="2" Text="{Binding Texts[HistoryHint]}" TextWrapping="Wrap"
+                                   Opacity=".7" FontSize="12" />
+                        <ListView x:Name="ConversationHistoryList" Grid.Row="3"
+                                  ItemsSource="{Binding ConversationHistory}" SelectionMode="None"
+                                  IsItemClickEnabled="{Binding CanImportConversation}" ItemClick="HistoryRecord_Click"
+                                  HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollMode="Disabled"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemContainerStyle="{StaticResource TeamsListItemStyle}"
+                                  AutomationProperties.Name="{Binding Texts[HistoryTitle]}">
+                            <ListView.Header>
+                                <Grid x:Name="HistoryColumnsHeader" Margin="8,6" ColumnSpacing="12"
+                                      Background="{ThemeResource TeamsSubtleBrush}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="6*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Texts[HistoryColumnStartTime]}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Texts[HistoryColumnEndTime]}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Texts[HistoryIntent]}" FontWeight="SemiBold" />
+                                </Grid>
+                            </ListView.Header>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="ui:ConversationHistoryRow">
+                                    <Grid ColumnSpacing="12" AutomationProperties.Name="{Binding AutomationLabel}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="6*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding StartTimeText}" FontSize="12" FontFamily="Consolas" TextWrapping="Wrap"
+                                                   Foreground="{ThemeResource TeamsSecondaryTextBrush}"
+                                                   ToolTipService.ToolTip="{Binding StartTimeText}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding EndTimeText}" FontSize="12" FontFamily="Consolas" TextWrapping="Wrap"
+                                                   Foreground="{ThemeResource TeamsSecondaryTextBrush}"
+                                                   ToolTipService.ToolTip="{Binding EndTimeText}" />
+                                        <TextBlock Grid.Column="2" Text="{Binding IntentSummary}" TextWrapping="Wrap" MaxLines="3"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   ToolTipService.ToolTip="{Binding IntentSummary}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+                </TabViewItem>
+            </TabView>
         </Border>
 
         <Grid x:Name="WorkspaceLayout" Grid.Row="1" Grid.Column="1" Margin="8,0,0,0" RowSpacing="12">
@@ -204,8 +253,8 @@
                 <RowDefinition Height="{Binding AnswerPanelHeight}" />
             </Grid.RowDefinitions>
             <Border CornerRadius="12"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                    Background="{ThemeResource TeamsSurfaceBrush}"
+                    BorderBrush="{ThemeResource TeamsStrokeBrush}" BorderThickness="1">
                 <Grid Padding="12" RowSpacing="6">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -231,48 +280,31 @@
                               PlaceholderText="{Binding Texts[AnalysisHistory]}"
                               AutomationProperties.Name="{Binding Texts[AnalysisHistory]}"
                               ToolTipService.ToolTip="{Binding Texts[AnalysisHistoryHint]}" />
-                    <Grid Grid.Row="3" ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding PendingAnalysisText}" FontSize="12" Opacity=".7"
-                                   ToolTipService.ToolTip="{Binding AnalysisScheduleText}" />
-                        <TextBlock Grid.Column="1" Text="{Binding AnalysisStatus}" FontSize="12"
-                                   TextTrimming="CharacterEllipsis"
-                                   ToolTipService.ToolTip="{Binding AnalysisStatus}" />
-                    </Grid>
                     <TabView x:Name="AnalysisTabs" Grid.Row="2" IsAddTabButtonVisible="False"
                              CanDragTabs="False" CanReorderTabs="False" TabWidthMode="SizeToContent" SelectedIndex="0">
+                        <TabView.Resources>
+                            <x:Double x:Key="TabViewItemMinHeight">36</x:Double>
+                            <x:Double x:Key="TabViewItemHeaderFontSize">13</x:Double>
+                            <Thickness x:Key="TabViewItemHeaderPadding">10,6,10,6</Thickness>
+                            <Thickness x:Key="TabViewSelectedItemHeaderPadding">10,6,10,6</Thickness>
+                            <Thickness x:Key="TabViewItemHeaderPaddingWithoutCloseButton">10,6,10,6</Thickness>
+                            <Style TargetType="TabViewItem">
+                                <Setter Property="MinHeight" Value="36" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Style>
+                        </TabView.Resources>
                         <TabViewItem Header="{Binding Texts[IntentTab]}" IsClosable="False">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <StackPanel Padding="8" Spacing="8">
-                                    <TextBlock Text="{Binding Texts[IntentHint]}" TextWrapping="Wrap" FontSize="12" Opacity=".7" />
-                                    <TextBlock Text="{Binding Texts[IntentEmpty]}" TextWrapping="Wrap" Opacity=".65"
-                                               Visibility="{Binding EmptyIntentVisibility}" />
-                                    <TextBlock Text="{Binding IntentSummary}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
-                                </StackPanel>
+                            <ScrollViewer Padding="8" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ui:SelectableAnalysisView x:Name="IntentDocument" Sections="{Binding IntentDocumentSections}"
+                                                           Foreground="{ThemeResource TeamsTextBrush}"
+                                                           AutomationProperties.Name="{Binding Texts[IntentTab]}" />
                             </ScrollViewer>
                         </TabViewItem>
                         <TabViewItem Header="{Binding Texts[StageSummariesTab]}" IsClosable="False">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <StackPanel Padding="8" Spacing="8">
-                                    <TextBlock Text="{Binding Texts[StageSummariesEmpty]}" TextWrapping="Wrap" Opacity=".65"
-                                               Visibility="{Binding EmptyStageSummariesVisibility}" />
-                                    <ItemsControl ItemsSource="{Binding StageSummaries}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Padding="10" Margin="0,0,0,8" CornerRadius="8"
-                                                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                                                    <StackPanel Spacing="6">
-                                                        <TextBlock Text="{Binding Caption}" FontSize="12" Opacity=".7" TextWrapping="Wrap" />
-                                                        <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
-                                                    </StackPanel>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
+                            <ScrollViewer Padding="8" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ui:SelectableAnalysisView x:Name="StageSummaryDocument" Sections="{Binding StageDocumentSections}"
+                                                           Foreground="{ThemeResource TeamsTextBrush}"
+                                                           AutomationProperties.Name="{Binding Texts[StageSummariesTab]}" />
                             </ScrollViewer>
                         </TabViewItem>
                         <TabViewItem Header="{Binding Texts[RecommendedQuestionsTab]}" IsClosable="False">
@@ -285,6 +317,7 @@
                                             <DataTemplate>
                                                 <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                                                         Padding="10" Margin="0,0,0,6" CornerRadius="8"
+                                                        Background="{ThemeResource TeamsSubtleBrush}" BorderBrush="{ThemeResource TeamsStrokeBrush}"
                                                         AutomationProperties.Name="{Binding AutomationLabel}"
                                                         ToolTipService.ToolTip="{Binding Texts[SuggestedQuestionHint]}"
                                                         Click="SuggestedQuestion_Click" RightTapped="SuggestedQuestion_RightTapped">
@@ -334,28 +367,60 @@
                             </ScrollViewer>
                         </TabViewItem>
                     </TabView>
+                    <Grid Grid.Row="3" ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding PendingAnalysisText}" FontSize="12" Opacity=".7"
+                                   ToolTipService.ToolTip="{Binding AnalysisScheduleText}" />
+                        <TextBlock Grid.Column="1" Text="{Binding AnalysisStatus}" FontSize="12"
+                                   TextTrimming="CharacterEllipsis"
+                                   ToolTipService.ToolTip="{Binding AnalysisStatus}" />
+                    </Grid>
                     <TextBlock Grid.Row="4" Text="{Binding AnalysisError}" TextWrapping="Wrap"
-                               Foreground="IndianRed" MaxLines="3" />
+                               Foreground="{ThemeResource TeamsDangerBrush}" MaxLines="3" />
                 </Grid>
             </Border>
         <Border Grid.Row="1" CornerRadius="12"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                Background="{ThemeResource TeamsSurfaceBrush}"
+                BorderBrush="{ThemeResource TeamsStrokeBrush}" BorderThickness="1">
             <Grid x:Name="AssistantLayout" Padding="12" RowSpacing="{Binding AnswerPanelRowSpacing}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Button x:Name="AnswerPanelToggleButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                        AutomationProperties.Name="{Binding AnswerPanelToggleText}"
-                        AutomationProperties.HelpText="{Binding Texts[AnswerPanelToggleHint]}"
-                        ToolTipService.ToolTip="{Binding AnswerPanelToggleText}" Click="ToggleAnswerPanel_Click">
-                    <FontIcon Glyph="{Binding AnswerPanelToggleGlyph}" FontSize="16" />
-                </Button>
+                <Grid ColumnSpacing="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="AnswerPanelToggleButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            AutomationProperties.Name="{Binding AnswerPanelToggleText}"
+                            AutomationProperties.HelpText="{Binding Texts[AnswerPanelToggleHint]}"
+                            ToolTipService.ToolTip="{Binding AnswerPanelToggleText}" Click="ToggleAnswerPanel_Click"
+                            RightTapped="AnswerPanelToggle_RightTapped">
+                        <FontIcon Glyph="{Binding AnswerPanelToggleGlyph}" FontSize="16" />
+                    </Button>
+                    <DropDownButton x:Name="AnswerActionsButton" Grid.Column="1" Width="48"
+                                    Visibility="{Binding AnswerPanelVisibility}"
+                                    AutomationProperties.Name="{Binding Texts[AnswerActions]}"
+                                    ToolTipService.ToolTip="{Binding Texts[AnswerActions]}">
+                        <FontIcon Glyph="&#xE712;" FontSize="16" />
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Opening="ActionMenu_Opening">
+                                <MenuFlyoutItem Text="{Binding Texts[CopyAnswer]}" Click="CopyAnswer_Click" />
+                                <MenuFlyoutItem Text="{Binding Texts[Retry]}" Click="Retry_Click" />
+                                <MenuFlyoutItem Text="{Binding Texts[Dismiss]}" Click="Dismiss_Click" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem x:Name="AnswerViewMenuItem" Text="{Binding Texts[ViewOriginal]}" Click="AnswerView_Click" />
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </Grid>
                 <ComboBox x:Name="AnswerHistoryPicker" Grid.Row="1" Visibility="{Binding AnswerPanelVisibility}"
-                          Header="{Binding Texts[AnswersHeader]}" ItemsSource="{Binding Answers}"
+                          AutomationProperties.Name="{Binding Texts[AnswersHeader]}" ItemsSource="{Binding Answers}"
                           HorizontalAlignment="Stretch"
                           PlaceholderText="{Binding Texts[SelectQuestion]}"
                           SelectedItem="{Binding SelectedAnswer, Mode=TwoWay}">
@@ -366,12 +431,6 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="6" Visibility="{Binding AnswerPanelVisibility}">
-                    <Button Content="{Binding Texts[CopyAnswer]}" Click="CopyAnswer_Click" />
-                    <Button Content="{Binding Texts[Retry]}" Click="Retry_Click" />
-                    <Button Content="{Binding Texts[Dismiss]}" Click="Dismiss_Click" />
-                    <Button x:Name="AnswerViewButton" Content="{Binding Texts[ViewOriginal]}" Click="AnswerView_Click" />
-                </StackPanel>
                 <Grid x:Name="AnswerContent" Grid.Row="2" RowSpacing="6" Visibility="{Binding AnswerPanelVisibility}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -392,7 +451,7 @@
                     <WebView2 x:Name="AnswerWebView" Grid.Row="1" Opacity="0"
                               IsHitTestVisible="False" />
                     <TextBlock Grid.Row="2" Text="{Binding SelectedAnswer.Error}" TextWrapping="Wrap"
-                               Foreground="IndianRed" />
+                               Foreground="{ThemeResource TeamsDangerBrush}" />
                 </Grid>
                 <Grid.Resources>
                     <Flyout x:Key="SettingsFlyout">

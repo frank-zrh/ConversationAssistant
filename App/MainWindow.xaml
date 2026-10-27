@@ -19,7 +19,7 @@
 
         <TitleBar x:Name="AppTitleBar">
             <TitleBar.IconSource>
-                <ImageIconSource ImageSource="Assets/AppIcon.ico" />
+                <ImageIconSource ImageSource="ms-appx:///Assets/AppIcon.png" />
             </TitleBar.IconSource>
         </TitleBar>
 

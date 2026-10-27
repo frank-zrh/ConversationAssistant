@@ -27,7 +27,8 @@ public sealed partial class PipelineTests
     [DataRow(4, true)]
     [DataRow(5, true)]
     [DataRow(6, true)]
-    [DataRow(7, false)]
+    [DataRow(ConversationAnalysisPrompt.CurrentGuidanceVersion, true)]
+    [DataRow(ConversationAnalysisPrompt.CurrentGuidanceVersion + 1, false)]
     public void ProductGuidanceOnlyReusesCompatibleKnowledgeVersions(int version, bool compatible)
     {
         Assert.AreEqual(compatible, ConversationAnalysisPrompt.CanReuseQuestionsFrom(version));

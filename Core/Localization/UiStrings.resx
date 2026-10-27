@@ -26,7 +26,7 @@
   <data name="Resume" xml:space="preserve"><value>Resume</value></data>
   <data name="ManualQuestionPlaceholder" xml:space="preserve"><value>Ask manually... (Ctrl+Enter)</value></data>
   <data name="Ask" xml:space="preserve"><value>Ask</value></data>
-  <data name="LiveTranscript" xml:space="preserve"><value>LIVE TRANSCRIPT</value></data>
+  <data name="LiveTranscript" xml:space="preserve"><value>Current Conversation</value></data>
   <data name="SpeakerNumber" xml:space="preserve"><value>Speaker {0}</value></data>
   <data name="SpeakerUnknown" xml:space="preserve"><value>Speaker not identified</value></data>
   <data name="CopyTranscript" xml:space="preserve"><value>Copy</value></data>
@@ -60,9 +60,23 @@
   <data name="OpenRecordsFolder" xml:space="preserve"><value>Open Record Folder</value></data>
   <data name="PauseScrolling" xml:space="preserve"><value>Pause scrolling</value></data>
   <data name="ResumeScrolling" xml:space="preserve"><value>Resume scrolling</value></data>
-  <data name="TranscriptCardHint" xml:space="preserve"><value>Left-click to ask or view the answer. Right-click to edit in the question box.</value></data>
   <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · CONVERSATION ANALYSIS</value></data>
-  <data name="IntentTab" xml:space="preserve"><value>Intent</value></data>
+  <data name="AssistanceHeader" xml:space="preserve"><value>USEFUL NOW</value></data>
+  <data name="AssistanceWordingHeader" xml:space="preserve"><value>You could say</value></data>
+  <data name="AssistanceUncertaintyHeader" xml:space="preserve"><value>Needs confirmation</value></data>
+  <data name="AssistanceSourcesHeader" xml:space="preserve"><value>Evidence / references</value></data>
+  <data name="AssistanceDetails" xml:space="preserve"><value>Details and history</value></data>
+  <data name="AssistanceHistoryHeader" xml:space="preserve"><value>Brief from selected analysis</value></data>
+  <data name="AssistanceWaiting" xml:space="preserve"><value>Useful information appears when conversation analysis completes.</value></data>
+  <data name="AssistanceUpdating" xml:space="preserve"><value>Updating from the conversation…</value></data>
+  <data name="AssistanceUnavailable" xml:space="preserve"><value>Analysis did not complete; any previous brief is retained.</value></data>
+  <data name="AssistanceNothingToAdd" xml:space="preserve"><value>No additional supported guidance from this analysis.</value></data>
+  <data name="AssistanceReady" xml:space="preserve"><value>For the current discussion</value></data>
+  <data name="AssistanceCurrentCoverage" xml:space="preserve"><value>Through {0} · {1}/{2} turns</value></data>
+  <data name="AssistancePendingCoverage" xml:space="preserve"><value>Through {0} · {1}/{2} turns; newer speech not analyzed yet.</value></data>
+  <data name="AssistanceSavedCoverage" xml:space="preserve"><value>Saved analysis through {0} · {1}/{2} turns</value></data>
+  <data name="IntentTab" xml:space="preserve"><value>Useful now · Intent</value></data>
+  <data name="IntentSummaryHeader" xml:space="preserve"><value>Conversation intent</value></data>
   <data name="StageSummariesTab" xml:space="preserve"><value>Stage summaries</value></data>
   <data name="RecommendedQuestionsTab" xml:space="preserve"><value>Recommended questions</value></data>
   <data name="ProductGuideTab" xml:space="preserve"><value>Product guide</value></data>
@@ -87,7 +101,7 @@
   <data name="CollapseAnswerPanel" xml:space="preserve"><value>Collapse questions &amp; answers</value></data>
   <data name="ExpandAnswerPanel" xml:space="preserve"><value>Expand to 3/4</value></data>
   <data name="RestoreAnswerPanel" xml:space="preserve"><value>Restore to 1/3</value></data>
-  <data name="AnswerPanelToggleHint" xml:space="preserve"><value>Up expands: collapsed → 1/3 → 3/4. Down collapses the panel. Click repeatedly to cycle through the sizes.</value></data>
+  <data name="AnswerPanelToggleHint" xml:space="preserve"><value>Left-click to cycle through the existing panel sizes. Right-click to hide all answer content; left-click the remaining toggle to restore it.</value></data>
   <data name="SelectQuestion" xml:space="preserve"><value>Select a question</value></data>
   <data name="CopyAnswer" xml:space="preserve"><value>Copy Answer</value></data>
   <data name="Retry" xml:space="preserve"><value>Retry</value></data>
@@ -258,7 +272,6 @@
   <data name="ErrorPauseLanguage" xml:space="preserve"><value>Pause listening before changing the listening and interface language.</value></data>
   <data name="ErrorOnlyFailed" xml:space="preserve"><value>Only failed questions can be retried.</value></data>
   <data name="ErrorQuestionCard" xml:space="preserve"><value>Unable to read this question. Select it again.</value></data>
-  <data name="ErrorTranscriptCard" xml:space="preserve"><value>Unable to read this transcript card. Select it again.</value></data>
   <data name="ErrorImageTimeout" xml:space="preserve"><value>Image download timed out; use Open in Browser instead.</value></data>
   <data name="ErrorInlineImagesLimit" xml:space="preserve"><value>Only 512 KB of images can be displayed inline at once.</value></data>
   <data name="ErrorRichNavigation" xml:space="preserve"><value>Rich answer navigation failed: {0}</value></data>
@@ -430,4 +443,25 @@
   <data name="ErrorArchiveGroupBlank" xml:space="preserve"><value>Invalid conversation archive: A group name cannot be blank.</value></data>
   <data name="ErrorArchiveTextLimit" xml:space="preserve"><value>Invalid conversation archive: A required text value is null or exceeds its length limit.</value></data>
   <data name="ErrorArchiveQuestionConflict" xml:space="preserve"><value>Invalid conversation archive: A suggested question ID has conflicting snapshots.</value></data>
+  <data name="HistoryTitle" xml:space="preserve"><value>History</value></data>
+  <data name="HistoryColumnTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="HistoryColumnTime" xml:space="preserve"><value>Time</value></data>
+  <data name="HistoryColumnStartTime" xml:space="preserve"><value>Start time</value></data>
+  <data name="HistoryColumnEndTime" xml:space="preserve"><value>End time</value></data>
+  <data name="HistoryUntitled" xml:space="preserve"><value>Untitled conversation</value></data>
+  <data name="HistoryRefresh" xml:space="preserve"><value>Refresh History</value></data>
+  <data name="HistoryLoading" xml:space="preserve"><value>Loading saved conversations…</value></data>
+  <data name="HistoryEmpty" xml:space="preserve"><value>No saved conversations yet.</value></data>
+  <data name="HistoryCount" xml:space="preserve"><value>{0} saved conversations, newest first.</value></data>
+  <data name="HistoryUnavailable" xml:space="preserve"><value>{0} records could not be read. Check the records folder.</value></data>
+  <data name="HistoryHint" xml:space="preserve"><value>Select a saved conversation to load it. End any active conversation first. The original saved record is preserved.</value></data>
+  <data name="HistoryStartedAt" xml:space="preserve"><value>Started: {0}</value></data>
+  <data name="HistoryEndedAt" xml:space="preserve"><value>Ended: {0}</value></data>
+  <data name="HistoryEndNotSaved" xml:space="preserve"><value>End time not saved</value></data>
+  <data name="HistoryNoIntent" xml:space="preserve"><value>No intent summary has been saved for this conversation.</value></data>
+  <data name="HistoryIntent" xml:space="preserve"><value>Intent</value></data>
+  <data name="ErrorHistoryLoad" xml:space="preserve"><value>Conversation history could not be refreshed. Check folder access and try again.</value></data>
+  <data name="ConversationActions" xml:space="preserve"><value>Conversation actions</value></data>
+  <data name="NewChat" xml:space="preserve"><value>New Chat</value></data>
+  <data name="AnswerActions" xml:space="preserve"><value>Answer actions</value></data>
 </root>

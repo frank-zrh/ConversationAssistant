@@ -180,15 +180,16 @@ public sealed class WorkIqSessionDiagnosticsTests
     }
 
     [TestMethod]
-    public void ViewSessionButtonIsLocalizedAndRemainsInExistingTranscriptToolbar()
+    public void ViewSessionActionIsLocalizedAndRemainsInTranscriptOverflowMenu()
     {
         var page = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "MainPage.xaml"));
         XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
-        var button = page.Descendants().Single(element => (string?)element.Attribute(x + "Name") == "ViewSessionButton");
-        Assert.AreEqual("{Binding Texts[ViewSession]}", (string?)button.Attribute("Content"));
-        Assert.AreEqual("{Binding CanViewSession}", (string?)button.Attribute("IsEnabled"));
-        Assert.AreEqual("ViewSession_Click", (string?)button.Attribute("Click"));
-        Assert.AreEqual("1", (string?)button.Parent!.Attribute("Grid.Row"));
+        var item = page.Descendants().Single(element => (string?)element.Attribute(x + "Name") == "ViewSessionMenuItem");
+        Assert.AreEqual("MenuFlyoutItem", item.Name.LocalName);
+        Assert.AreEqual("{Binding Texts[ViewSession]}", (string?)item.Attribute("Text"));
+        Assert.AreEqual("{Binding CanViewSession}", (string?)item.Attribute("IsEnabled"));
+        Assert.AreEqual("ViewSession_Click", (string?)item.Attribute("Click"));
+        Assert.IsTrue(item.Ancestors().Any(element => (string?)element.Attribute(x + "Name") == "TranscriptActionsButton"));
     }
 
     private static string? Event(JsonElement entry) => entry.GetProperty("Event").GetString();

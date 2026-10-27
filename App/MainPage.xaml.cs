@@ -41,6 +41,7 @@ public sealed partial class MainPage : Page
         _viewModel = ((App)Application.Current).Services.GetRequiredService<MainViewModel>();
         DataContext = _viewModel;
         UpdateLanguage();
+        ActualThemeChanged += (_, _) => _viewModel.RefreshTheme();
         _viewModel.PropertyChanged += OnViewModelChanged;
         _viewModel.TranscriptScrollRequested += () => TranscriptScroll.ChangeView(
             null, TranscriptScroll.ScrollableHeight, null);
@@ -48,6 +49,8 @@ public sealed partial class MainPage : Page
         _timer.Start();
         RenderAnswer();
         Loaded += InitializeAnswerView;
+        Loaded += Records_Loaded;
+        Loaded += ScheduleStartupSignIn;
         Unloaded += async (_, _) =>
         {
             _timer.Stop();
@@ -61,6 +64,10 @@ public sealed partial class MainPage : Page
             await _viewModel.EndAsync();
         };
     }
+
+    private void ScheduleStartupSignIn(object sender, RoutedEventArgs e) =>
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,
+            async () => await _viewModel.SignInAtStartupAsync(_pageCancellation.Token));
 
     private async void InitializeAnswerView(object sender, RoutedEventArgs e)
     {
@@ -261,7 +268,7 @@ public sealed partial class MainPage : Page
         AnswerWebView.Opacity = rich ? 1 : 0;
         AnswerWebView.IsHitTestVisible = rich;
         AnswerFallback.Visibility = rich ? Visibility.Collapsed : Visibility.Visible;
-        AnswerViewButton.Content = _viewModel.Texts[_preferRawAnswer ? "FormattedView" : "ViewOriginal"];
+        AnswerViewMenuItem.Text = _viewModel.Texts[_preferRawAnswer ? "FormattedView" : "ViewOriginal"];
         AnswerRenderStatus.Text = _renderStatusKey is null ? "" : _viewModel.Texts[_renderStatusKey];
         AnswerRenderStatus.Visibility = string.IsNullOrEmpty(AnswerRenderStatus.Text)
             ? Visibility.Collapsed : Visibility.Visible;
@@ -270,6 +277,13 @@ public sealed partial class MainPage : Page
     private void AnswerView_Click(object sender, RoutedEventArgs e)
     {
         _preferRawAnswer = !_preferRawAnswer;
+        UpdateAnswerVisibility();
+    }
+
+    private void ActionMenu_Opening(object sender, object e)
+    {
+        if (sender is not MenuFlyout menu) return;
+        foreach (var item in menu.Items) item.DataContext = _viewModel;
         UpdateAnswerVisibility();
     }
 
@@ -342,6 +356,14 @@ public sealed partial class MainPage : Page
     }
 
     private async void Start_Click(object sender, RoutedEventArgs e) => await _viewModel.StartAsync();
+    private async void NewChat_Click(object sender, RoutedEventArgs e)
+    {
+        if (!await _viewModel.NewChatAsync()) return;
+        AskBox.Text = "";
+        TranscriptTabs.SelectedItem = LiveTranscriptTab;
+        AnalysisTabs.SelectedIndex = 0;
+        await _viewModel.RefreshHistoryAsync(_pageCancellation.Token);
+    }
     private async void End_Click(object sender, RoutedEventArgs e) => await _viewModel.EndAsync();
     private async void Pause_Click(object sender, RoutedEventArgs e) => await _viewModel.PauseAsync();
     private async void Resume_Click(object sender, RoutedEventArgs e) => await _viewModel.ResumeAsync();
@@ -352,6 +374,11 @@ public sealed partial class MainPage : Page
     private void ClearTranscript_Click(object sender, RoutedEventArgs e) => _viewModel.ClearTranscript();
     private void AnalyzeConversation_Click(object sender, RoutedEventArgs e) => _viewModel.AnalyzeConversation();
     private void ToggleAnswerPanel_Click(object sender, RoutedEventArgs e) => _viewModel.ToggleAnswerPanel();
+    private void AnswerPanelToggle_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        e.Handled = true;
+        _viewModel.CollapseAnswerPanel();
+    }
     private void SuggestedQuestion_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { DataContext: SuggestedQuestionRow question })
@@ -370,25 +397,6 @@ public sealed partial class MainPage : Page
         }
         else
             _viewModel.ShowRenderingError(_viewModel.Texts["ErrorQuestionCard"]);
-    }
-    private void TranscriptCard_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: TranscriptRow card })
-            _viewModel.OpenTranscriptCard(card.Id);
-        else
-            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorTranscriptCard"]);
-    }
-    private void TranscriptCard_RightTapped(object sender, RightTappedRoutedEventArgs e)
-    {
-        e.Handled = true;
-        if (sender is FrameworkElement { DataContext: TranscriptRow card })
-        {
-            AskBox.Text = card.Text;
-            AskBox.Focus(FocusState.Programmatic);
-            AskBox.Select(AskBox.Text.Length, 0);
-        }
-        else
-            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorTranscriptCard"]);
     }
     private void RefreshDevices_Click(object sender, RoutedEventArgs e) => _viewModel.RefreshDevices();
     private async void MicSettings_Click(object sender, RoutedEventArgs e) =>

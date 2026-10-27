@@ -284,7 +284,9 @@ public sealed partial class PipelineTests
             var originalId = fake.Conversation.CurrentConversation!.SessionId;
             var originalBytes = await File.ReadAllBytesAsync(source);
             var calls = fake.Work.Calls.Count;
-            await fake.Conversation.ImportConversationAsync(source);
+            var history = (await store.ListAsync()).Entries.Single(entry => entry.SessionId == originalId);
+            Assert.AreEqual(source, history.Path);
+            await fake.Conversation.ImportConversationAsync(history.Path);
             Assert.IsNull(fake.Conversation.Session);
             Assert.IsFalse(fake.Conversation.IsListening);
             Assert.AreNotEqual(originalId, fake.Conversation.CurrentConversation!.SessionId);

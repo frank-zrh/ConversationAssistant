@@ -70,6 +70,12 @@ internal sealed class ArchiveValidator
             Text(analysis.PreviousStageSummaries);
             Text(analysis.IntentSummary, 8000);
             Text(analysis.StageSummary, 8000);
+            if (analysis.Assistance is { } assistance)
+            {
+                Require(assistance.IsValid(), "The conversation assistance is invalid or exceeds its limits.");
+                Texts(assistance.KeyPoints.ToArray(), ConversationAssistance.MaximumPointLength);
+                Texts(assistance.Sources.ToArray(), ConversationAssistance.MaximumSourceLength);
+            }
             Texts(analysis.ExistingQuestions);
             OptionalId(analysis.GroupId);
             GroupName(analysis.GroupName);

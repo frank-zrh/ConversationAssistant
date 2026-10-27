@@ -8,7 +8,8 @@ namespace ConversationAssistant.Core.WorkIQ;
 
 public sealed record DiscoveredQuestion(string Question, string Reason);
 public sealed record DiscoveredAnalysis(string IntentSummary, string StageSummary,
-    IReadOnlyList<DiscoveredQuestion> Questions, IReadOnlyList<ProductGuide> Products);
+    IReadOnlyList<DiscoveredQuestion> Questions, IReadOnlyList<ProductGuide> Products,
+    ConversationAssistance? Assistance = null);
 
 public static partial class ConversationQuestionParser
 {
@@ -53,7 +54,7 @@ public static partial class ConversationQuestionParser
                     result.Add(new DiscoveredQuestion(text, reason.GetString()!.Trim()));
             }
             return new DiscoveredAnalysis(Summary("intentSummary"), Summary("stageSummary"), result,
-                ParseProducts(document.RootElement, invalid));
+                ParseProducts(document.RootElement, invalid), ParseAssistance(document.RootElement, invalid));
 
             string Summary(string name)
             {
@@ -70,6 +71,44 @@ public static partial class ConversationQuestionParser
         catch (ArgumentException error)
         {
             throw new WorkIqException(invalid, error);
+        }
+    }
+
+    private static ConversationAssistance? ParseAssistance(JsonElement root, string invalid)
+    {
+        if (!root.TryGetProperty("assistance", out var item) || item.ValueKind == JsonValueKind.Null) return null;
+        if (item.ValueKind != JsonValueKind.Object) throw new WorkIqException(invalid);
+        var assistance = new ConversationAssistance
+        {
+            Conclusion = Text("conclusion", ConversationAssistance.MaximumConclusionLength),
+            SuggestedWording = Text("suggestedWording", ConversationAssistance.MaximumWordingLength),
+            KeyPoints = Items("keyPoints", ConversationAssistance.MaximumKeyPoints, ConversationAssistance.MaximumPointLength),
+            Uncertainty = Text("uncertainty", ConversationAssistance.MaximumUncertaintyLength),
+            Sources = Items("sources", ConversationAssistance.MaximumSources, ConversationAssistance.MaximumSourceLength)
+        };
+        if (!assistance.IsValid()) throw new WorkIqException(invalid);
+        return assistance;
+
+        string Text(string name, int maximum)
+        {
+            if (!item.TryGetProperty(name, out var value)) return "";
+            if (value.ValueKind != JsonValueKind.String || value.GetString()!.Length > maximum)
+                throw new WorkIqException(invalid);
+            return value.GetString()!.Trim();
+        }
+
+        string[] Items(string name, int maximumCount, int maximumLength)
+        {
+            if (!item.TryGetProperty(name, out var values)) return [];
+            if (values.ValueKind != JsonValueKind.Array || values.GetArrayLength() > maximumCount)
+                throw new WorkIqException(invalid);
+            return values.EnumerateArray().Select(value =>
+            {
+                if (value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()) ||
+                    value.GetString()!.Length > maximumLength)
+                    throw new WorkIqException(invalid);
+                return value.GetString()!.Trim();
+            }).Distinct(StringComparer.Ordinal).ToArray();
         }
     }
 

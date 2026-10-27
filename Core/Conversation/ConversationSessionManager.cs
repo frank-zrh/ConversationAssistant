@@ -56,6 +56,21 @@ public sealed partial class ConversationSessionManager
     {
         get { lock (_gate) return CurrentConversation?.Analyses.ToArray() ?? []; }
     }
+    public ConversationAnalysisRequest? CurrentAssistanceAnalysis
+    {
+        get
+        {
+            lock (_gate)
+            {
+                if (CurrentConversation is not { } session || session.TranscriptSegments.Count == 0) return null;
+                return session.Analyses.LastOrDefault(item => item.GroupId is null &&
+                    item.Status == QuestionStatus.Completed && item.Transcript.Count > 0 &&
+                    item.Transcript.Count <= session.TranscriptSegments.Count &&
+                    item.Transcript.Select(segment => segment.Id).SequenceEqual(
+                        session.TranscriptSegments.Take(item.Transcript.Count).Select(segment => segment.Id)));
+            }
+        }
+    }
     public IReadOnlyList<TranscriptGroup> Groups
     {
         get { lock (_gate) return CurrentConversation?.Groups.ToArray() ?? []; }
@@ -146,6 +161,18 @@ public sealed partial class ConversationSessionManager
         {
             if (Session is not null) throw new InvalidOperationException("End the current conversation first.");
             CloseConversationCoreAsync().GetAwaiter().GetResult();
+            StartConversationCore(settings);
+        }
+        finally { _lifecycle.Release(); }
+    }
+
+    public async Task StartNewConversationAsync(ConversationSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        await _lifecycle.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            await CloseConversationCoreAsync().ConfigureAwait(false);
             StartConversationCore(settings);
         }
         finally { _lifecycle.Release(); }
@@ -826,6 +853,7 @@ public sealed partial class ConversationSessionManager
                 request.Questions = result.ToArray();
                 request.IntentSummary = analysis.IntentSummary;
                 request.StageSummary = request.StageContext == "" ? "" : analysis.StageSummary;
+                request.Assistance = analysis.Assistance?.Snapshot();
                 var productKeys = session.ProductGuides.SelectMany(product => product.IdentityNames)
                     .Select(ProductGuide.IdentityKey).ToHashSet(StringComparer.Ordinal);
                 foreach (var product in analysis.Products)

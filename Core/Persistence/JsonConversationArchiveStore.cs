@@ -37,6 +37,41 @@ public sealed class JsonConversationArchiveStore : IConversationArchiveStore
         return Task.Run(() => LoadCoreAsync(path, cancellationToken), cancellationToken);
     }
 
+    public Task<ConversationHistoryResult> ListAsync(CancellationToken cancellationToken = default) =>
+        Task.Run(async () =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var entries = new List<ConversationHistoryEntry>();
+            var unavailable = 0;
+            string[] paths;
+            try { paths = Directory.GetFiles(_directory, "*.json", SearchOption.TopDirectoryOnly); }
+            catch (DirectoryNotFoundException) { return new ConversationHistoryResult(entries, unavailable); }
+            foreach (var path in paths)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                try
+                {
+                    var archive = await LoadCoreAsync(path, cancellationToken).ConfigureAwait(false);
+                    var document = archive.Document;
+                    var title = document.TranscriptSegments.Select(item => item.Text.Trim())
+                        .FirstOrDefault(text => text.Length > 0) ?? "";
+                    title = title.Split(['\r', '\n'], 2, StringSplitOptions.TrimEntries)[0];
+                    var intent = document.Analyses
+                        .Where(item => item.Status == QuestionStatus.Completed && !string.IsNullOrWhiteSpace(item.IntentSummary))
+                        .OrderByDescending(item => item.Timestamp)
+                        .Select(item => item.IntentSummary.Trim()).FirstOrDefault() ?? "";
+                    entries.Add(new ConversationHistoryEntry(archive.SessionId, path,
+                        document.StartTime, document.EndTime, intent) { Title = title });
+                }
+                catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
+                {
+                    unavailable++;
+                }
+            }
+            return new ConversationHistoryResult(entries.OrderByDescending(item => item.StartTime)
+                .ThenBy(item => item.SessionId).ToArray(), unavailable);
+        }, cancellationToken);
+
     private async Task<string> SaveCoreAsync(ConversationArchive archive, CancellationToken cancellationToken)
     {
         await _writeGate.WaitAsync(cancellationToken).ConfigureAwait(false);

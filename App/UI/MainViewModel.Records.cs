@@ -231,11 +231,11 @@ public sealed partial class MainViewModel
     }
 
     private void RefreshRecordStatus() => Notify(nameof(RecordStatus), nameof(RecordPath),
-        nameof(CanSaveConversation), nameof(CanViewSession));
+        nameof(CanSaveConversation), nameof(CanViewSession), nameof(CanNewChat));
 
     private void NotifyWorkspaceControls() => Notify(nameof(CanStart), nameof(CanEnd), nameof(CanPause),
         nameof(CanResume), nameof(CanSignIn), nameof(CanEditSpeechSettings), nameof(CanChangeSpeechLanguage),
         nameof(CanChangeAudioSettings), nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice),
         nameof(CanAnalyzeConversation), nameof(CanCreateGroup), nameof(CanImportConversation),
-        nameof(CanSaveConversation), nameof(CanViewSession), nameof(ListeningText), nameof(RecordStatus), nameof(RecordPath));
+        nameof(CanSaveConversation), nameof(CanViewSession), nameof(CanNewChat), nameof(ListeningText), nameof(RecordStatus), nameof(RecordPath));
 }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
@@ -17,7 +17,8 @@
          Windows App SDK runtime; .NET SelfContained alone does not include it. -->
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-    <EnableMsixTooling>false</EnableMsixTooling>
+    <!-- Required to generate the XAML resource index for unpackaged publishing. -->
+    <EnableMsixTooling>true</EnableMsixTooling>
     <EnableWinAppRunSupport>false</EnableWinAppRunSupport>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -31,12 +32,21 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-48_altform-lightunplated.png" />
     <Content Include="Assets\StoreLogo.png" />
-    <Content Include="Assets\AppIcon.ico" />
+    <Content Include="Assets\AppIcon.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Assets\AppIcon.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Models\ggml-small.bin" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Models\LICENSE-*.txt" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Models\Speakers\*.onnx" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Models\Speakers\*.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Assets\AppIcon.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Themes\TeamsTheme.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -81,6 +91,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\ConversationAssistant.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Themes\TeamsTheme.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <!--

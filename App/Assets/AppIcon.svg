@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 100 100" role="img" aria-labelledby="title description">
+  <title id="title">Conversation Assistant</title>
+  <desc id="description">Two overlapping conversation bubbles and an intelligence spark on a rounded blue tile.</desc>
+  <defs>
+	<linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+	  <stop offset="0" stop-color="#1979E8" />
+	  <stop offset="1" stop-color="#123DA6" />
+	</linearGradient>
+  </defs>
+  <rect x="4" y="4" width="92" height="92" rx="23" fill="url(#tile)" />
+  <rect x="40" y="43" width="40" height="33" rx="10" fill="#73DEEF" />
+  <polygon points="60,72 78,84 73,69" fill="#73DEEF" />
+  <rect x="21" y="27" width="52" height="39" rx="12" fill="#FFFFFF" />
+  <polygon points="33,61 29,78 50,62" fill="#FFFFFF" />
+  <rect x="32" y="39" width="29" height="4.5" rx="2.25" fill="#1758BB" />
+  <rect x="32" y="49" width="21" height="4.5" rx="2.25" fill="#1758BB" />
+  <polygon points="77,13 80,21 88,24 80,27 77,35 74,27 66,24 74,21" fill="#B1F4FF" />
+</svg>

@@ -28,6 +28,9 @@ public sealed class ConversationArchive
         var analyses = session.Analyses.ToList();
         if (session.Analysis is { } current && analyses.All(item => item.Id != current.Id))
             analyses.Add(current);
+        foreach (var analysis in analyses)
+            if (analysis.Assistance is { } assistance && !assistance.IsValid())
+                throw Invalid("The conversation assistance is invalid or exceeds its limits.");
 
         var suggestions = session.SuggestedQuestions.Select(CaptureSuggestion).ToList();
         var knownSuggestions = new Dictionary<Guid, ArchiveSuggestion>();
@@ -92,6 +95,7 @@ public sealed class ConversationArchive
                 PreviousStageSummaries = item.PreviousStageSummaries,
                 IntentSummary = item.IntentSummary,
                 StageSummary = item.StageSummary,
+                Assistance = item.Assistance?.Snapshot(),
                 ExistingQuestions = item.ExistingQuestions.ToArray(),
                 GroupId = item.GroupId,
                 GroupNumber = item.GroupNumber,
@@ -177,6 +181,7 @@ public sealed class ConversationArchive
             PreviousStageSummaries = item.PreviousStageSummaries,
             IntentSummary = item.IntentSummary,
             StageSummary = item.StageSummary,
+            Assistance = item.Assistance?.Snapshot(),
             ExistingQuestions = item.ExistingQuestions.ToArray(),
             GroupId = item.GroupId,
             GroupNumber = item.GroupNumber,
@@ -219,6 +224,7 @@ public sealed class ConversationArchive
         Analyses = _document.Analyses.Select(item => item with
         {
             Transcript = item.Transcript.Select(transcript => transcript with { }).ToArray(),
+            Assistance = item.Assistance?.Snapshot(),
             ExistingQuestions = item.ExistingQuestions.ToArray(),
             QuestionIds = item.QuestionIds.ToArray(),
             Sources = item.Sources.ToArray()
@@ -356,6 +362,7 @@ internal sealed record ArchiveAnalysis
     public string PreviousStageSummaries { get; init; } = "";
     public string IntentSummary { get; init; } = "";
     public string StageSummary { get; init; } = "";
+    public ConversationAssistance? Assistance { get; init; }
     public required ArchiveTranscript[] Transcript { get; init; }
     public required string[] ExistingQuestions { get; init; }
     public required Guid? GroupId { get; init; }

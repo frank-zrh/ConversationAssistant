@@ -6,7 +6,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.Storage.Pickers;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.System;
@@ -16,8 +15,6 @@ namespace ConversationAssistant_App;
 
 public sealed partial class MainPage
 {
-    private bool _recordPickerOpen;
-
     private void CreateGroup_Click(object sender, RoutedEventArgs e) => _viewModel.CreateGroup();
     private async void SaveRecord_Click(object sender, RoutedEventArgs e) => await _viewModel.SaveRecordAsync();
 
@@ -107,26 +104,26 @@ public sealed partial class MainPage
         finally { _linkDialogOpen = false; }
     }
 
-    private async void ImportConversation_Click(object sender, RoutedEventArgs e)
+    private async void Records_Loaded(object sender, RoutedEventArgs e) =>
+        await _viewModel.RefreshHistoryAsync(_pageCancellation.Token);
+
+    private async void TranscriptTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_recordPickerOpen || !_viewModel.CanImportConversation) return;
-        _recordPickerOpen = true;
-        try
+        if (IsLoaded && TranscriptTabs.SelectedItem == HistoryTab)
+            await _viewModel.RefreshHistoryAsync(_pageCancellation.Token);
+    }
+
+    private async void RefreshHistory_Click(object sender, RoutedEventArgs e) =>
+        await _viewModel.RefreshHistoryAsync(_pageCancellation.Token);
+
+    private async void HistoryRecord_Click(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is not ConversationHistoryRow record || !_viewModel.CanImportConversation) return;
+        if (await _viewModel.ImportAsync(record.Path))
         {
-            var picker = new FileOpenPicker(XamlRoot.ContentIslandEnvironment.AppWindowId)
-            {
-                CommitButtonText = _viewModel.Texts["ImportConversation"],
-                FileTypeFilter = { ".json" },
-                SuggestedStartLocation = PickerLocationId.DocumentsLibrary
-            };
-            if (await picker.PickSingleFileAsync() is { } result) await _viewModel.ImportAsync(result.Path);
+            TranscriptTabs.SelectedItem = LiveTranscriptTab;
+            await _viewModel.RefreshHistoryAsync(_pageCancellation.Token);
         }
-        catch (Exception error) when (error is InvalidOperationException or IOException or UnauthorizedAccessException or
-            System.Runtime.InteropServices.COMException)
-        {
-            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorRecordPicker"]);
-        }
-        finally { _recordPickerOpen = false; }
     }
 
     private async void OpenRecordsFolder_Click(object sender, RoutedEventArgs e)

@@ -31,5 +31,6 @@ internal sealed class AnswerPanelLayout
     public void ToggleExpansion() => Mode = Mode == AnswerPanelMode.Expanded
         ? AnswerPanelMode.Normal : AnswerPanelMode.Expanded;
 
-    public void Reset() => Mode = AnswerPanelMode.Collapsed;
+    public void Collapse() => Mode = AnswerPanelMode.Collapsed;
+    public void Reset() => Collapse();
 }

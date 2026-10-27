@@ -25,6 +25,12 @@ public sealed partial class MainViewModel
         NotifyAnswerPanel();
     }
 
+    public void CollapseAnswerPanel()
+    {
+        _answerPanelLayout.Collapse();
+        NotifyAnswerPanel();
+    }
+
     private void ShowAnswerPanel()
     {
         _answerPanelLayout.Open();

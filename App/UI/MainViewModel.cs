@@ -1,9 +1,11 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using ConversationAssistant.Core.Authentication;
 using ConversationAssistant.Core.Conversation;
 using ConversationAssistant.Core.Localization;
 using ConversationAssistant.Core.Models;
+using ConversationAssistant.Core.Persistence;
 using ConversationAssistant.Core.Transcript;
 using ConversationAssistant.Core.Settings;
 using ConversationAssistant.Core.WorkIQ;
@@ -13,7 +15,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
-using Windows.UI;
 
 namespace ConversationAssistant_App.UI;
 
@@ -58,6 +59,8 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
 {
     private readonly ConversationSessionManager _conversation;
     private readonly IAuthenticationService _auth;
+    private readonly StartupSignIn _startupSignIn;
+    private bool _startupSignInAttempted;
     private readonly ILogger<MainViewModel> _logger;
     private readonly ISpeechSettingsStore _speechSettings;
     private readonly AzureSpeechConnectionTester _speechConnectionTester;
@@ -116,10 +119,13 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
 
     public MainViewModel(ConversationSessionManager conversation, IAuthenticationService auth,
         ILogger<MainViewModel> logger, ISpeechSettingsStore speechSettings,
-        AzureSpeechConnectionTester speechConnectionTester, SpeechEntraIdentity speechIdentity)
+        AzureSpeechConnectionTester speechConnectionTester, SpeechEntraIdentity speechIdentity,
+        JsonConversationArchiveStore historyStore)
     {
+        _historyStore = historyStore;
         _conversation = conversation;
         _auth = auth;
+        _startupSignIn = new StartupSignIn(auth);
         _logger = logger;
         _speechSettings = speechSettings;
         _speechConnectionTester = speechConnectionTester;
@@ -176,7 +182,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
                 nameof(CanChangeSpeechLanguage), nameof(CanEditSpeechSettings), nameof(CanSignIn),
                 nameof(CanAnalyzeConversation), nameof(CanChangeAudioSettings),
                 nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice),
-                nameof(CanCreateGroup), nameof(CanImportConversation), nameof(CanSaveConversation));
+                nameof(CanCreateGroup), nameof(CanImportConversation), nameof(CanSaveConversation), nameof(CanNewChat));
         }
     }
 
@@ -238,6 +244,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         foreach (var row in Answers) row.UpdateLanguage(Texts);
         foreach (var row in _groupRows.Values) row.Refresh(Texts);
         foreach (var row in AnalysisHistory) row.Refresh(Texts);
+        foreach (var row in ConversationHistory) row.UpdateLanguage(Texts);
         foreach (var row in AudioDevices) row.UpdateLanguage(Texts);
         foreach (var row in OutputDevices) row.UpdateLanguage(Texts);
         Notify(nameof(Texts), nameof(SpeechLanguageIndex), nameof(AnalysisLanguageIndex),
@@ -248,7 +255,10 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             nameof(ScrollText), nameof(LastError), nameof(AnalysisStatus), nameof(AnalysisError),
             nameof(PendingAnalysisText), nameof(AnalysisScheduleText), nameof(RecordStatus),
             nameof(RecordPath), nameof(AutomaticAnalysis));
+        NotifyAssistance();
         NotifyAnswerPanel();
+        NotifyHistory();
+        Notify(nameof(StageDocumentSections));
     }
 
     public string StatusText => Texts[State switch
@@ -266,14 +276,19 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         _ => "StatusIdle"
     }];
 
-    public Brush StatusBrush => new SolidColorBrush(State switch
+    public Brush StatusBrush => (Brush)Application.Current.Resources[State switch
     {
-        ConversationUiState.Listening or ConversationUiState.SpeechDetected => Color.FromArgb(255, 35, 177, 106),
-        ConversationUiState.QuestionDetected => Color.FromArgb(255, 70, 151, 235),
-        ConversationUiState.Thinking or ConversationUiState.Answering => Color.FromArgb(255, 166, 112, 240),
-        ConversationUiState.Error or ConversationUiState.Offline => Color.FromArgb(255, 238, 88, 93),
-        _ => Color.FromArgb(255, 135, 144, 160)
-    });
+        ConversationUiState.Listening or ConversationUiState.SpeechDetected => "TeamsSuccessBrush",
+        ConversationUiState.QuestionDetected or ConversationUiState.Thinking or ConversationUiState.Answering => "TeamsAccentBrush",
+        ConversationUiState.Error or ConversationUiState.Offline => "TeamsDangerBrush",
+        _ => "TeamsSecondaryTextBrush"
+    }];
+
+    public void RefreshTheme()
+    {
+        foreach (var row in TranscriptItems) row.RefreshAppearance();
+        Notify(nameof(StatusBrush));
+    }
     public string ListeningText
     {
         get
@@ -309,6 +324,8 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
     public bool CanSignIn => !_verifying && _conversation.Session is null && !WorkspaceBusy &&
         !_savingSpeechSettings && !_testingSpeechConnection && !_conversation.HasPendingWork;
     public bool CanStart => _conversation.Session is null && !WorkspaceBusy && !_savingSpeechSettings &&
+        !_testingSpeechConnection && !_verifying;
+    public bool CanNewChat => !WorkspaceBusy && !_savingRecord && !_savingSpeechSettings &&
         !_testingSpeechConnection && !_verifying;
     public bool CanEnd => _conversation.Session is not null && !WorkspaceBusy;
     public bool CanPause => _conversation.IsListening && !WorkspaceBusy;
@@ -526,15 +543,22 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task StartAsync()
+    public Task StartAsync() => StartConversationAsync(newChat: false);
+    public Task<bool> NewChatAsync() => StartConversationAsync(newChat: true);
+
+    private async Task<bool> StartConversationAsync(bool newChat)
     {
-        if (!CanStart) return;
+        if (newChat ? !CanNewChat : !CanStart) return false;
         _starting = true;
         State = ConversationUiState.Starting;
-        Notify(nameof(CanStart));
+        NotifyWorkspaceControls();
         try
         {
-            await Task.Run(() => _conversation.StartConversation(Settings));
+            await Task.Run(async () =>
+            {
+                if (newChat) await _conversation.StartNewConversationAsync(Settings);
+                else _conversation.StartConversation(Settings);
+            });
             OnUi(() =>
             {
                 LastError = Settings.AutomaticAnalysis && !_auth.IsSignedIn
@@ -543,6 +567,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
                 Notify(nameof(ListeningText));
             });
             _logger.LogInformation("Conversation started; audio and local speech initialized");
+            return true;
         }
         catch (Exception ex) when (ex is InvalidOperationException or NAudio.MmException or
             System.Runtime.InteropServices.COMException or UnauthorizedAccessException or
@@ -551,20 +576,17 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         {
             OnUi(() => LastError = ex.Message);
             _logger.LogWarning("Conversation startup failed: {ErrorType}", ex.GetType().Name);
+            return false;
         }
         finally
         {
-            OnUi(() => { _starting = false; Notify(nameof(CanStart), nameof(CanEnd),
-                nameof(CanPause), nameof(CanResume), nameof(CanChangeSpeechLanguage),
-                nameof(CanEditSpeechSettings), nameof(CanSignIn), nameof(CanAnalyzeConversation),
-                nameof(CanChangeAudioSettings), nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice)); });
-            OnUi(NotifyWorkspaceControls);
+            OnUi(() => { _starting = false; State = _conversation.State; NotifyWorkspaceControls(); });
         }
     }
 
     public async Task EndAsync()
     {
-        if (_ending || _importing) return;
+        if (_ending || _importing || _starting) return;
         _ending = true;
         NotifyWorkspaceControls();
         try
@@ -613,17 +635,26 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task SignInAsync()
+    public Task SignInAsync() => SignInCoreAsync(() => Task.Run(() => _auth.SignInAsync()), CancellationToken.None);
+
+    public async Task SignInAtStartupAsync(CancellationToken cancellationToken)
     {
-        if (!CanSignIn) return;
+        if (_startupSignInAttempted || _auth.IsSignedIn) return;
+        _startupSignInAttempted = true;
+        await SignInCoreAsync(() => _startupSignIn.StartAsync(cancellationToken), cancellationToken);
+    }
+
+    private async Task SignInCoreAsync(Func<Task> signIn, CancellationToken cancellationToken)
+    {
+        if (!CanSignIn || cancellationToken.IsCancellationRequested) return;
         _conversation.ResetWorkIqContext();
         _verifying = true;
         UpdateAuthenticationStatus();
-        Notify(nameof(CanSignIn), nameof(SignInButtonText), nameof(CanStart), nameof(CanEditSpeechSettings));
+        NotifyWorkspaceControls();
         try
         {
             LastError = "";
-            await _auth.SignInAsync();
+            await signIn();
             OnUi(() =>
             {
                 LastError = "";
@@ -631,8 +662,10 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             _logger.LogInformation("Microsoft sign-in flow completed");
         }
 
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
         catch (Exception ex) when (ex is WorkIqException or TimeoutException or InvalidOperationException or
-            IOException or UnauthorizedAccessException)
+            IOException or UnauthorizedAccessException or System.Security.Cryptography.CryptographicException or
+            System.Text.Json.JsonException)
         {
             OnUi(() =>
             {
@@ -646,7 +679,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             {
                 _verifying = false;
                 UpdateAuthenticationStatus();
-                Notify(nameof(CanSignIn), nameof(SignInButtonText), nameof(CanStart), nameof(CanEditSpeechSettings));
+                NotifyWorkspaceControls();
             });
         }
     }
@@ -771,18 +804,6 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
     {
         SelectAnswer(null);
         _followNewestAnswers = true;
-    }
-
-    public void OpenTranscriptCard(Guid segmentId)
-    {
-        try
-        {
-            _followNewestAnswers = false;
-            var request = _conversation.AskFromTranscript(segmentId);
-            SelectAnswer(UpsertAnswer(request));
-            ShowAnswerPanel();
-        }
-        catch (InvalidOperationException error) { LastError = error.Message; }
     }
 
     public void AnalyzeConversation()
@@ -910,10 +931,11 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         _analysisBusy = analyses.Any(item => item.GroupId is null &&
             item.Status is QuestionStatus.Pending or QuestionStatus.Processing);
         _pendingAnalysisCount = _conversation.PendingAnalysisCount;
+        RefreshAssistance();
         RefreshSelectedAnalysis();
         Notify(nameof(AnalysisScheduleText), nameof(PendingAnalysisText),
             nameof(CanAnalyzeConversation), nameof(CanSignIn), nameof(IntentSummary), nameof(StageSummaries),
-            nameof(EmptyIntentVisibility), nameof(EmptyStageSummariesVisibility));
+            nameof(EmptyIntentVisibility), nameof(EmptyStageSummariesVisibility), nameof(StageDocumentSections));
     }
 
     private void RefreshSelectedAnalysis()
@@ -941,7 +963,8 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
                 row.UpdateRequest(request);
         }
         Synchronize(SuggestedQuestions, rows);
-        Notify(nameof(EmptySuggestionsVisibility));
+        Notify(nameof(EmptySuggestionsVisibility), nameof(SelectedAssistanceText), nameof(SelectedAssistanceVisibility),
+            nameof(IntentDocumentSections));
     }
 
     private AnswerRow UpsertAnswer(QuestionRequest request)
