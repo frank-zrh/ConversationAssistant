@@ -12,7 +12,7 @@ public static class WorkIqPromptSender
 
     public static async Task<(WorkIqAnswer Answer, DiscoveredAnalysis Analysis)> AskAnalysisAsync(
         IWorkIqClient client, string prompt, string? conversationId, CancellationToken cancellationToken,
-        WorkIqDiagnostics? diagnostics = null)
+        WorkIqDiagnostics? diagnostics = null, IReadOnlyList<TranscriptSegment>? analyzedTranscript = null)
     {
         for (var attempt = 1; ; attempt++)
         {
@@ -20,7 +20,7 @@ public static class WorkIqPromptSender
             // Re-send the complete request (including every multipart chunk), never
             // publish or adopt conversation IDs from a malformed response.
             var retryPrompt = attempt == 1 ? prompt : prompt + "\n\n" +
-                "FORMAT RECOVERY: A previous response failed JSON/schema validation. " +
+                "FORMAT RECOVERY: A previous response failed JSON/schema or quoted transcript evidence validation. " +
                 "Return only one complete JSON object matching the requested schema. " +
                 "Use JSON string escapes for table newlines. Do not include prose or fences. " +
                 "Do not invent missing facts; use the schema's empty arrays or explicit unknowns.";
@@ -29,6 +29,7 @@ public static class WorkIqPromptSender
             try
             {
                 var analysis = ConversationQuestionParser.ParseAnalysis(answer.Text);
+                if (analyzedTranscript is not null) ConversationQuestionParser.ValidateEvidence(analysis, analyzedTranscript);
                 cancellationToken.ThrowIfCancellationRequested();
                 return (answer, analysis);
             }

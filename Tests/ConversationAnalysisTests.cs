@@ -56,8 +56,8 @@ public sealed partial class PipelineTests
             Assert.IsFalse(second.StageContext!.Contains("Statement 1", StringComparison.Ordinal));
             StringAssert.Contains(second.PreviousStageSummaries, first.StageSummary);
             StringAssert.Contains(AnalysisTranscript(fake.Work.Calls.Last().Prompt), "Statement 1");
-            StringAssert.Contains(fake.Work.Calls.Last().Prompt, "Technical architecture options");
-            StringAssert.Contains(fake.Work.Calls.Last().Prompt, "Product-sales evidence");
+            StringAssert.Contains(fake.Work.Calls.Last().Prompt, "FollowUp:");
+            StringAssert.Contains(fake.Work.Calls.Last().Prompt, "ConversationControl:");
             var repeated = fake.Conversation.AnalyzeConversation();
             await WaitUntil(() => repeated.Status == QuestionStatus.Completed);
             Assert.AreEqual("", repeated.StageContext);

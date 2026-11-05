@@ -163,7 +163,9 @@ public sealed class ConversationArchive
             Question = item.Question,
             Reason = item.Reason,
             ContextUsed = item.ContextUsed,
-            Timestamp = item.Timestamp
+            Timestamp = item.Timestamp,
+            Kind = item.Kind, Evidence = item.Evidence, Role = item.Role,
+            ResolvedInConversation = item.ResolvedInConversation, ResolutionEvidence = item.ResolutionEvidence
         }));
         var suggestions = session.SuggestedQuestions.ToDictionary(item => item.Id);
         session.Analyses.AddRange(data.Analyses.Select(item => new ConversationAnalysisRequest
@@ -263,7 +265,9 @@ public sealed class ConversationArchive
         Timestamp = item.Timestamp,
         Question = item.Question,
         Reason = item.Reason,
-        ContextUsed = item.ContextUsed
+        ContextUsed = item.ContextUsed,
+        Kind = item.Kind, Evidence = item.Evidence, Role = item.Role,
+        ResolvedInConversation = item.ResolvedInConversation, ResolutionEvidence = item.ResolutionEvidence
     };
 
     private static QuestionStatus RestoredStatus(QuestionStatus status) =>
@@ -381,6 +385,11 @@ internal sealed record ArchiveSuggestion
     public required string Question { get; init; }
     public required string Reason { get; init; }
     public required string ContextUsed { get; init; }
+    public RecommendationKind Kind { get; init; }
+    public string Evidence { get; init; } = "";
+    public string Role { get; init; } = "";
+    public bool ResolvedInConversation { get; init; }
+    public string ResolutionEvidence { get; init; } = "";
 }
 
 internal sealed record ArchiveAnswer

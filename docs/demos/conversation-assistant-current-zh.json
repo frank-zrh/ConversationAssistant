@@ -1,0 +1,312 @@
+{
+  "simulation": true,
+  "language": "zh-CN",
+  "size": [
+    1440,
+    900
+  ],
+  "duration_ms": 28000,
+  "history_column_ratios": [
+    0.2,
+    0.2,
+    0.6
+  ],
+  "timestamp_format": "yyyy-MM-dd HH:mm",
+  "font": "msyh.ttc",
+  "source_fingerprints": {
+    "App/MainPage.xaml": "24db2f9394c01ccbe6d66cb005a961d173301bb76f55949d246b5fd14220c6c0",
+    "App/Themes/TeamsTheme.xaml": "7a90d43f142ca9a90aa762d7faf2208279d23d86fe90deab0298e7362869fd56",
+    "Core/Localization/UiStrings.zh-CN.resx": "ce15079647f18090aedc21aeee94032714437adb159c60016f0716a513ec7615",
+    "App/UI/ConversationHistoryRow.cs": "441ad0148ef3fc7155755e7810586e9d6fcf2d0d0dd4e3bf23ba7b25c58a6269",
+    "App/UI/SelectableAnalysisView.cs": "fce6a3bf03760b6367b523b68834ecbcb408e8f0126592f2c27458f902d68245",
+    "Core/Authentication/StartupSignIn.cs": "a5747eeffd425477ae34a857ccf602a1487efbbd97b8eb7e78395156753bf46b",
+    "Core/Conversation/ConversationSessionManager.cs": "34b63a2c2fb4f7daf4df410f422a915a62464456df94cc9010ca4258b01dd442",
+    "App/Assets/AppIcon.png": "9cc98df8275f583bfbaf80599cc9a8d2b8246ba82fc05c52be6ed9e3907c8c3c"
+  },
+  "scenes": [
+    {
+      "key": "startup",
+      "title": "窗口先打开，Microsoft 登录在后台进行",
+      "caption": "缓存优先；需要授权时再显示提示。本动画不执行真实登录。",
+      "duration_ms": 2200,
+      "cursor": [
+        1280,
+        75
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 100
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1900
+        }
+      ]
+    },
+    {
+      "key": "live",
+      "title": "实时转写，保留时间与说话人",
+      "caption": "只读会话卡片不触发提问；分析与听写互不阻塞。",
+      "duration_ms": 3200,
+      "cursor": [
+        82,
+        793
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 400
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 600
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 800
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1400
+        }
+      ]
+    },
+    {
+      "key": "history",
+      "title": "结束会话后，一键导入历史记录",
+      "caption": "开始 / 结束各占 20%，意图占 60%；导入保留原始记录。",
+      "duration_ms": 3000,
+      "cursor": [
+        374,
+        350
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 200
+        },
+        {
+          "phase": 0.2,
+          "duration_ms": 200
+        },
+        {
+          "phase": 0.45,
+          "duration_ms": 1000
+        },
+        {
+          "phase": 0.65,
+          "duration_ms": 800
+        },
+        {
+          "phase": 1,
+          "duration_ms": 800
+        }
+      ]
+    },
+    {
+      "key": "intent",
+      "title": "有用建议与会话意图，一次选择全部",
+      "caption": "结论、措辞、要点、依据与意图，共享一个文本选择范围。",
+      "duration_ms": 3600,
+      "cursor": [
+        824,
+        586
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 150
+        },
+        {
+          "phase": 0.3,
+          "duration_ms": 150
+        },
+        {
+          "phase": 0.6,
+          "duration_ms": 1800
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1500
+        }
+      ]
+    },
+    {
+      "key": "stages",
+      "title": "阶段总结持续积累，完整选择与复制",
+      "caption": "每个阶段保留范围与时间；Select All 覆盖整个页签。",
+      "duration_ms": 2600,
+      "cursor": [
+        849,
+        230
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 900
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1500
+        }
+      ]
+    },
+    {
+      "key": "questions",
+      "title": "推荐精炼问题，按需获取专业回复",
+      "caption": "主动选择推荐问题才获取回复；也可手动输入并提问。",
+      "duration_ms": 2800,
+      "cursor": [
+        906,
+        298
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 100
+        },
+        {
+          "phase": 1,
+          "duration_ms": 2500
+        }
+      ]
+    },
+    {
+      "key": "products",
+      "title": "产品向导：快速查阅方案与限制",
+      "caption": "展示对话相关信息；授权与费用仍需核实官方条款。",
+      "duration_ms": 2600,
+      "cursor": [
+        1194,
+        230
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 100
+        },
+        {
+          "phase": 1,
+          "duration_ms": 2300
+        }
+      ]
+    },
+    {
+      "key": "answers",
+      "title": "展开回复区域，专注阅读关键细节",
+      "caption": "左键保持原有尺寸循环；低频操作收进回复下拉菜单。",
+      "duration_ms": 3000,
+      "cursor": [
+        974,
+        309
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 100
+        },
+        {
+          "phase": 1,
+          "duration_ms": 2700
+        }
+      ]
+    },
+    {
+      "key": "collapse",
+      "title": "右键一键隐藏，保留恢复入口",
+      "caption": "隐藏全部回复内容，把更多空间还给对话分析。",
+      "duration_ms": 1800,
+      "cursor": [
+        974,
+        309
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.3,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.6,
+          "duration_ms": 500
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1100
+        }
+      ]
+    },
+    {
+      "key": "newchat",
+      "title": "先保存，再立即切换到新聊天",
+      "caption": "会话与工作区同步清空并开始新会话；原记录留在历史中。",
+      "duration_ms": 3200,
+      "cursor": [
+        422,
+        236
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 150
+        },
+        {
+          "phase": 0.3,
+          "duration_ms": 1300
+        },
+        {
+          "phase": 0.6,
+          "duration_ms": 350
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1400
+        }
+      ]
+    }
+  ]
+}

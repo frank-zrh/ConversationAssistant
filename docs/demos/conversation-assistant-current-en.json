@@ -1,0 +1,476 @@
+{
+  "simulation": true,
+  "language": "en-US",
+  "size": [
+    1440,
+    900
+  ],
+  "duration_ms": 28000,
+  "visible_text": [
+    "",
+    "00:00",
+    "00:58",
+    "01 / 10",
+    "02 / 10",
+    "03 / 10",
+    "04 / 10",
+    "05 / 10",
+    "06 / 10",
+    "07 / 10",
+    "08 / 10",
+    "09 / 10",
+    "10 / 10",
+    "10:00",
+    "10:35",
+    "14:00",
+    "14:00:04",
+    "14:00:12",
+    "14:00:20",
+    "14:00:28",
+    "14:00:36",
+    "14:00:44",
+    "14:00:52",
+    "14:01",
+    "15:10",
+    "15:45",
+    "2026-10-24",
+    "2026-10-25",
+    "2026-10-26",
+    "28s loop",
+    "3 saved conversations, newest first",
+    "Analysis #1 · 10-26 14:00 · Entire conversation",
+    "Analysis #2 · 10-26 14:01 · Entire conversation",
+    "Analysis #3 · 10-26 14:01 · Entire conversation",
+    "Analysis #3 · 10-26 14:01 · Entire conversation                    v",
+    "Analyze All Chat",
+    "Analyze the conversation to see its overall intent.",
+    "Analyzed · Open the saved result",
+    "App users / Approvers / External customers",
+    "Approval workflow: compare",
+    "Approver permissions and external access still need verification.",
+    "Ask",
+    "Audio stopped",
+    "Both panes reset for the new chat. The previous conversation remains in history.",
+    "Build a verifiable field-app rollout, licensing and governance plan.",
+    "Cached credentials first; prompt if needed. No real sign-in is performed in this demo.",
+    "Can external customers submit requests in Power Pages?",
+    "Check",
+    "Check permissions, licensing and data boundaries.",
+    "Choose a recommendation to request a reply, or type your own question.",
+    "Clear",
+    "Compare rollout scope, cost inputs and delivery risks.",
+    "Completed · Simulated reply",
+    "Concise recommendations. Detailed answers on demand.",
+    "Conditions to verify (illustrative)",
+    "Confirm rollout scope before comparing licensing and governance.",
+    "Confirm security roles, environment isolation and DLP",
+    "Connectors",
+    "Connectors, Dataverse, environments and capacity",
+    "Conversation Assistant",
+    "Conversation intent",
+    "Conversation-relevant guidance. Verify licensing and costs against official terms.",
+    "Copy",
+    "Current Conversation",
+    "Current official terms and the actual solution",
+    "Data governance: confirm environments,",
+    "Data security",
+    "Decision basis",
+    "Demo account (simulated)",
+    "Distinguish app users from approval participants",
+    "Does this rollout include deployment, training and permissions?",
+    "Each stage retains its scope and time. Select All covers the complete tab.",
+    "End capture, then load a saved conversation",
+    "End time",
+    "Evidence and references",
+    "Expand the answer area and focus on the details",
+    "Fictional example; not verified licensing, pricing or a customer commitment.",
+    "Fictional feature demo",
+    "Fictional turns 1–7. External links were not opened automatically.",
+    "Field app rollout: verify licensing, data",
+    "For the current discussion (simulated)",
+    "Goal: unify field data in a mobile app, with approvals and progress reporting.",
+    "Hide all answer content and give conversation analysis more room.",
+    "History",
+    "How should approval duties and data access be separated?",
+    "Identify app users, approval-only participants and external customers.",
+    "Identities",
+    "Intent",
+    "Key checks",
+    "Last saved at 14:01",
+    "Left-click cycles panel sizes. Less-used actions stay in the answer menu.",
+    "List identities, connectors and capacity, then check the applicable official terms.",
+    "Live transcripts with timestamps and speaker labels",
+    "Microphone + system audio",
+    "New Chat",
+    "New Group",
+    "New boundaries: distinguish app users, approvers and external customers; check permissions and",
+    "New chat · Auto-save",
+    "Next: document connector, capacity and isolation assumptions, then confirm the rollout plan and risks.",
+    "Not analyzed · Select to request",
+    "Open Record Folder",
+    "Open first. Microsoft sign-in runs in the background.",
+    "Pause scrolling",
+    "Power Apps and Dataverse",
+    "Product guidance: capabilities, conditions and limits",
+    "Product guide",
+    "Read-only transcript cards never submit questions. Analysis and transcription are independent.",
+    "Recommended questions",
+    "Refresh History",
+    "Right-click",
+    "Right-click to hide answers. Keep the restore control.",
+    "Route approvals through Power Automate.",
+    "Save Now",
+    "Save the current chat, then start a fresh workspace",
+    "Saved analysis covers 7/7 turns (simulated)",
+    "Select a saved conversation to load it. End any active conversation first. The original saved",
+    "Select an analysis",
+    "Select the conclusion, wording, key points, evidence and intent as one document.",
+    "Signed in",
+    "Signing in...",
+    "Speaker 1",
+    "Speaker 2",
+    "Stage summaries",
+    "Stage summaries accumulate. Select and copy them all.",
+    "Start Conversation",
+    "Start and end each use 20%; intent uses 60%. Loading preserves the original record.",
+    "Start time",
+    "Suggested answer",
+    "Technical scope",
+    "Then verify terms against connectors, capacity and data access conditions.",
+    "To confirm",
+    "Track progress with Power BI.",
+    "Type a question (Ctrl+Enter)",
+    "USEFUL NOW",
+    "Use Power Apps and Dataverse to unify the data.",
+    "Useful assistance and intent in one Select All scope",
+    "Useful information appears when conversation analysis completes.",
+    "Useful now",
+    "Useful now · Intent",
+    "User identities",
+    "Verify capabilities, users and governance for this scenario.",
+    "Verify premium connectors and environment policies",
+    "View Log",
+    "WORK IQ · CONVERSATION ANALYSIS",
+    "We need a mobile app for 120 field technicians.",
+    "Which connector combinations could DLP restrict?",
+    "Which users need premium licensing checks?",
+    "Which users need premium licensing checks?                 v",
+    "You could say",
+    "boundaries and delivery risks.",
+    "licensing.",
+    "record is preserved.",
+    "responsibilities, exceptions and delivery",
+    "scope.",
+    "security roles and DLP policies.",
+    "···",
+    "—      □      ×",
+    "• Licensing depends on identities, connectors and capacity.",
+    "• Separate app users, approvers and external customers.",
+    "● Idle",
+    "● Listening"
+  ],
+  "history_column_ratios": [
+    0.2,
+    0.2,
+    0.6
+  ],
+  "timestamp_format": "yyyy-MM-dd HH:mm",
+  "font": "segoeui.ttf",
+  "source_fingerprints": {
+    "App/MainPage.xaml": "24db2f9394c01ccbe6d66cb005a961d173301bb76f55949d246b5fd14220c6c0",
+    "App/Themes/TeamsTheme.xaml": "7a90d43f142ca9a90aa762d7faf2208279d23d86fe90deab0298e7362869fd56",
+    "Core/Localization/UiStrings.resx": "c1efdea298e2b1b6dd54bb77a526a3a4805c7c803b08e65a9ce66079cc640160",
+    "App/UI/ConversationHistoryRow.cs": "441ad0148ef3fc7155755e7810586e9d6fcf2d0d0dd4e3bf23ba7b25c58a6269",
+    "App/UI/SelectableAnalysisView.cs": "fce6a3bf03760b6367b523b68834ecbcb408e8f0126592f2c27458f902d68245",
+    "Core/Authentication/StartupSignIn.cs": "a5747eeffd425477ae34a857ccf602a1487efbbd97b8eb7e78395156753bf46b",
+    "Core/Conversation/ConversationSessionManager.cs": "34b63a2c2fb4f7daf4df410f422a915a62464456df94cc9010ca4258b01dd442",
+    "App/Assets/AppIcon.png": "9cc98df8275f583bfbaf80599cc9a8d2b8246ba82fc05c52be6ed9e3907c8c3c",
+    "tools/current_demo_english.py": "a7bf5f11f6cdcf6d6664f1a933d67b360b875bef5c3a7da348b2a36c40a5e24b"
+  },
+  "scenes": [
+    {
+      "key": "startup",
+      "title": "Open first. Microsoft sign-in runs in the background.",
+      "caption": "Cached credentials first; prompt if needed. No real sign-in is performed in this demo.",
+      "duration_ms": 2200,
+      "cursor": [
+        1280,
+        75
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 100
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1900
+        }
+      ]
+    },
+    {
+      "key": "live",
+      "title": "Live transcripts with timestamps and speaker labels",
+      "caption": "Read-only transcript cards never submit questions. Analysis and transcription are independent.",
+      "duration_ms": 3200,
+      "cursor": [
+        82,
+        793
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 400
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 600
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 800
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1400
+        }
+      ]
+    },
+    {
+      "key": "history",
+      "title": "End capture, then load a saved conversation",
+      "caption": "Start and end each use 20%; intent uses 60%. Loading preserves the original record.",
+      "duration_ms": 3000,
+      "cursor": [
+        374,
+        350
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 200
+        },
+        {
+          "phase": 0.2,
+          "duration_ms": 200
+        },
+        {
+          "phase": 0.45,
+          "duration_ms": 1000
+        },
+        {
+          "phase": 0.65,
+          "duration_ms": 800
+        },
+        {
+          "phase": 1,
+          "duration_ms": 800
+        }
+      ]
+    },
+    {
+      "key": "intent",
+      "title": "Useful assistance and intent in one Select All scope",
+      "caption": "Select the conclusion, wording, key points, evidence and intent as one document.",
+      "duration_ms": 3600,
+      "cursor": [
+        824,
+        586
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 150
+        },
+        {
+          "phase": 0.3,
+          "duration_ms": 150
+        },
+        {
+          "phase": 0.6,
+          "duration_ms": 1800
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1500
+        }
+      ]
+    },
+    {
+      "key": "stages",
+      "title": "Stage summaries accumulate. Select and copy them all.",
+      "caption": "Each stage retains its scope and time. Select All covers the complete tab.",
+      "duration_ms": 2600,
+      "cursor": [
+        849,
+        230
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 900
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1500
+        }
+      ]
+    },
+    {
+      "key": "questions",
+      "title": "Concise recommendations. Detailed answers on demand.",
+      "caption": "Choose a recommendation to request a reply, or type your own question.",
+      "duration_ms": 2800,
+      "cursor": [
+        906,
+        298
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 100
+        },
+        {
+          "phase": 1,
+          "duration_ms": 2500
+        }
+      ]
+    },
+    {
+      "key": "products",
+      "title": "Product guidance: capabilities, conditions and limits",
+      "caption": "Conversation-relevant guidance. Verify licensing and costs against official terms.",
+      "duration_ms": 2600,
+      "cursor": [
+        1280,
+        230
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 100
+        },
+        {
+          "phase": 1,
+          "duration_ms": 2300
+        }
+      ]
+    },
+    {
+      "key": "answers",
+      "title": "Expand the answer area and focus on the details",
+      "caption": "Left-click cycles panel sizes. Less-used actions stay in the answer menu.",
+      "duration_ms": 3000,
+      "cursor": [
+        974,
+        309
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.33,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.66,
+          "duration_ms": 100
+        },
+        {
+          "phase": 1,
+          "duration_ms": 2700
+        }
+      ]
+    },
+    {
+      "key": "collapse",
+      "title": "Right-click to hide answers. Keep the restore control.",
+      "caption": "Hide all answer content and give conversation analysis more room.",
+      "duration_ms": 1800,
+      "cursor": [
+        974,
+        309
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.3,
+          "duration_ms": 100
+        },
+        {
+          "phase": 0.6,
+          "duration_ms": 500
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1100
+        }
+      ]
+    },
+    {
+      "key": "newchat",
+      "title": "Save the current chat, then start a fresh workspace",
+      "caption": "Both panes reset for the new chat. The previous conversation remains in history.",
+      "duration_ms": 3200,
+      "cursor": [
+        422,
+        236
+      ],
+      "beats": [
+        {
+          "phase": 0,
+          "duration_ms": 150
+        },
+        {
+          "phase": 0.3,
+          "duration_ms": 1300
+        },
+        {
+          "phase": 0.6,
+          "duration_ms": 350
+        },
+        {
+          "phase": 1,
+          "duration_ms": 1400
+        }
+      ]
+    }
+  ]
+}

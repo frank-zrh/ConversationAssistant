@@ -485,7 +485,9 @@ public sealed partial class ConversationSessionManager
         var previous = session.Analyses.LastOrDefault(item => item.GroupId == group?.Id &&
             ConversationAnalysisPrompt.CanReuseQuestionsFrom(item.GuidanceVersion) &&
             item.Status == QuestionStatus.Completed && item.Transcript.All(segment => transcriptIds.Contains(segment.Id)));
-        var questions = previous?.Questions.ToArray() ?? [];
+        var questions = previous is null ? [] : RecommendedQuestionBacklog.Select(
+            GetScopeRecommendationCandidatesLocked(session, previous), session.Answers)
+            .Where(question => !question.ResolvedInConversation).ToArray();
         var stages = session.Analyses.Where(item => item.GroupId == group?.Id &&
             item.Status == QuestionStatus.Completed && !string.IsNullOrWhiteSpace(item.StageSummary) &&
             item.Transcript.All(segment => transcriptIds.Contains(segment.Id))).ToArray();
@@ -543,7 +545,7 @@ public sealed partial class ConversationSessionManager
                 request = new QuestionRequest
                 {
                     Question = question.Question,
-                    ContextUsed = question.ContextUsed,
+                    ContextUsed = SuggestionContext(session, question),
                     Timestamp = _timeProvider.GetUtcNow(),
                     IsManual = true,
                     SuggestedQuestionId = question.Id
@@ -806,7 +808,8 @@ public sealed partial class ConversationSessionManager
         try
         {
             var (answer, analysis) = await WorkIqPromptSender.AskAnalysisAsync(_workIq,
-                ConversationAnalysisPrompt.Build(request, session.Settings), null, cancellation.Token, _workIqDiagnostics)
+                ConversationAnalysisPrompt.Build(request, session.Settings), null, cancellation.Token, _workIqDiagnostics,
+                request.Transcript)
                 .ConfigureAwait(false);
             cancellation.Token.ThrowIfCancellationRequested();
             lock (_gate)
@@ -831,20 +834,31 @@ public sealed partial class ConversationSessionManager
                     .ToHashSet(StringComparer.Ordinal);
                 var result = new List<SuggestedQuestion>();
                 var existing = new HashSet<string>(StringComparer.Ordinal);
-                foreach (var question in analysis.Questions)
+                foreach (var resolution in analysis.ResolvedQuestions)
+                {
+                    if (!candidates.TryGetValue(ConversationQuestionParser.QuestionKey(resolution.Question), out var resolved)) continue;
+                    resolved.ResolvedInConversation = true;
+                    resolved.ResolutionEvidence = resolution.AnswerEvidence;
+                }
+                foreach (var question in analysis.Questions.OrderBy(item => RecommendedQuestionBacklog.Priority(item.Kind)))
                 {
                     if (result.Count == ConversationAnalysisPrompt.MaximumRecommendedQuestions) break;
                     var key = ConversationQuestionParser.QuestionKey(question.Question);
-                    if (alreadyRequested.Contains(key) || !existing.Add(key)) continue;
+                    if (question.Kind == RecommendationKind.Unspecified && alreadyRequested.Contains(key) || !existing.Add(key)) continue;
                     if (candidates.TryGetValue(key, out var candidate))
                     {
+                        if (question.Kind != RecommendationKind.Unspecified)
+                        {
+                            candidate.UpdateRecommendation(question.Kind, question.Reason, question.Evidence, question.Role);
+                        }
                         result.Add(candidate);
                         continue;
                     }
                     var suggestion = new SuggestedQuestion
                     {
                         Question = question.Question, Reason = question.Reason,
-                        ContextUsed = context, Timestamp = request.Timestamp
+                        ContextUsed = context, Timestamp = request.Timestamp,
+                        Kind = question.Kind, Evidence = question.Evidence, Role = question.Role
                     };
                     session.SuggestedQuestions.Add(suggestion);
                     result.Add(suggestion);

@@ -150,6 +150,12 @@ internal sealed class ArchiveValidator
             Require(!string.IsNullOrWhiteSpace(suggestion.Question), "A suggested question cannot be empty.");
             Text(suggestion.Reason);
             Text(suggestion.ContextUsed);
+            EnumValue(suggestion.Kind);
+            Text(suggestion.Evidence, SuggestedQuestion.MaximumEvidenceLength);
+            Text(suggestion.Role, SuggestedQuestion.MaximumRoleLength);
+            Text(suggestion.ResolutionEvidence, SuggestedQuestion.MaximumEvidenceLength);
+            Require(!suggestion.ResolvedInConversation || !string.IsNullOrWhiteSpace(suggestion.ResolutionEvidence),
+                "A required text value is null or exceeds its length limit.");
         }
         foreach (var analysis in data.Analyses)
             foreach (var id in analysis.QuestionIds)

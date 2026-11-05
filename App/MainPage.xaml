@@ -319,12 +319,15 @@
                                                         Padding="10" Margin="0,0,0,6" CornerRadius="8"
                                                         Background="{ThemeResource TeamsSubtleBrush}" BorderBrush="{ThemeResource TeamsStrokeBrush}"
                                                         AutomationProperties.Name="{Binding AutomationLabel}"
-                                                        ToolTipService.ToolTip="{Binding Texts[SuggestedQuestionHint]}"
+                                                        AutomationProperties.HelpText="{Binding Texts[SuggestedQuestionHint]}"
+                                                        ToolTipService.ToolTip="{Binding ReasonDetails}"
                                                         Click="SuggestedQuestion_Click" RightTapped="SuggestedQuestion_RightTapped">
                                                     <StackPanel Spacing="4">
+                                                        <TextBlock Text="{Binding CategoryText}" FontSize="11"
+                                                                   Foreground="{ThemeResource TeamsAccentBrush}" FontWeight="SemiBold" />
                                                         <TextBlock Text="{Binding Question}" TextWrapping="Wrap"
                                                                    FontWeight="{Binding IsAnswered, Converter={StaticResource QuestionAnswerFontWeightConverter}}"
-                                                                   ToolTipService.ToolTip="{Binding Reason}" />
+                                                                   ToolTipService.ToolTip="{Binding ReasonDetails}" />
                                                         <TextBlock Text="{Binding StatusText}" FontSize="12" Opacity=".7" />
                                                     </StackPanel>
                                                 </Button>

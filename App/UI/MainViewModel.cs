@@ -959,6 +959,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             ? row : new SuggestedQuestionRow(question, Texts.Language)).ToArray();
         foreach (var row in rows)
         {
+            row.RefreshRecommendation();
             if (_conversation.GetAnswerForSuggestion(row.Id) is { } request)
                 row.UpdateRequest(request);
         }

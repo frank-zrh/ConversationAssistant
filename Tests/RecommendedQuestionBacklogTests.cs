@@ -162,7 +162,8 @@ public sealed partial class PipelineTests
             await WaitUntil(() => first.Status == QuestionStatus.Completed);
             var question = first.Questions[0];
             var answer = fake.Conversation.AskSuggestedQuestion(question.Id);
-            await WaitUntil(() => answer.Status == QuestionStatus.Completed);
+            await WaitUntil(() => answer.Status is not (QuestionStatus.Pending or QuestionStatus.Processing));
+            Assert.AreEqual(QuestionStatus.Completed, answer.Status, answer.Error);
             fake.Work.AnalysisReply = BacklogReply("What changes next?");
             var second = fake.Conversation.AnalyzeConversation();
             await WaitUntil(() => second.Status == QuestionStatus.Completed);

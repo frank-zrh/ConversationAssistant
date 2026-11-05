@@ -6,10 +6,19 @@ using ConversationAssistant.Core.Models;
 
 namespace ConversationAssistant.Core.WorkIQ;
 
-public sealed record DiscoveredQuestion(string Question, string Reason);
+public sealed record DiscoveredQuestion(string Question, string Reason)
+{
+    public RecommendationKind Kind { get; init; }
+    public string Evidence { get; init; } = "";
+    public string Role { get; init; } = "";
+}
+public sealed record ResolvedQuestion(string Question, string AnswerEvidence);
 public sealed record DiscoveredAnalysis(string IntentSummary, string StageSummary,
     IReadOnlyList<DiscoveredQuestion> Questions, IReadOnlyList<ProductGuide> Products,
-    ConversationAssistance? Assistance = null);
+    ConversationAssistance? Assistance = null)
+{
+    public IReadOnlyList<ResolvedQuestion> ResolvedQuestions { get; init; } = [];
+}
 
 public static partial class ConversationQuestionParser
 {
@@ -50,11 +59,29 @@ public static partial class ConversationQuestionParser
                     throw new WorkIqException(invalid);
                 var text = question.GetString()!.Trim();
                 if (!text.Any(char.IsLetterOrDigit)) throw new WorkIqException(invalid);
+                var kind = RecommendationKind.Unspecified;
+                if (item.TryGetProperty("kind", out var kindValue))
+                {
+                    if (kindValue.ValueKind != JsonValueKind.String || kindValue.GetString() is not
+                        ("Unanswered" or "FollowUp" or "ConversationControl")) throw new WorkIqException(invalid);
+                    kind = Enum.Parse<RecommendationKind>(kindValue.GetString()!);
+                }
+                var evidence = OptionalText(item, "evidence", SuggestedQuestion.MaximumEvidenceLength, invalid);
+                var role = OptionalText(item, "role", SuggestedQuestion.MaximumRoleLength, invalid);
+                if (kind != RecommendationKind.Unspecified && evidence.Length == 0 ||
+                    kind == RecommendationKind.ConversationControl && role.Length == 0)
+                    throw new WorkIqException(invalid);
                 if (seen.Add(QuestionKey(text)))
-                    result.Add(new DiscoveredQuestion(text, reason.GetString()!.Trim()));
+                    result.Add(new DiscoveredQuestion(text, reason.GetString()!.Trim())
+                    {
+                        Kind = kind, Evidence = evidence, Role = role
+                    });
             }
             return new DiscoveredAnalysis(Summary("intentSummary"), Summary("stageSummary"), result,
-                ParseProducts(document.RootElement, invalid), ParseAssistance(document.RootElement, invalid));
+                ParseProducts(document.RootElement, invalid), ParseAssistance(document.RootElement, invalid))
+            {
+                ResolvedQuestions = ParseResolutions(document.RootElement, seen, invalid)
+            };
 
             string Summary(string name)
             {
@@ -72,6 +99,42 @@ public static partial class ConversationQuestionParser
         {
             throw new WorkIqException(invalid, error);
         }
+    }
+
+    private static string OptionalText(JsonElement item, string name, int maximum, string invalid)
+    {
+        if (!item.TryGetProperty(name, out var value)) return "";
+        if (value.ValueKind != JsonValueKind.String || value.GetString()!.Length > maximum)
+            throw new WorkIqException(invalid);
+        return value.GetString()!.Trim();
+    }
+
+    private static IReadOnlyList<ResolvedQuestion> ParseResolutions(JsonElement root, HashSet<string> recommended, string invalid)
+    {
+        if (!root.TryGetProperty("resolvedQuestions", out var values)) return [];
+        if (values.ValueKind != JsonValueKind.Array || values.GetArrayLength() > 100) throw new WorkIqException(invalid);
+        var result = new List<ResolvedQuestion>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var item in values.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object) throw new WorkIqException(invalid);
+            var question = OptionalText(item, "question", 8000, invalid);
+            var evidence = OptionalText(item, "answerEvidence", SuggestedQuestion.MaximumEvidenceLength, invalid);
+            var key = QuestionKey(question);
+            if (key.Length == 0 || evidence.Length == 0 || recommended.Contains(key)) throw new WorkIqException(invalid);
+            if (seen.Add(key)) result.Add(new ResolvedQuestion(question, evidence));
+        }
+        return result;
+    }
+
+    public static void ValidateEvidence(DiscoveredAnalysis analysis, IReadOnlyList<TranscriptSegment> transcript)
+    {
+        static string Normalize(string value) => string.Join(" ", value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        var turns = transcript.Select(item => Normalize(item.Text)).ToArray();
+        bool Grounded(string evidence) => turns.Any(turn => turn.Contains(Normalize(evidence), StringComparison.OrdinalIgnoreCase));
+        if (analysis.Questions.Any(question => question.Evidence.Length > 0 && !Grounded(question.Evidence)) ||
+            analysis.ResolvedQuestions.Any(item => !Grounded(item.AnswerEvidence)))
+            throw new WorkIqException("Work IQ returned an invalid conversation analysis. Retry conversation analysis.");
     }
 
     private static ConversationAssistance? ParseAssistance(JsonElement root, string invalid)

@@ -1,6 +1,7 @@
 namespace ConversationAssistant.Core.Models;
 
 public enum ConversationAnalysisTrigger { Manual, Interval, MessageCount, Group }
+public enum RecommendationKind { Unspecified, Unanswered, FollowUp, ConversationControl }
 
 public sealed record UserQuestionInteraction(string Question, string Action, string Status, bool Truncated = false);
 
@@ -60,9 +61,25 @@ public sealed record ConversationAssistance
 
 public sealed class SuggestedQuestion
 {
+    private string _reason = "";
+    public const int MaximumEvidenceLength = 1000;
+    public const int MaximumRoleLength = 240;
     public Guid Id { get; init; } = Guid.NewGuid();
     public required string Question { get; init; }
-    public required string Reason { get; init; }
+    public required string Reason { get => _reason; init => _reason = value; }
     public required string ContextUsed { get; init; }
     public required DateTimeOffset Timestamp { get; init; }
+    public RecommendationKind Kind { get; internal set; }
+    public string Evidence { get; internal set; } = "";
+    public string Role { get; internal set; } = "";
+    public bool ResolvedInConversation { get; internal set; }
+    public string ResolutionEvidence { get; internal set; } = "";
+
+    internal void UpdateRecommendation(RecommendationKind kind, string reason, string evidence, string role)
+    {
+        Kind = kind;
+        _reason = reason;
+        Evidence = evidence;
+        Role = role;
+    }
 }

@@ -309,7 +309,8 @@ public sealed class LocalizationTests
         var page = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "MainPage.xaml"));
         var button = page.Descendants().Single(element => (string?)element.Attribute("Click") == "SuggestedQuestion_Click");
         Assert.AreEqual("SuggestedQuestion_RightTapped", (string?)button.Attribute("RightTapped"));
-        Assert.AreEqual("{Binding Texts[SuggestedQuestionHint]}", (string?)button.Attribute("ToolTipService.ToolTip"));
+        Assert.AreEqual("{Binding Texts[SuggestedQuestionHint]}", (string?)button.Attribute("AutomationProperties.HelpText"));
+        Assert.AreEqual("{Binding ReasonDetails}", (string?)button.Attribute("ToolTipService.ToolTip"));
     }
 
     [TestMethod]

@@ -21,12 +21,13 @@ public sealed partial class PipelineTests
     [TestMethod]
     [DataRow(-1, false)]
     [DataRow(0, false)]
-    [DataRow(1, true)]
-    [DataRow(2, true)]
-    [DataRow(3, true)]
-    [DataRow(4, true)]
-    [DataRow(5, true)]
-    [DataRow(6, true)]
+    [DataRow(1, false)]
+    [DataRow(2, false)]
+    [DataRow(3, false)]
+    [DataRow(4, false)]
+    [DataRow(5, false)]
+    [DataRow(6, false)]
+    [DataRow(7, false)]
     [DataRow(ConversationAnalysisPrompt.CurrentGuidanceVersion, true)]
     [DataRow(ConversationAnalysisPrompt.CurrentGuidanceVersion + 1, false)]
     public void ProductGuidanceOnlyReusesCompatibleKnowledgeVersions(int version, bool compatible)
@@ -119,7 +120,7 @@ public sealed partial class PipelineTests
             var current = Analyze();
             await WaitUntil(() => current.Status == QuestionStatus.Completed);
             Assert.AreEqual(ConversationAnalysisPrompt.CurrentGuidanceVersion, current.GuidanceVersion);
-            Assert.AreEqual(KnowledgeQuestion, current.ExistingQuestions.Single());
+            Assert.IsEmpty(current.ExistingQuestions);
             Assert.HasCount(2, current.Questions);
             Assert.AreEqual(2, current.AddedQuestionCount);
             Assert.IsFalse(current.Questions.Any(question => question.Id == originalQuestion.Id));
@@ -188,16 +189,17 @@ public sealed partial class PipelineTests
 
     private static void AssertAdvancedProductDiscoveryInstructions(string prompt)
     {
-        StringAssert.Contains(prompt, "USER-LIKELY NEXT QUESTIONS:");
-        StringAssert.Contains(prompt, "Return 0-3 questions TOTAL");
-        StringAssert.Contains(prompt, "normally just 1-2");
-        StringAssert.Contains(prompt, "ranked by likelihood");
+        StringAssert.Contains(prompt, "THREE-PURPOSE RECOMMENDATIONS:");
+        StringAssert.Contains(prompt, "Return 0-10 questions TOTAL");
+        StringAssert.Contains(prompt, "Unanswered:");
+        StringAssert.Contains(prompt, "FollowUp:");
+        StringAssert.Contains(prompt, "ConversationControl:");
         StringAssert.Contains(prompt, "not a quota");
         StringAssert.Contains(prompt, "no extra feature or licensing quota");
         StringAssert.Contains(prompt, "Ground topics in the ANALYZED TRANSCRIPT");
         StringAssert.Contains(prompt, "USER QUESTION ACTIONS");
-        StringAssert.Contains(prompt, "Return fewer or none when the evidence is weak; never pad");
-        StringAssert.Contains(prompt, "DIFFICULTY MEANS EXPERT DETAIL, NOT DIFFICULT WORDING:");
+        StringAssert.Contains(prompt, "never pad");
+        StringAssert.Contains(prompt, "SCANNABLE QUESTION LABELS:");
         StringAssert.Contains(prompt, "authoritative reference or comparison/calculation only when useful");
         StringAssert.Contains(prompt, "entitlement versus technical limits");
         StringAssert.Contains(prompt, "never assume a rate, restriction or discount");

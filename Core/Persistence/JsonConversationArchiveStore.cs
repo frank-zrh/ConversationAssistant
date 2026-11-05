@@ -163,7 +163,8 @@ public sealed class JsonConversationArchiveStore : IConversationArchiveStore
             new JsonStringEnumConverter<ConversationLanguage>(allowIntegerValues: false),
             new JsonStringEnumConverter<AnswerStyle>(allowIntegerValues: false),
             new JsonStringEnumConverter<QuestionStatus>(allowIntegerValues: false),
-            new JsonStringEnumConverter<ConversationAnalysisTrigger>(allowIntegerValues: false)
+            new JsonStringEnumConverter<ConversationAnalysisTrigger>(allowIntegerValues: false),
+            new JsonStringEnumConverter<RecommendationKind>(allowIntegerValues: false)
         }
     };
 }
