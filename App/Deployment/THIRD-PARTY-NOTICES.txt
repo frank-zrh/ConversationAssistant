@@ -1,0 +1,25 @@
+Conversation Assistant deployment components
+
+Microsoft Visual C++ runtime DLLs are redistributed app-locally from Microsoft's
+Microsoft.VCLibs.x64.14.00.Desktop.appx redistribution package:
+https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx
+Pinned package SHA-256:
+B56A9101F706F9D95F815F5B7FA6EFBAC972E86573D378B96A07CFF5540C5961
+Copyright Microsoft Corporation. All rights reserved.
+These components remain subject to the applicable Microsoft redistribution and
+software license terms. The publisher must hold the applicable redistribution
+rights; this notice does not grant or replace those rights.
+
+.NET and Windows App SDK are distributed with this self-contained application
+under their respective Microsoft/open-source license terms. Preserve the license
+and third-party notices supplied in the publish output and NuGet distributions.
+
+Whisper, whisper.cpp and Whisper.net license texts are included in Models.
+Speaker models, sherpa-onnx and ONNX Runtime license texts, source details and
+third-party notices are included in Models/Speakers. Preserve these files when
+distributing the application. No raw audio, user account cache, or credentials
+are included in the installer.
+
+Work IQ is accessed as an authenticated remote Microsoft service. It is not
+redistributed with this application. Organizational licensing, consent, policies
+and applicable Microsoft service terms still apply.

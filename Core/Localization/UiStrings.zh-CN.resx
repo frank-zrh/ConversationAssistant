@@ -159,7 +159,7 @@
   <data name="AudioSystem" xml:space="preserve"><value>仅系统声音</value></data>
   <data name="AudioBoth" xml:space="preserve"><value>麦克风 + 系统声音</value></data>
   <data name="AudioSharedHint" xml:space="preserve"><value>WASAPI 共享采集不会独占设备，也不更改音量或默认设备。更改来源前请暂停监听。请选择与 Teams 相同的输入／输出设备，或选择默认通信设备。</value></data>
-  <data name="SystemAudioNotice" xml:space="preserve"><value>系统声音会采集所选输出上所有应用的声音，不限于 Teams；Azure 模式下这些音频也会发送用于转写。请确保参与者知情同意，建议使用耳机减少麦克风回声。</value></data>
+  <data name="SystemAudioNotice" xml:space="preserve"><value>系统声音会采集所选输出上所有应用的声音，由 Whisper 在本机转写。请确保参与者知情同意，建议使用耳机减少麦克风回声。</value></data>
   <data name="RefreshDevices" xml:space="preserve"><value>刷新</value></data>
   <data name="ContextWindow" xml:space="preserve"><value>手动提问上下文（不限制完整聊天分析）</value></data>
   <data name="ShortContext" xml:space="preserve"><value>短（1 分钟）</value></data>
@@ -170,7 +170,7 @@
   <data name="Balanced" xml:space="preserve"><value>适中</value></data>
   <data name="Detailed" xml:space="preserve"><value>详细</value></data>
   <data name="AnswerLanguage" xml:space="preserve"><value>回复语言</value></data>
-  <data name="GroundingNote" xml:space="preserve"><value>企业资料检索已开启。Copilot Chat 已禁用网页搜索；Work IQ 命令行工具不提供网页搜索控制选项。</value></data>
+  <data name="GroundingNote" xml:space="preserve"><value>智能辅助直接调用 Work IQ 云服务，并遵循组织的资料访问权限。来源及重要结论仍需核验。</value></data>
   <data name="StoreAudio" xml:space="preserve"><value>保存音频</value></data>
   <data name="StoreTranscript" xml:space="preserve"><value>保存会话记录（JSON）</value></data>
   <data name="ClearAfterConversation" xml:space="preserve"><value>对话结束后清除</value></data>
@@ -203,6 +203,7 @@
   <data name="AuthWorkReady" xml:space="preserve"><value>Work IQ ✓</value></data>
   <data name="AuthWorkNotSignedIn" xml:space="preserve"><value>Work IQ 未登录</value></data>
   <data name="AuthLocalSpeech" xml:space="preserve"><value>语音本地识别</value></data>
+  <data name="HostedWorkIqNotice" xml:space="preserve"><value>Whisper 在本机转写音频。智能分析通过 HTTPS 将相关转写内容发送至 Microsoft Work IQ，需要登录、Copilot 许可及组织授权；无需命令行工具、Node.js 或 Azure 语音配置。</value></data>
   <data name="AuthEntraReady" xml:space="preserve"><value>Azure Entra 令牌就绪</value></data>
   <data name="AuthEntraNotSignedIn" xml:space="preserve"><value>Azure Entra 未登录</value></data>
   <data name="SettingsDirty" xml:space="preserve"><value>设置已修改，保存后生效。</value></data>
@@ -214,7 +215,7 @@
   <data name="EndpointInvalid" xml:space="preserve"><value>请填写有效的 Azure AI 服务 / 语音服务终结点。</value></data>
   <data name="ModelSettingsReadFailed" xml:space="preserve"><value>无法读取语音设置。请重新填写终结点和 Entra 设置后保存。</value></data>
   <data name="ModelAzure" xml:space="preserve"><value>Azure AI 语音服务 · Microsoft Entra ID（无资源密钥）。与所选分析提供方使用同一登录入口，令牌各自独立。</value></data>
-  <data name="ModelWhisper" xml:space="preserve"><value>Whisper 离线转写与本地说话人区分（中文/英文）。音频仅在本机处理。需要打包说话人模型；重新构建前请运行 App\Speech\Install-OfflineSpeakerModels.ps1。</value></data>
+  <data name="ModelWhisper" xml:space="preserve"><value>Whisper 本地转写与说话人区分（中文/英文）。模型与 CPU 运行库已内置，音频仅在本机处理。</value></data>
   <data name="SpeakerAccuracyHint" xml:space="preserve"><value>说话人编号仅为本次监听的匿名声音估计，不代表真实身份。相似声音、过短语音、噪声及多人同时发言可能导致误判。</value></data>
   <data name="SettingsReadyAzure" xml:space="preserve"><value>终结点已保存。请点击 Microsoft 登录获取 Entra 授权，再测试资源连接。</value></data>
   <data name="SettingsMissingAzure" xml:space="preserve"><value>请先保存资源终结点、资源租户 ID 和音频授权，再进行 Microsoft 登录。</value></data>

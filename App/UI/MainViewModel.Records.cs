@@ -68,7 +68,7 @@ public sealed partial class MainViewModel
 
     public void AnalyzeGroup(Guid groupId)
     {
-        if (_savingSpeechSettings || _verifying || WorkspaceBusy) return;
+        if (_verifying || WorkspaceBusy) return;
         try
         {
             var request = _conversation.AnalyzeGroup(groupId);
@@ -235,7 +235,7 @@ public sealed partial class MainViewModel
         nameof(CanSaveConversation), nameof(CanViewSession), nameof(CanNewChat));
 
     private void NotifyWorkspaceControls() => Notify(nameof(CanStart), nameof(CanEnd), nameof(CanPause),
-        nameof(CanResume), nameof(CanSignIn), nameof(CanEditSpeechSettings), nameof(CanEditAnalysisSettings), nameof(CanChangeSpeechLanguage),
+        nameof(CanResume), nameof(CanSignIn), nameof(CanChangeSpeechLanguage),
         nameof(CanChangeAudioSettings), nameof(CanChooseInputDevice), nameof(CanChooseOutputDevice),
         nameof(CanAnalyzeConversation), nameof(CanCreateGroup), nameof(CanImportConversation),
         nameof(CanSaveConversation), nameof(CanViewSession), nameof(CanNewChat), nameof(ListeningText), nameof(RecordStatus), nameof(RecordPath));

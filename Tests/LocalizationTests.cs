@@ -5,11 +5,9 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using ConversationAssistant.Core.Localization;
 using ConversationAssistant.Core.Models;
-using ConversationAssistant.Core.Settings;
 using ConversationAssistant.Core.Transcript;
 using ConversationAssistant.Core.WorkIQ;
 using ConversationAssistant_App.Speech;
-using Microsoft.CognitiveServices.Speech;
 
 namespace ConversationAssistant.Tests;
 
@@ -160,52 +158,6 @@ public sealed class LocalizationTests
         Assert.AreEqual(key, message.Key);
         Assert.AreEqual(English[key], message.Resolve(English));
         Assert.AreEqual(Chinese[key], message.Resolve(Chinese));
-    }
-
-    [TestMethod]
-    public void ExistingSettingsErrorsAreTranslatedWithoutChangingExceptionContracts()
-    {
-        var missingEndpoint = Assert.Throws<InvalidOperationException>(() =>
-            new SpeechServiceConfiguration().ValidateForAzure());
-        Assert.AreEqual(English["ErrorEndpointMissing"], English.LocalizeDiagnostic(missingEndpoint.Message));
-        var invalidEndpoint = Assert.Throws<InvalidOperationException>(() => AzureSpeechEndpoint.Parse("invalid"));
-        Assert.AreEqual(English["ErrorEndpointInvalid"], English.LocalizeDiagnostic(invalidEndpoint.Message));
-        var tenant = Assert.Throws<InvalidOperationException>(() =>
-            new SpeechServiceConfiguration { TenantId = "not-a-guid" }.ValidateIdentity());
-        Assert.AreEqual(English["ErrorTenantInvalid"], English.LocalizeDiagnostic(tenant.Message));
-    }
-
-    [TestMethod]
-    [DataRow(CancellationErrorCode.AuthenticationFailure, "ErrorAzureAuth")]
-    [DataRow(CancellationErrorCode.Forbidden, "ErrorAzureForbidden")]
-    [DataRow(CancellationErrorCode.BadRequest, "ErrorAzureBadRequest")]
-    [DataRow(CancellationErrorCode.TooManyRequests, "ErrorAzureThrottled")]
-    [DataRow(CancellationErrorCode.ConnectionFailure, "ErrorAzureConnection")]
-    [DataRow(CancellationErrorCode.ServiceTimeout, "ErrorAzureConnection")]
-    [DataRow(CancellationErrorCode.ServiceUnavailable, "ErrorAzureConnection")]
-    [DataRow(CancellationErrorCode.ServiceError, "ErrorAzureService")]
-    [DataRow(CancellationErrorCode.NoError, "ErrorAzureStopped")]
-    public void AzureDiagnosticsTranslateGuidanceAndPreserveTechnicalCodes(CancellationErrorCode code, string key)
-    {
-        var original = AzureSpeechDiagnostics.Cancellation(code, "HTTP 400");
-        var message = UiMessage.FromDiagnostic(original)!;
-        Assert.AreEqual(key, message.Key);
-        Assert.AreEqual(English.Format(key, $"Azure AI Speech [{code}/HTTP 400]"), message.Resolve(English));
-        Assert.AreEqual(Chinese.Format(key, $"Azure AI Speech [{code}/HTTP 400]"), message.Resolve(Chinese));
-    }
-
-    [TestMethod]
-    public void AzureTenantAndInitializationDiagnosticsKeepSafeCodes()
-    {
-        var tenant = UiMessage.FromDiagnostic(AzureSpeechDiagnostics.Cancellation(CancellationErrorCode.BadRequest,
-            "HTTP 400 Tenant provided in token does not match resource token"))!;
-        Assert.AreEqual("ErrorAzureTenantMismatch", tenant.Key);
-        StringAssert.Contains(tenant.Resolve(English), "[TenantMismatch]");
-        StringAssert.Contains(tenant.Resolve(English), "[BadRequest/HTTP 400]");
-        var initialization = UiMessage.FromDiagnostic(AzureSpeechDiagnostics.Initialization(
-            new InvalidOperationException("SPXERR_CONNECTION_FAILURE")))!;
-        Assert.AreEqual("ErrorAzureSdkInit", initialization.Key);
-        StringAssert.Contains(initialization.Resolve(English), "[SPXERR_CONNECTION_FAILURE]");
     }
 
     [TestMethod]

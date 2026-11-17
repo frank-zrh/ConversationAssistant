@@ -17,6 +17,8 @@
          Windows App SDK runtime; .NET SelfContained alone does not include it. -->
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
     <!-- Required to generate the XAML resource index for unpackaged publishing. -->
     <EnableMsixTooling>true</EnableMsixTooling>
     <EnableWinAppRunSupport>false</EnableWinAppRunSupport>
@@ -35,10 +37,16 @@
     <Content Include="Assets\AppIcon.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\AppIcon.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="Models\ggml-small.bin" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Models\LICENSE-*.txt" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Models\Speakers\*.onnx" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Models\Speakers\*.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Models\ggml-small.bin" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Models\LICENSE-*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Models\Speakers\pyannote-segmentation-3.0.onnx;Models\Speakers\3dspeaker-eres2net.onnx"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Models\Speakers\LICENSE-pyannote.txt;Models\Speakers\LICENSE-3dspeaker.txt;Models\Speakers\LICENSE-sherpa-onnx.txt;Models\Speakers\LICENSE-onnxruntime.txt;Models\Speakers\THIRD-PARTY-NOTICES-onnxruntime.txt;Models\Speakers\SOURCES.txt"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Deployment\THIRD-PARTY-NOTICES.txt" Link="THIRD-PARTY-NOTICES.txt"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Runtime\VC\concrt140.dll;Runtime\VC\msvcp140.dll;Runtime\VC\msvcp140_1.dll;Runtime\VC\msvcp140_2.dll;Runtime\VC\msvcp140_atomic_wait.dll;Runtime\VC\msvcp140_codecvt_ids.dll;Runtime\VC\vcruntime140.dll;Runtime\VC\vcruntime140_1.dll;Runtime\VC\vcomp140.dll"
+             Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -75,7 +83,8 @@
   -->
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.17.2" />
-    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.51.0" />
+    <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.83.1" />
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.83.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
@@ -83,11 +92,9 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" Version="0.7.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="org.k2fsa.sherpa.onnx" Version="1.13.8" />
-    <PackageReference Include="System.Speech" Version="10.0.0" />
     <PackageReference Include="Whisper.net" Version="1.9.1" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
     <PackageReference Include="Whisper.net.Runtime.NoAvx" Version="1.9.1" />
-    <PackageReference Include="Whisper.net.Runtime.Vulkan" Version="1.9.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\ConversationAssistant.Core.csproj" />
@@ -114,4 +121,52 @@
     <PublishTrimmed>False</PublishTrimmed>
     <SignAssembly>False</SignAssembly>
   </PropertyGroup>
+  <Target Name="PrepareBundledDependencies" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Error Condition="'$(RuntimeIdentifier)' != 'win-x64'" Text="The bundled Whisper deployment supports win-x64 only." />
+    <ItemGroup>
+      <_BundledFile Include="Models\ggml-small.bin;Models\Speakers\pyannote-segmentation-3.0.onnx;Models\Speakers\3dspeaker-eres2net.onnx;Runtime\VC\concrt140.dll;Runtime\VC\msvcp140.dll;Runtime\VC\msvcp140_1.dll;Runtime\VC\msvcp140_2.dll;Runtime\VC\msvcp140_atomic_wait.dll;Runtime\VC\msvcp140_codecvt_ids.dll;Runtime\VC\vcruntime140.dll;Runtime\VC\vcruntime140_1.dll;Runtime\VC\vcomp140.dll" />
+    </ItemGroup>
+    <Error Condition="!Exists('%(_BundledFile.Identity)')"
+           Text="Missing deployment input: %(_BundledFile.Identity). Provision verified models and VC DLLs on the build host before building." />
+    <GetFileHash Files="Models\ggml-small.bin" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_WhisperHash" />
+    </GetFileHash>
+    <Error Condition="'%(_WhisperHash.FileHash)' != '1BE3A9B2063867B937E64E2EC7483364A79917E157FA98C5D94B5C1FFFEA987B'"
+           Text="Whisper model failed its pinned integrity check." />
+    <ItemGroup>
+      <_Sha256Input Include="Models\Speakers\pyannote-segmentation-3.0.onnx" Expected="220AD67CA923BEF2FA91F2390C786097BF305BCEB5E261D4AF67B38E938E1079" />
+      <_Sha256Input Include="Models\Speakers\3dspeaker-eres2net.onnx" Expected="1A331345F04805BADBB495C775A6DDFFCDD1A732567D5EC8B3D5749E3C7A5E4B" />
+      <_Sha256Input Include="Runtime\VC\concrt140.dll" Expected="6926DDADE5B6E67F1F8B2923D3CEA8C2C49A0242144C02E05CC5DD0B42468B7D" />
+      <_Sha256Input Include="Runtime\VC\msvcp140.dll" Expected="6FDC2C6FC1362C317ED65AE331DDA329D4D03826FEB8D79D635EAF8BA49764BC" />
+      <_Sha256Input Include="Runtime\VC\msvcp140_1.dll" Expected="6284349A2262B2329AA75AA8559980F9B2775DC5EC3A9E9ECDF55648AC7F625A" />
+      <_Sha256Input Include="Runtime\VC\msvcp140_2.dll" Expected="340E8E397BA46769D61384329EC611B7D96E1EFB8DE2F2D04941E3802A7DB784" />
+      <_Sha256Input Include="Runtime\VC\msvcp140_atomic_wait.dll" Expected="CFB61860C4949DEE0D295B0156DA77278DC676CC4DD820F71FD663C6390DB070" />
+      <_Sha256Input Include="Runtime\VC\msvcp140_codecvt_ids.dll" Expected="AA7F11D6B613705C561C6E2EC9CDBE61C339BB2380268DA337593C37E1F39D89" />
+      <_Sha256Input Include="Runtime\VC\vcruntime140.dll" Expected="D5A99B38807C3DF803876CE5F1E71DC43CD7AC2C882582387E550941BC99CD00" />
+      <_Sha256Input Include="Runtime\VC\vcruntime140_1.dll" Expected="68F948EA61695F85FF24D249077E312ABB23267B3ADC43679D35D781E9AA0244" />
+      <_Sha256Input Include="Runtime\VC\vcomp140.dll" Expected="2500C03A3A53BAA26A441BBD4E3DFEE77A512EAFA6061F3DFDD1CFD8AFD1EC94" />
+    </ItemGroup>
+    <GetFileHash Files="@(_Sha256Input)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_Sha256Output" />
+    </GetFileHash>
+    <Error Condition="'%(_Sha256Output.FileHash)' != '%(_Sha256Output.Expected)'"
+           Text="Deployment input failed SHA-256 integrity validation: %(_Sha256Output.Identity)" />
+  </Target>
+  <Target Name="RequireSelfContainedDeployment" BeforeTargets="Publish">
+    <Error Condition="'$(SelfContained)' != 'true' Or '$(WindowsAppSDKSelfContained)' != 'true'"
+           Text="Deployment must bundle both .NET and Windows App SDK runtimes." />
+  </Target>
+  <Target Name="ValidateDeploymentPayload" AfterTargets="Publish" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Error Condition="!Exists('$(PublishDir)')" Text="Publish directory was not created." />
+    <Error Condition="!Exists('$(PublishDir)setup.exe') Or !Exists('$(PublishDir)ConversationAssistant.App.application') Or !Exists('$(PublishDir)Application Files')"
+           Text="ClickOnce setup, deployment manifest or Application Files folder is missing." />
+    <Error Condition="!Exists('$(PublishDir)Models\ggml-small.bin') And !Exists('$(PublishDir)Models\ggml-small.bin.deploy')"
+           Text="Published ClickOnce payload lacks the Whisper model." />
+    <Error Condition="!Exists('$(PublishDir)Models\Speakers\pyannote-segmentation-3.0.onnx') And !Exists('$(PublishDir)Models\Speakers\pyannote-segmentation-3.0.onnx.deploy')"
+           Text="Published ClickOnce payload lacks speaker segmentation." />
+    <Error Condition="!Exists('$(PublishDir)Models\Speakers\3dspeaker-eres2net.onnx') And !Exists('$(PublishDir)Models\Speakers\3dspeaker-eres2net.onnx.deploy')"
+           Text="Published ClickOnce payload lacks speaker embeddings." />
+    <Error Condition="!Exists('$(PublishDir)vcruntime140.dll') And !Exists('$(PublishDir)vcruntime140.dll.deploy')"
+           Text="Published ClickOnce payload lacks the app-local VC runtime." />
+  </Target>
 </Project>

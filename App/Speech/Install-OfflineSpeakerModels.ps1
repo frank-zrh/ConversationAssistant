@@ -37,8 +37,11 @@ $files = @{
 }
 
 function Test-Hash([string] $Path, [string] $Sha256) {
-    return (Test-Path -LiteralPath $Path -PathType Leaf) -and
-        ((Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash -eq $Sha256)
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $false }
+    $stream = [IO.File]::OpenRead($Path)
+    $hash = [Security.Cryptography.SHA256]::Create()
+    try { return [BitConverter]::ToString($hash.ComputeHash($stream)).Replace('-', '') -eq $Sha256 }
+    finally { $hash.Dispose(); $stream.Dispose() }
 }
 
 function Get-PinnedFile([string] $Url, [string] $Path, [string] $Sha256) {

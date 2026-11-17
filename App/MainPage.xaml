@@ -451,8 +451,9 @@
                                    IsTextSelectionEnabled="True"
                                    TextWrapping="Wrap" />
                     </ScrollViewer>
-                    <WebView2 x:Name="AnswerWebView" Grid.Row="1" Opacity="0"
-                              IsHitTestVisible="False" />
+                    <ScrollViewer x:Name="AnswerRichScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ui:NativeAnswerView x:Name="AnswerRichText" />
+                    </ScrollViewer>
                     <TextBlock Grid.Row="2" Text="{Binding SelectedAnswer.Error}" TextWrapping="Wrap"
                                Foreground="{ThemeResource TeamsDangerBrush}" />
                 </Grid>
@@ -490,73 +491,9 @@
                                           AutomationProperties.Name="{Binding Texts[DisplayLanguage]}"
                                           ToolTipService.ToolTip="{Binding Texts[DisplayLanguageHint]}" />
                             </Grid>
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="{Binding Texts[AnalysisSection]}" FontWeight="SemiBold" />
-                                <ComboBox x:Name="AnalysisProviderPicker" Header="{Binding Texts[AnalysisProvider]}"
-                                          HorizontalAlignment="Stretch" IsEnabled="{Binding CanEditAnalysisSettings}"
-                                          ItemsSource="{Binding AnalysisProviderOptions}" DisplayMemberPath="Label"
-                                          SelectedIndex="{Binding AnalysisProviderIndex, Mode=TwoWay}"
-                                          AutomationProperties.Name="{Binding Texts[AnalysisProvider]}" />
-                                <TextBlock Text="{Binding Texts[AnalysisProviderHelp]}" TextWrapping="Wrap" Opacity=".7" />
-                                <StackPanel Spacing="8" Visibility="{Binding CopilotSettingsVisibility}">
-                                    <TextBlock Text="{Binding Texts[CopilotRequirements]}" TextWrapping="Wrap" />
-                                    <TextBox Header="{Binding Texts[CopilotTenantId]}"
-                                             IsEnabled="{Binding CanEditAnalysisSettings}"
-                                             Text="{Binding CopilotTenantId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                    <TextBox Header="{Binding Texts[CopilotClientId]}"
-                                             IsEnabled="{Binding CanEditAnalysisSettings}"
-                                             Text="{Binding CopilotClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                    <TextBlock Text="{Binding Texts[CopilotRegistrationHelp]}" TextWrapping="Wrap" Opacity=".7" />
-                                    <CheckBox IsChecked="{Binding CopilotPreviewConsent, Mode=TwoWay}"
-                                              IsEnabled="{Binding CanEditAnalysisSettings}">
-                                        <TextBlock Text="{Binding Texts[CopilotPreviewConsent]}" TextWrapping="Wrap" />
-                                    </CheckBox>
-                                </StackPanel>
-                                <Button Content="{Binding Texts[SaveAnalysisSettings]}" Click="SaveAnalysisSettings_Click"
-                                        IsEnabled="{Binding CanEditAnalysisSettings}" />
-                                <TextBlock Text="{Binding AnalysisSettingsStatus}" TextWrapping="Wrap" />
-                            </StackPanel>
                             <TextBlock Text="{Binding ModelStatus}" TextWrapping="Wrap" />
                             <TextBlock Text="{Binding Texts[SpeakerAccuracyHint]}" TextWrapping="Wrap" Opacity=".7" />
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="{Binding Texts[SpeechSection]}" FontWeight="SemiBold" />
-                                <ComboBox Header="{Binding Texts[SpeechProvider]}" HorizontalAlignment="Stretch"
-                                          IsEnabled="{Binding CanEditSpeechSettings}"
-                                          ItemsSource="{Binding SpeechProviderOptions}" DisplayMemberPath="Label"
-                                          SelectedIndex="{Binding SpeechProviderIndex, Mode=TwoWay}" />
-                                <TextBox Header="{Binding Texts[Endpoint]}"
-                                         IsEnabled="{Binding CanEditSpeechSettings}"
-                                         Text="{Binding SpeechServiceUri, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         PlaceholderText="https://your-resource.cognitiveservices.azure.com/"
-                                         InputScope="Url" />
-                                <TextBlock Text="{Binding SpeechEndpointPreview}" TextWrapping="Wrap" Opacity=".7" />
-                                <TextBlock Text="{Binding Texts[AuthenticationMethod]}"
-                                           TextWrapping="Wrap" />
-                                <TextBox Header="{Binding Texts[TenantId]}"
-                                             IsEnabled="{Binding CanEditSpeechSettings}"
-                                             Text="{Binding SpeechTenantId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                             PlaceholderText="{Binding Texts[TenantPlaceholder]}" />
-                                 <TextBlock Text="{Binding Texts[TenantHelp]}"
-                                            TextWrapping="Wrap" Opacity=".7" />
-                                <TextBox Header="{Binding Texts[ClientId]}"
-                                             IsEnabled="{Binding CanEditSpeechSettings}"
-                                             Text="{Binding SpeechClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                             PlaceholderText="{Binding Texts[ClientPlaceholder]}" />
-                                <TextBlock Text="{Binding Texts[ClientHelp]}"
-                                           TextWrapping="Wrap" Opacity=".7" />
-                                <CheckBox IsChecked="{Binding CloudAudioConsent, Mode=TwoWay}"
-                                          IsEnabled="{Binding CanEditSpeechSettings}">
-                                    <TextBlock Text="{Binding Texts[AudioConsent]}"
-                                               TextWrapping="Wrap" />
-                                </CheckBox>
-                                <Button Content="{Binding Texts[SaveSpeechSettings]}" Click="SaveSpeechSettings_Click"
-                                        IsEnabled="{Binding CanEditSpeechSettings}" />
-                                <Button Content="{Binding SpeechConnectionButtonText}" Click="TestSpeechConnection_Click"
-                                        IsEnabled="{Binding CanEditSpeechSettings}" />
-                            </StackPanel>
-                            <TextBlock Text="{Binding SpeechSettingsStatus}" TextWrapping="Wrap" />
-                            <TextBlock Text="{Binding Texts[IdentityHelp]}"
-                                       TextWrapping="Wrap" Opacity=".7" />
+                            <TextBlock Text="{Binding Texts[HostedWorkIqNotice]}" TextWrapping="Wrap" Opacity=".7" />
                             <Button Content="{Binding Texts[MicrophonePrivacy]}" Click="MicSettings_Click"
                                     HorizontalAlignment="Left" />
                             <ComboBox x:Name="AudioModePicker" Header="{Binding Texts[AudioSource]}"

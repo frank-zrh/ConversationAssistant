@@ -1,4 +1,4 @@
-using ConversationAssistant_App.UI;
+﻿using ConversationAssistant_App.UI;
 using System.Diagnostics;
 using System.ComponentModel;
 using Microsoft.UI.Input;
@@ -109,7 +109,7 @@ public sealed partial class MainPage
 
     private async void TranscriptTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (IsLoaded && TranscriptTabs.SelectedItem == HistoryTab)
+        if (IsLoaded && ReferenceEquals(TranscriptTabs.SelectedItem, HistoryTab))
             await _viewModel.RefreshHistoryAsync(_pageCancellation.Token);
     }
 

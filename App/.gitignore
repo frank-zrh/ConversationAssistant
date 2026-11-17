@@ -55,3 +55,5 @@ Generated\ Files/
 
 # Restored offline model dependency
 Models/ggml-small.bin
+Runtime/VC/
+!Properties/PublishProfiles/ClickOnceProfile.pubxml

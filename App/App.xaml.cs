@@ -1,9 +1,6 @@
 using ConversationAssistant.Core.Context;
-using ConversationAssistant.Core.Analysis;
-using ConversationAssistant.Core.Copilot;
 using ConversationAssistant.Core.Conversation;
 using ConversationAssistant.Core.Persistence;
-using ConversationAssistant.Core.Settings;
 using ConversationAssistant.Core.Speech;
 using ConversationAssistant.Core.Transcript;
 using ConversationAssistant.Core.WorkIQ;
@@ -29,38 +26,21 @@ public partial class App : Application
         var services = new ServiceCollection();
         services.AddLogging(builder => builder.AddDebug());
         services.AddSingleton<OfflineWhisperModelManager>();
-        // Keep the original data directory so the rename preserves existing protected settings.
-        services.AddSingleton<ISpeechSettingsStore>(_ => new ProtectedSpeechSettingsStore(
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "MeetingCopilot", "speech-settings.bin")));
         services.AddSingleton<IAudioCaptureService, AudioCaptureService>();
-        services.AddSingleton<OfflineWhisperSpeechRecognitionService>();
-        services.AddSingleton<SpeechEntraIdentity>();
-        services.AddSingleton<CopilotEntraIdentity>();
-        services.AddSingleton<ICopilotTokenProvider>(provider => provider.GetRequiredService<CopilotEntraIdentity>());
-        services.AddSingleton(provider => new CopilotChatClient(
+        services.AddSingleton<ISpeechRecognitionService, OfflineWhisperSpeechRecognitionService>();
+        services.AddSingleton<WorkIqEntraIdentity>();
+        services.AddSingleton<IWorkIqTokenProvider>(provider => provider.GetRequiredService<WorkIqEntraIdentity>());
+        services.AddSingleton(provider => new WorkIqHttpClient(
             new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromMinutes(3) },
-            provider.GetRequiredService<ICopilotTokenProvider>()));
-        services.AddSingleton<ISpeechCredentialProvider>(provider => provider.GetRequiredService<SpeechEntraIdentity>());
-        services.AddSingleton<IAzureSpeechSessionFactory, AzureSpeechSessionFactory>();
-        services.AddSingleton<AzureSpeechConnectionTester>();
-        services.AddSingleton<AzureSpeechRecognitionService>();
-        services.AddSingleton<ISpeechRecognitionService>(provider => new SelectableSpeechRecognitionService(
-            provider.GetRequiredService<ISpeechSettingsStore>(),
-            provider.GetRequiredService<AzureSpeechRecognitionService>(),
-            provider.GetRequiredService<OfflineWhisperSpeechRecognitionService>()));
+            provider.GetRequiredService<IWorkIqTokenProvider>()));
         services.AddSingleton<ITranscriptEngine, TranscriptEngine>();
         services.AddSingleton<PromptBuilder>();
         services.AddSingleton<IContextBuilder, ContextBuilder>();
         services.AddSingleton<WorkIqDiagnostics>();
-        services.AddSingleton<WorkIqProcess>();
         services.AddSingleton<INetworkStatus, NetworkStatus>();
         services.AddSingleton<IAuthenticationService, AuthenticationService>();
-        services.AddSingleton<WorkIqClient>();
         services.AddSingleton<IWorkIqClient>(provider => new LoggedWorkIqClient(
-            new SelectableAnalysisClient(provider.GetRequiredService<WorkIqClient>(),
-                provider.GetRequiredService<CopilotChatClient>(),
-                () => provider.GetRequiredService<ISpeechSettingsStore>().Load().AnalysisProvider),
+            provider.GetRequiredService<WorkIqHttpClient>(),
             provider.GetRequiredService<WorkIqDiagnostics>()));
         services.AddSingleton(_ => new JsonConversationArchiveStore(ConversationRecordLocation.DirectoryPath));
         services.AddSingleton<IConversationArchiveStore>(provider => provider.GetRequiredService<JsonConversationArchiveStore>());
