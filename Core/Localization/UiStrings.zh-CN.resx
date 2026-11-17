@@ -3,6 +3,22 @@
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
   <data name="AppTitle" xml:space="preserve"><value>会话助手</value></data>
+  <data name="AnalysisSection" xml:space="preserve"><value>会话分析</value></data>
+  <data name="AnalysisProvider" xml:space="preserve"><value>分析提供方</value></data>
+  <data name="WorkIqProvider" xml:space="preserve"><value>Work IQ（默认）</value></data>
+  <data name="CopilotProvider" xml:space="preserve"><value>Microsoft 365 Copilot Chat（预览）</value></data>
+  <data name="AnalysisProviderHelp" xml:space="preserve"><value>独立于 Azure Speech / Whisper。请先结束监听并等待请求完成，再保存提供方设置。切换后请重新 Microsoft 登录。</value></data>
+  <data name="CopilotRequirements" xml:space="preserve"><value>仅支持全球云 Microsoft 365 工作或学校租户。需要 Microsoft 365 Copilot 附加许可证，以及全部七项委托 Graph 权限的管理员同意。beta Chat API 可能变更，不支持生产环境使用。</value></data>
+  <data name="CopilotTenantId" xml:space="preserve"><value>Copilot 组织 Tenant ID</value></data>
+  <data name="CopilotClientId" xml:space="preserve"><value>Copilot 公共客户端应用 Client ID</value></data>
+  <data name="CopilotRegistrationHelp" xml:space="preserve"><value>请单独注册 Entra 桌面/公共客户端，重定向 URI 为 http://localhost，配置 README 列出的七项 Graph 权限。不要填写客户端密码或 Speech 凭据。</value></data>
+  <data name="CopilotPreviewConsent" xml:space="preserve"><value>我知悉预览条款，并允许将转写、提问和分析上下文发送至 Microsoft 365 Copilot。网页搜索已禁用，组织资料检索仍然启用。</value></data>
+  <data name="SaveAnalysisSettings" xml:space="preserve"><value>保存分析设置</value></data>
+  <data name="AnalysisSettingsBusy" xml:space="preserve"><value>请先结束监听，并等待待处理请求或登录完成，再切换分析提供方。</value></data>
+  <data name="AnalysisSettingsSaved" xml:space="preserve"><value>分析设置已保存。如提供方或身份改变，远程上下文已重置。请 Microsoft 登录验证访问权限。</value></data>
+  <data name="AuthCopilotInProgress" xml:space="preserve"><value>正在登录并验证 Microsoft 365 Copilot；Graph 与 Speech 可能需要分别授权。</value></data>
+  <data name="AuthCopilotReady" xml:space="preserve"><value>Microsoft 365 Copilot ✓</value></data>
+  <data name="AuthCopilotNotSignedIn" xml:space="preserve"><value>Microsoft 365 Copilot 未登录</value></data>
   <data name="ListeningLanguage" xml:space="preserve"><value>监听语言</value></data>
   <data name="AnalysisLanguage" xml:space="preserve"><value>分析语言</value></data>
   <data name="ErrorAnalysisRetryExhausted" xml:space="preserve"><value>已自动尝试三次，Work IQ 分析结果仍无法验证，未保存任何不完整结果。</value></data>
@@ -15,7 +31,7 @@
   <data name="English" xml:space="preserve"><value>英文</value></data>
   <data name="AutomaticLanguage" xml:space="preserve"><value>自动</value></data>
   <data name="LanguageHint" xml:space="preserve"><value>请先暂停监听再切换语音识别语言，继续监听后生效；不改变分析语言和显示语言。</value></data>
-  <data name="AutoAnalysis" xml:space="preserve"><value>自动使用 Work IQ 分析</value></data>
+  <data name="AutoAnalysis" xml:space="preserve"><value>自动分析会话</value></data>
   <data name="AutoAnalysisOn" xml:space="preserve"><value>自动分析：开</value></data>
   <data name="AutoAnalysisOff" xml:space="preserve"><value>自动分析：关</value></data>
   <data name="AutoAnalysisHint" xml:space="preserve"><value>有新增会话时，每 5 分钟或累计 7 条最终转写，分析整体意图、追加阶段总结并推荐问题；左键点击推荐问题或提交提问后获取答案。</value></data>
@@ -35,11 +51,11 @@
   <data name="CreateGroupHint" xml:space="preserve"><value>将当前所有未入组的最终转写加入一个新组。</value></data>
   <data name="GroupDefaultName" xml:space="preserve"><value>组{0}</value></data>
   <data name="GroupEntryCount" xml:space="preserve"><value>{0} 条会话</value></data>
-  <data name="GroupHint" xml:space="preserve"><value>点击展开或折叠。右键可重命名或交给 Work IQ 分析；也可按 Shift+F10 打开菜单。</value></data>
+  <data name="GroupHint" xml:space="preserve"><value>点击展开或折叠。右键可重命名或分析；也可按 Shift+F10 打开菜单。</value></data>
   <data name="RenameGroup" xml:space="preserve"><value>重命名组</value></data>
   <data name="GroupName" xml:space="preserve"><value>组名（1–120 个字符）</value></data>
   <data name="SaveGroupName" xml:space="preserve"><value>保存</value></data>
-  <data name="AnalyzeGroup" xml:space="preserve"><value>将本组会话交给 Work IQ 分析</value></data>
+  <data name="AnalyzeGroup" xml:space="preserve"><value>分析本组会话</value></data>
   <data name="AnalysisHistory" xml:space="preserve"><value>选择分析记录</value></data>
   <data name="AnalysisHistoryHint" xml:space="preserve"><value>默认显示最新分析。历史问题保持原样，选择以前的分析可查看当时的问题列表，不会再次发送请求。</value></data>
   <data name="AnalysisAllScope" xml:space="preserve"><value>全部聊天</value></data>
@@ -48,8 +64,8 @@
   <data name="ImportHint" xml:space="preserve"><value>请先结束当前会话。导入的 JSON 会保存为独立副本，不覆盖原文件，也不会自动监听或向 Work IQ 发送请求。</value></data>
   <data name="SaveNow" xml:space="preserve"><value>立即保存</value></data>
   <data name="ViewSession" xml:space="preserve"><value>查看日志</value></data>
-  <data name="ViewSessionHint" xml:space="preserve"><value>使用记事本打开当前会话的 Work IQ 调用记录，包含请求、回复和错误，请保护其中的敏感内容。</value></data>
-  <data name="SessionLogPrivacy" xml:space="preserve"><value>每个会话 JSON 旁会保存 .workiq.log，详细记录 Work IQ 请求、回复和失败。常见凭据格式会被隐藏，但对话和企业内容仍为可读文本，请妥善保护这些本地文件。</value></data>
+  <data name="ViewSessionHint" xml:space="preserve"><value>使用记事本打开当前会话的分析调用记录，包含请求、回复和错误，请保护其中的敏感内容。</value></data>
+  <data name="SessionLogPrivacy" xml:space="preserve"><value>每个会话 JSON 旁会保存 .workiq.log，记录两个提供方的分析请求、回复和失败。常见凭据格式会被隐藏，但对话和企业内容仍为可读文本，请妥善保护这些本地文件。</value></data>
   <data name="ErrorSessionLogOpen" xml:space="preserve"><value>无法使用记事本打开会话记录，请检查记录文件夹权限及记事本是否可用。</value></data>
   <data name="ErrorSessionLogWrite" xml:space="preserve"><value>无法写入 Work IQ 会话记录，分析会继续，请检查记录文件夹。</value></data>
   <data name="RecordNone" xml:space="preserve"><value>每次会话独立保存为 JSON</value></data>
@@ -60,7 +76,7 @@
   <data name="OpenRecordsFolder" xml:space="preserve"><value>打开记录文件夹</value></data>
   <data name="PauseScrolling" xml:space="preserve"><value>暂停滚动</value></data>
   <data name="ResumeScrolling" xml:space="preserve"><value>继续滚动</value></data>
-  <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · 对话分析</value></data>
+  <data name="QuestionsHeader" xml:space="preserve"><value>对话分析</value></data>
   <data name="AssistanceHeader" xml:space="preserve"><value>此刻有用</value></data>
   <data name="AssistanceWordingHeader" xml:space="preserve"><value>可以这样说</value></data>
   <data name="AssistanceUncertaintyHeader" xml:space="preserve"><value>需要确认</value></data>
@@ -80,7 +96,7 @@
   <data name="StageSummariesTab" xml:space="preserve"><value>阶段总结</value></data>
   <data name="RecommendedQuestionsTab" xml:space="preserve"><value>推荐问题</value></data>
   <data name="ProductGuideTab" xml:space="preserve"><value>产品向导</value></data>
-  <data name="ProductGuideHint" xml:space="preserve"><value>分析对话时统一收集产品信息。点击卡片查看已缓存的介绍，不会再次调用 Work IQ。</value></data>
+  <data name="ProductGuideHint" xml:space="preserve"><value>分析对话时统一收集产品信息。点击卡片查看已缓存的介绍，不会再次发送分析请求。</value></data>
   <data name="ProductGuideEmpty" xml:space="preserve"><value>分析包含产品名称的对话后，在此查看产品卡片。</value></data>
   <data name="ProductGuideCaveat" xml:space="preserve"><value>内容仅供参考：产品功能、授权与价格受版本、地区和日期影响，做出承诺前请核实最新官方条款。</value></data>
   <data name="ProductOverviewHeader" xml:space="preserve"><value>功能简介</value></data>
@@ -102,7 +118,7 @@
   <data name="RecommendationConversationControl" xml:space="preserve"><value>帮助把控会话</value></data>
   <data name="RecommendationEvidence" xml:space="preserve"><value>会话依据</value></data>
   <data name="RecommendationRole" xml:space="preserve"><value>角色与视角依据（推断）</value></data>
-  <data name="AnswersHeader" xml:space="preserve"><value>WORK IQ · 问题回复</value></data>
+  <data name="AnswersHeader" xml:space="preserve"><value>问题回复</value></data>
   <data name="ShowAnswerPanel" xml:space="preserve"><value>展开问题与回复（1/3）</value></data>
   <data name="CollapseAnswerPanel" xml:space="preserve"><value>折叠问题与回复</value></data>
   <data name="ExpandAnswerPanel" xml:space="preserve"><value>扩展至 3/4</value></data>
@@ -154,7 +170,7 @@
   <data name="Balanced" xml:space="preserve"><value>适中</value></data>
   <data name="Detailed" xml:space="preserve"><value>详细</value></data>
   <data name="AnswerLanguage" xml:space="preserve"><value>回复语言</value></data>
-  <data name="GroundingNote" xml:space="preserve"><value>企业资料检索：Work IQ（已开启）。命令行工具暂不提供网页检索控制选项。</value></data>
+  <data name="GroundingNote" xml:space="preserve"><value>企业资料检索已开启。Copilot Chat 已禁用网页搜索；Work IQ 命令行工具不提供网页搜索控制选项。</value></data>
   <data name="StoreAudio" xml:space="preserve"><value>保存音频</value></data>
   <data name="StoreTranscript" xml:space="preserve"><value>保存会话记录（JSON）</value></data>
   <data name="ClearAfterConversation" xml:space="preserve"><value>对话结束后清除</value></data>
@@ -166,10 +182,10 @@
   <data name="StatusStartingOffline" xml:space="preserve"><value>◌ 正在加载离线模型…</value></data>
   <data name="StatusSpeechDetected" xml:space="preserve"><value>● 检测到语音</value></data>
   <data name="StatusQuestionDetected" xml:space="preserve"><value>● 检测到问题或请求</value></data>
-  <data name="StatusThinking" xml:space="preserve"><value>◌ Work IQ 正在处理</value></data>
+  <data name="StatusThinking" xml:space="preserve"><value>◌ 正在分析</value></data>
   <data name="StatusAnswering" xml:space="preserve"><value>● 回复已就绪</value></data>
   <data name="StatusPaused" xml:space="preserve"><value>● 已暂停</value></data>
-  <data name="StatusOffline" xml:space="preserve"><value>● Work IQ 已离线 · 转写继续</value></data>
+  <data name="StatusOffline" xml:space="preserve"><value>● 分析服务已离线 · 转写继续</value></data>
   <data name="StatusError" xml:space="preserve"><value>● 出错</value></data>
   <data name="MicrophoneAzure" xml:space="preserve"><value>麦克风 · 共享 · Azure 在线识别</value></data>
   <data name="MicrophoneWhisper" xml:space="preserve"><value>麦克风 · 共享 · Whisper 本地识别</value></data>
@@ -197,12 +213,12 @@
   <data name="EndpointPreview" xml:space="preserve"><value>SDK 连接地址：{0}</value></data>
   <data name="EndpointInvalid" xml:space="preserve"><value>请填写有效的 Azure AI 服务 / 语音服务终结点。</value></data>
   <data name="ModelSettingsReadFailed" xml:space="preserve"><value>无法读取语音设置。请重新填写终结点和 Entra 设置后保存。</value></data>
-  <data name="ModelAzure" xml:space="preserve"><value>Azure AI 语音服务 · Microsoft Entra ID（无资源密钥）。与 Work IQ 使用同一登录入口，令牌各自独立。</value></data>
+  <data name="ModelAzure" xml:space="preserve"><value>Azure AI 语音服务 · Microsoft Entra ID（无资源密钥）。与所选分析提供方使用同一登录入口，令牌各自独立。</value></data>
   <data name="ModelWhisper" xml:space="preserve"><value>Whisper 离线转写与本地说话人区分（中文/英文）。音频仅在本机处理。需要打包说话人模型；重新构建前请运行 App\Speech\Install-OfflineSpeakerModels.ps1。</value></data>
   <data name="SpeakerAccuracyHint" xml:space="preserve"><value>说话人编号仅为本次监听的匿名声音估计，不代表真实身份。相似声音、过短语音、噪声及多人同时发言可能导致误判。</value></data>
   <data name="SettingsReadyAzure" xml:space="preserve"><value>终结点已保存。请点击 Microsoft 登录获取 Entra 授权，再测试资源连接。</value></data>
   <data name="SettingsMissingAzure" xml:space="preserve"><value>请先保存资源终结点、资源租户 ID 和音频授权，再进行 Microsoft 登录。</value></data>
-  <data name="SettingsReadyWhisper" xml:space="preserve"><value>当前使用本地 Whisper。登录按钮仅处理 Work IQ。</value></data>
+  <data name="SettingsReadyWhisper" xml:space="preserve"><value>当前使用本地 Whisper。登录按钮处理所选分析提供方。</value></data>
   <data name="SettingsEndFirst" xml:space="preserve"><value>请先结束对话，再修改服务设置。</value></data>
   <data name="SettingsBusy" xml:space="preserve"><value>请先结束对话，或等待当前设置操作完成。</value></data>
   <data name="SettingsSaveFirst" xml:space="preserve"><value>请先保存当前设置，再测试连接。</value></data>
@@ -211,7 +227,7 @@
   <data name="SettingsEncryptionError" xml:space="preserve"><value>Windows 无法加密配置，设置未保存。</value></data>
   <data name="AnalysisIdle" xml:space="preserve"><value>聊天只记录，不逐句自动提问。分析后点击问题获取协助。</value></data>
   <data name="AnalysisPending" xml:space="preserve"><value>已排队，准备分析全部 {0} 条聊天记录。</value></data>
-  <data name="AnalysisProcessing" xml:space="preserve"><value>Work IQ 正在分析全部 {0} 条聊天记录…</value></data>
+  <data name="AnalysisProcessing" xml:space="preserve"><value>正在分析全部 {0} 条聊天记录…</value></data>
   <data name="AnalysisCompletedEmpty" xml:space="preserve"><value>分析完成，未发现新的待协助问题。已有问题和回复保持不变。</value></data>
   <data name="AnalysisCompletedNew" xml:space="preserve"><value>分析完成，新增 {0} 个待协助问题。点击问题获取信息。</value></data>
   <data name="AnalysisFailed" xml:space="preserve"><value>分析失败，记录仍保留。可点击按钮重试，不会逐秒重复提交。</value></data>
@@ -231,11 +247,11 @@
   <data name="TranscriptFailed" xml:space="preserve"><value>获取失败 · 点击重试</value></data>
   <data name="TranscriptCancelled" xml:space="preserve"><value>已取消 · 点击重新获取</value></data>
   <data name="TranscriptUnanswered" xml:space="preserve"><value>未获取回复 · 点击获取</value></data>
-  <data name="SuggestionUnasked" xml:space="preserve"><value>点击获取 Work IQ 协助</value></data>
+  <data name="SuggestionUnasked" xml:space="preserve"><value>点击请求协助</value></data>
   <data name="AnswerSelect" xml:space="preserve"><value>请选择问题以查看回复。</value></data>
-  <data name="AnswerPending" xml:space="preserve"><value>问题已进入 Work IQ 队列。</value></data>
-  <data name="AnswerProcessing" xml:space="preserve"><value>Work IQ 正在处理…</value></data>
-  <data name="AnswerFailed" xml:space="preserve"><value>Work IQ 未能提供回复。请查看下方错误后重试。</value></data>
+  <data name="AnswerPending" xml:space="preserve"><value>问题已进入队列。</value></data>
+  <data name="AnswerProcessing" xml:space="preserve"><value>正在处理…</value></data>
+  <data name="AnswerFailed" xml:space="preserve"><value>分析提供方未能提供回复。请查看下方错误后重试。</value></data>
   <data name="AnswerCancelled" xml:space="preserve"><value>此问题已取消。</value></data>
   <data name="AnswerIgnored" xml:space="preserve"><value>此问题已忽略。</value></data>
   <data name="AnswerEmpty" xml:space="preserve"><value>Work IQ 返回了空回复，请重试此问题。</value></data>

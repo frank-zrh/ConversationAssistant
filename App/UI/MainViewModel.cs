@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ConversationAssistant.Core.Authentication;
+using ConversationAssistant.Core.Analysis;
 using ConversationAssistant.Core.Conversation;
 using ConversationAssistant.Core.Localization;
 using ConversationAssistant.Core.Models;
@@ -120,7 +121,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
     public MainViewModel(ConversationSessionManager conversation, IAuthenticationService auth,
         ILogger<MainViewModel> logger, ISpeechSettingsStore speechSettings,
         AzureSpeechConnectionTester speechConnectionTester, SpeechEntraIdentity speechIdentity,
-        JsonConversationArchiveStore historyStore)
+        JsonConversationArchiveStore historyStore, CopilotEntraIdentity copilotIdentity)
     {
         _historyStore = historyStore;
         _conversation = conversation;
@@ -130,6 +131,8 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         _speechSettings = speechSettings;
         _speechConnectionTester = speechConnectionTester;
         _speechIdentity = speechIdentity;
+        _copilotIdentity = copilotIdentity;
+        copilotIdentity.StateChanged += () => OnUi(UpdateAuthenticationStatus);
         speechIdentity.StateChanged += () => OnUi(UpdateAuthenticationStatus);
         conversation.StateChanged += state => OnUi(() => State = state);
         conversation.TranscriptUpdated += segment => OnUi(() => OnTranscriptUpdate(segment));
@@ -160,6 +163,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             _speechTenantId = _savedSpeech.TenantId;
             _speechClientId = _savedSpeech.ClientId;
             _cloudAudioConsent = _savedSpeech.CloudAudioConsent;
+            LoadAnalysisSettings();
             UpdateSpeechConfigurationStatus();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or
@@ -235,7 +239,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         var language = Settings.DisplayLanguage;
         Texts = UiText.For(language);
         foreach (var options in new[] { SpeechLanguageOptions, AnalysisLanguageOptions, DisplayLanguageOptions,
-            SpeechProviderOptions, ContextOptions,
+            SpeechProviderOptions, AnalysisProviderOptions, ContextOptions,
             AnswerStyleOptions, AnswerLanguageOptions, AudioModeOptions })
             foreach (var option in options) option.UpdateLanguage(Texts);
         foreach (var row in TranscriptItems) row.UpdateLanguage(Texts);
@@ -250,7 +254,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         Notify(nameof(Texts), nameof(SpeechLanguageIndex), nameof(AnalysisLanguageIndex),
             nameof(DisplayLanguageIndex), nameof(StatusText), nameof(ListeningText),
             nameof(AuthText), nameof(SignInButtonText), nameof(SignInButtonHint), nameof(PartialText),
-            nameof(SpeechConnectionButtonText),
+            nameof(SpeechConnectionButtonText), nameof(AnalysisSettingsStatus),
             nameof(SpeechEndpointPreview), nameof(SpeechSettingsStatus), nameof(ModelStatus),
             nameof(ScrollText), nameof(LastError), nameof(AnalysisStatus), nameof(AnalysisError),
             nameof(PendingAnalysisText), nameof(AnalysisScheduleText), nameof(RecordStatus),
@@ -307,9 +311,12 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
     {
         get
         {
-            if (_verifying) return Texts[_savedSpeech.Provider == SpeechProvider.AzureSpeech
-                ? "AuthAzureInProgress" : "AuthWorkInProgress"];
-            var work = Texts[_auth.IsSignedIn ? "AuthWorkReady" : "AuthWorkNotSignedIn"];
+            if (_verifying) return Texts[_savedSpeech.AnalysisProvider == AnalysisProvider.Copilot
+                ? "AuthCopilotInProgress" : _savedSpeech.Provider == SpeechProvider.AzureSpeech
+                    ? "AuthAzureInProgress" : "AuthWorkInProgress"];
+            var work = Texts[_savedSpeech.AnalysisProvider == AnalysisProvider.Copilot
+                ? _auth.IsSignedIn ? "AuthCopilotReady" : "AuthCopilotNotSignedIn"
+                : _auth.IsSignedIn ? "AuthWorkReady" : "AuthWorkNotSignedIn"];
             return _savedSpeech.Provider == SpeechProvider.OfflineWhisper
                 ? work + " · " + Texts["AuthLocalSpeech"]
                 : Texts[_speechIdentity.IsSignedIn ? "AuthEntraReady" : "AuthEntraNotSignedIn"] + " · " + work;
@@ -355,7 +362,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         }
     }
     public bool CanEditSpeechSettings => _conversation.Session is null && !WorkspaceBusy &&
-        !_savingSpeechSettings && !_testingSpeechConnection && !_verifying;
+        !_savingSpeechSettings && !_testingSpeechConnection && !_verifying && !_conversation.HasPendingWork;
     public string SpeechConnectionButtonText => Texts[_testingSpeechConnection
         ? "TestingSpeechConnection" : "TestSpeechConnection"];
     public int ContextWindowIndex
@@ -635,7 +642,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public Task SignInAsync() => SignInCoreAsync(() => Task.Run(() => _auth.SignInAsync()), CancellationToken.None);
+    public Task SignInAsync() => SignInCoreAsync(() => Task.Run(() => _auth.SignInInteractivelyAsync()), CancellationToken.None);
 
     public async Task SignInAtStartupAsync(CancellationToken cancellationToken)
     {
@@ -696,7 +703,8 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         try
         {
             var configuration = SpeechServiceConfiguration.FromInput(
-                (SpeechProvider)SpeechProviderIndex, SpeechServiceUri, SpeechTenantId, SpeechClientId, CloudAudioConsent);
+                (SpeechProvider)SpeechProviderIndex, SpeechServiceUri, SpeechTenantId, SpeechClientId, CloudAudioConsent)
+                .WithAnalysis(_savedSpeech.AnalysisProvider, _savedSpeech.Copilot);
             await Task.Run(() => _speechSettings.Save(configuration));
             if (configuration.Provider != _savedSpeech.Provider || !configuration.HasSameIdentity(_savedSpeech))
                 _speechIdentity.Invalidate();
@@ -777,6 +785,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
 
     public bool Ask(string text)
     {
+        if (_savingSpeechSettings || _verifying || WorkspaceBusy) return false;
         if (string.IsNullOrWhiteSpace(text))
         {
             LastError = Texts["ErrorEmptyQuestion"];
@@ -796,6 +805,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
 
     public void Retry()
     {
+        if (_savingSpeechSettings || _verifying || WorkspaceBusy) return;
         if (SelectedAnswer is not null && !_conversation.Retry(SelectedAnswer.Id))
             LastError = Texts["ErrorOnlyFailed"];
     }
@@ -808,6 +818,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
 
     public void AnalyzeConversation()
     {
+        if (_savingSpeechSettings || _verifying || WorkspaceBusy) return;
         try
         {
             var request = _conversation.AnalyzeConversation();
@@ -819,6 +830,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
 
     public void OpenSuggestedQuestion(Guid questionId)
     {
+        if (_savingSpeechSettings || _verifying || WorkspaceBusy) return;
         try
         {
             _followNewestAnswers = false;
@@ -908,7 +920,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         }
         else if (request.Status == QuestionStatus.Failed)
             _logger.LogWarning("Work IQ answer failed");
-        Notify(nameof(CanSignIn));
+        Notify(nameof(CanSignIn), nameof(CanEditSpeechSettings), nameof(CanEditAnalysisSettings));
     }
 
     private void RefreshAnalysis()
@@ -934,7 +946,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         RefreshAssistance();
         RefreshSelectedAnalysis();
         Notify(nameof(AnalysisScheduleText), nameof(PendingAnalysisText),
-            nameof(CanAnalyzeConversation), nameof(CanSignIn), nameof(IntentSummary), nameof(StageSummaries),
+            nameof(CanAnalyzeConversation), nameof(CanSignIn), nameof(CanEditSpeechSettings), nameof(CanEditAnalysisSettings), nameof(IntentSummary), nameof(StageSummaries),
             nameof(EmptyIntentVisibility), nameof(EmptyStageSummariesVisibility), nameof(StageDocumentSections));
     }
 

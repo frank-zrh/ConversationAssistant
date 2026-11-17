@@ -9,30 +9,12 @@ namespace ConversationAssistant_App.WorkIQ;
 public sealed class WorkIqProcess(WorkIqDiagnostics diagnostics)
 {
     public string? Account { get; set; }
-    public static string ResolveExecutable()
-    {
-        var configured = Environment.GetEnvironmentVariable("CONVERSATIONASSISTANT_WORKIQ_PATH");
-        // Keep the legacy override working for existing installations.
-        if (string.IsNullOrWhiteSpace(configured))
-            configured = Environment.GetEnvironmentVariable("MEETINGCOPILOT_WORKIQ_PATH");
-        if (!string.IsNullOrWhiteSpace(configured))
-        {
-            if (Path.IsPathFullyQualified(configured) &&
-                Path.GetExtension(configured).Equals(".exe", StringComparison.OrdinalIgnoreCase) &&
-                File.Exists(configured)) return configured;
-            throw new WorkIqException("CONVERSATIONASSISTANT_WORKIQ_PATH must be an absolute path to an existing workiq.exe.");
-        }
-        var onPath = (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator)
-            .Where(dir => Path.IsPathFullyQualified(dir.Trim('"')))
-            .Select(dir => Path.Combine(dir.Trim('"'), "workiq.exe"))
-            .FirstOrDefault(File.Exists);
-        if (onPath is not null) return onPath;
-        var scout = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Programs", "scout", "resources", "app.asar.unpacked", "node_modules",
-            "@microsoft", "workiq", "bin", "win-x64", "workiq.exe");
-        if (File.Exists(scout)) return scout;
-        throw new WorkIqException("Install the official Work IQ CLI and set CONVERSATIONASSISTANT_WORKIQ_PATH to workiq.exe.");
-    }
+    public static string ResolveExecutable() => WorkIqExecutableLocator.Resolve(
+        Environment.GetEnvironmentVariable("CONVERSATIONASSISTANT_WORKIQ_PATH"),
+        Environment.GetEnvironmentVariable("MEETINGCOPILOT_WORKIQ_PATH"),
+        (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator),
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
 
     public async Task<string> RunAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {

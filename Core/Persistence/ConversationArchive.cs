@@ -60,6 +60,7 @@ public sealed class ConversationArchive
             EndTime = session.EndTime,
             Settings = new ArchiveSettings
             {
+                AnalysisProvider = settings.AnalysisProvider,
                 Language = settings.Language,
                 AnswerLanguage = settings.AnswerLanguage,
                 AnswerStyle = settings.AnswerStyle,
@@ -136,6 +137,7 @@ public sealed class ConversationArchive
             EndTime = data.EndTime ?? LatestTimestamp(data),
             Settings = new ConversationSettings
             {
+                AnalysisProvider = settings.AnalysisProvider,
                 Language = settings.Language,
                 AnswerLanguage = settings.AnswerLanguage,
                 AnswerStyle = settings.AnswerStyle,
@@ -322,6 +324,7 @@ internal sealed record ArchiveDocument
 
 internal sealed record ArchiveSettings
 {
+    public Analysis.AnalysisProvider AnalysisProvider { get; init; } = Analysis.AnalysisProvider.WorkIq;
     public required ConversationLanguage Language { get; init; }
     public required ConversationLanguage AnswerLanguage { get; init; }
     public required AnswerStyle AnswerStyle { get; init; }

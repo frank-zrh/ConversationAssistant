@@ -34,6 +34,7 @@ public interface IAuthenticationService
 {
     bool IsSignedIn { get; }
     Task SignInAsync(CancellationToken cancellationToken = default);
+    Task SignInInteractivelyAsync(CancellationToken cancellationToken = default) => SignInAsync(cancellationToken);
 }
 
 public interface INetworkStatus

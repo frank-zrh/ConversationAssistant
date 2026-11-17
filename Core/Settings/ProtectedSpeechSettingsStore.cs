@@ -7,6 +7,8 @@ public interface ISpeechSettingsStore
 {
     SpeechServiceConfiguration Load();
     void Save(SpeechServiceConfiguration configuration);
+    void SaveAnalysis(Analysis.AnalysisProvider provider, Copilot.CopilotConfiguration copilot) =>
+        Save(Load().WithAnalysis(provider, copilot));
 }
 
 public sealed class ProtectedSpeechSettingsStore(string filePath) : ISpeechSettingsStore
@@ -26,8 +28,9 @@ public sealed class ProtectedSpeechSettingsStore(string filePath) : ISpeechSetti
             {
                 var configuration = JsonSerializer.Deserialize<SpeechServiceConfiguration>(plaintext)
                     ?? throw new InvalidDataException("Speech 配置无效，请重新填写并保存。");
-                if (!Enum.IsDefined(configuration.Provider) || configuration.ServiceUri is null ||
-                    configuration.TenantId is null || configuration.ClientId is null)
+                if (!Enum.IsDefined(configuration.Provider) || !Enum.IsDefined(configuration.AnalysisProvider) ||
+                    configuration.ServiceUri is null || configuration.TenantId is null || configuration.ClientId is null ||
+                    configuration.Copilot is null || configuration.Copilot.TenantId is null || configuration.Copilot.ClientId is null)
                     throw new InvalidDataException("Speech 配置无效，请重新填写并保存。");
                 return configuration;
             }
@@ -44,7 +47,23 @@ public sealed class ProtectedSpeechSettingsStore(string filePath) : ISpeechSetti
         ArgumentNullException.ThrowIfNull(configuration);
         if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException();
         if (!Enum.IsDefined(configuration.Provider)) throw new ArgumentOutOfRangeException(nameof(configuration));
+        if (!Enum.IsDefined(configuration.AnalysisProvider) || configuration.Copilot is null)
+            throw new ArgumentOutOfRangeException(nameof(configuration));
+        if (configuration.AnalysisProvider == Analysis.AnalysisProvider.Copilot) configuration.Copilot.Validate();
         if (configuration.Provider == SpeechProvider.AzureSpeech) configuration.ValidateForAzure();
+        Write(configuration);
+    }
+
+    public void SaveAnalysis(Analysis.AnalysisProvider provider, Copilot.CopilotConfiguration copilot)
+    {
+        ArgumentNullException.ThrowIfNull(copilot);
+        if (!Enum.IsDefined(provider)) throw new ArgumentOutOfRangeException(nameof(provider));
+        if (provider == Analysis.AnalysisProvider.Copilot) copilot.Validate();
+        lock (_gate) Write(Load().WithAnalysis(provider, copilot));
+    }
+
+    private void Write(SpeechServiceConfiguration configuration)
+    {
         lock (_gate)
         {
             var plaintext = JsonSerializer.SerializeToUtf8Bytes(configuration);

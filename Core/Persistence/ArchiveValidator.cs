@@ -22,6 +22,7 @@ internal sealed class ArchiveValidator
             Require(end >= data.StartTime, "The end time precedes the start time.");
         }
         Require(data.Settings is not null, "Settings are required.");
+        EnumValue(data.Settings.AnalysisProvider);
         EnumValue(data.Settings.Language);
         Require(data.Settings.Language is ConversationLanguage.Chinese or ConversationLanguage.English,
             "The listening language must be Chinese or English.");

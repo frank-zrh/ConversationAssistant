@@ -1,4 +1,6 @@
 using ConversationAssistant.Core.Context;
+using ConversationAssistant.Core.Analysis;
+using ConversationAssistant.Core.Copilot;
 using ConversationAssistant.Core.Conversation;
 using ConversationAssistant.Core.Persistence;
 using ConversationAssistant.Core.Settings;
@@ -34,6 +36,11 @@ public partial class App : Application
         services.AddSingleton<IAudioCaptureService, AudioCaptureService>();
         services.AddSingleton<OfflineWhisperSpeechRecognitionService>();
         services.AddSingleton<SpeechEntraIdentity>();
+        services.AddSingleton<CopilotEntraIdentity>();
+        services.AddSingleton<ICopilotTokenProvider>(provider => provider.GetRequiredService<CopilotEntraIdentity>());
+        services.AddSingleton(provider => new CopilotChatClient(
+            new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromMinutes(3) },
+            provider.GetRequiredService<ICopilotTokenProvider>()));
         services.AddSingleton<ISpeechCredentialProvider>(provider => provider.GetRequiredService<SpeechEntraIdentity>());
         services.AddSingleton<IAzureSpeechSessionFactory, AzureSpeechSessionFactory>();
         services.AddSingleton<AzureSpeechConnectionTester>();
@@ -51,7 +58,10 @@ public partial class App : Application
         services.AddSingleton<IAuthenticationService, AuthenticationService>();
         services.AddSingleton<WorkIqClient>();
         services.AddSingleton<IWorkIqClient>(provider => new LoggedWorkIqClient(
-            provider.GetRequiredService<WorkIqClient>(), provider.GetRequiredService<WorkIqDiagnostics>()));
+            new SelectableAnalysisClient(provider.GetRequiredService<WorkIqClient>(),
+                provider.GetRequiredService<CopilotChatClient>(),
+                () => provider.GetRequiredService<ISpeechSettingsStore>().Load().AnalysisProvider),
+            provider.GetRequiredService<WorkIqDiagnostics>()));
         services.AddSingleton(_ => new JsonConversationArchiveStore(ConversationRecordLocation.DirectoryPath));
         services.AddSingleton<IConversationArchiveStore>(provider => provider.GetRequiredService<JsonConversationArchiveStore>());
         services.AddSingleton<ConversationSessionManager>();

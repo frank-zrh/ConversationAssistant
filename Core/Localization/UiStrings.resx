@@ -3,6 +3,22 @@
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
   <data name="AppTitle" xml:space="preserve"><value>Conversation Assistant</value></data>
+  <data name="AnalysisSection" xml:space="preserve"><value>Conversation analysis</value></data>
+  <data name="AnalysisProvider" xml:space="preserve"><value>Analysis provider</value></data>
+  <data name="WorkIqProvider" xml:space="preserve"><value>Work IQ (default)</value></data>
+  <data name="CopilotProvider" xml:space="preserve"><value>Microsoft 365 Copilot Chat (preview)</value></data>
+  <data name="AnalysisProviderHelp" xml:space="preserve"><value>Independent of Azure Speech / Whisper. End listening and wait for queued work before saving. Save, then sign in again when changing providers.</value></data>
+  <data name="CopilotRequirements" xml:space="preserve"><value>Global Microsoft 365 work/school tenant only. Requires a Microsoft 365 Copilot add-on license and administrator consent to all seven delegated Graph permissions. The beta Chat API is subject to change and is not supported for production use.</value></data>
+  <data name="CopilotTenantId" xml:space="preserve"><value>Copilot organization Tenant ID</value></data>
+  <data name="CopilotClientId" xml:space="preserve"><value>Copilot public-client application Client ID</value></data>
+  <data name="CopilotRegistrationHelp" xml:space="preserve"><value>Register a separate Entra desktop/public client with http://localhost redirect. Configure the seven Graph permissions listed in README. Do not enter a client secret or Speech credentials.</value></data>
+  <data name="CopilotPreviewConsent" xml:space="preserve"><value>I acknowledge the preview terms and allow transcripts, questions and analysis context to be sent to Microsoft 365 Copilot. Web search is disabled; organizational grounding remains enabled.</value></data>
+  <data name="SaveAnalysisSettings" xml:space="preserve"><value>Save analysis settings</value></data>
+  <data name="AnalysisSettingsBusy" xml:space="preserve"><value>End listening and wait for pending requests or sign-in to finish before changing analysis providers.</value></data>
+  <data name="AnalysisSettingsSaved" xml:space="preserve"><value>Analysis settings saved. Remote context was reset if the provider or identity changed. Sign in with Microsoft to verify access.</value></data>
+  <data name="AuthCopilotInProgress" xml:space="preserve"><value>Signing in and checking Microsoft 365 Copilot; separate Graph and Speech consent may be required.</value></data>
+  <data name="AuthCopilotReady" xml:space="preserve"><value>Microsoft 365 Copilot ✓</value></data>
+  <data name="AuthCopilotNotSignedIn" xml:space="preserve"><value>Microsoft 365 Copilot not signed in</value></data>
   <data name="ListeningLanguage" xml:space="preserve"><value>Listening language</value></data>
   <data name="AnalysisLanguage" xml:space="preserve"><value>Analysis language</value></data>
   <data name="ErrorAnalysisRetryExhausted" xml:space="preserve"><value>Work IQ analysis could not be validated after three automatic attempts. No partial results were saved.</value></data>
@@ -15,7 +31,7 @@
   <data name="English" xml:space="preserve"><value>English</value></data>
   <data name="AutomaticLanguage" xml:space="preserve"><value>Auto</value></data>
   <data name="LanguageHint" xml:space="preserve"><value>Pause listening to change speech recognition language. Resume applies it; analysis and display languages are unchanged.</value></data>
-  <data name="AutoAnalysis" xml:space="preserve"><value>Automatically analyze with Work IQ</value></data>
+  <data name="AutoAnalysis" xml:space="preserve"><value>Automatically analyze conversations</value></data>
   <data name="AutoAnalysisOn" xml:space="preserve"><value>Auto analyze: On</value></data>
   <data name="AutoAnalysisOff" xml:space="preserve"><value>Auto analyze: Off</value></data>
   <data name="AutoAnalysisHint" xml:space="preserve"><value>Analyze overall intent, append a stage summary and recommend questions after 7 new utterances or 5 minutes with new content. Left-click a recommendation or submit a question to request an answer.</value></data>
@@ -35,11 +51,11 @@
   <data name="CreateGroupHint" xml:space="preserve"><value>Put all currently ungrouped final transcript entries into a new group.</value></data>
   <data name="GroupDefaultName" xml:space="preserve"><value>Group {0}</value></data>
   <data name="GroupEntryCount" xml:space="preserve"><value>{0} transcript entries</value></data>
-  <data name="GroupHint" xml:space="preserve"><value>Expand or collapse this group. Right-click for rename or Work IQ analysis; keyboard: Shift+F10.</value></data>
+  <data name="GroupHint" xml:space="preserve"><value>Expand or collapse this group. Right-click for rename or analysis; keyboard: Shift+F10.</value></data>
   <data name="RenameGroup" xml:space="preserve"><value>Rename Group</value></data>
   <data name="GroupName" xml:space="preserve"><value>Group name (1–120 characters)</value></data>
   <data name="SaveGroupName" xml:space="preserve"><value>Save</value></data>
-  <data name="AnalyzeGroup" xml:space="preserve"><value>Analyze This Group with Work IQ</value></data>
+  <data name="AnalyzeGroup" xml:space="preserve"><value>Analyze This Group</value></data>
   <data name="AnalysisHistory" xml:space="preserve"><value>Select an analysis</value></data>
   <data name="AnalysisHistoryHint" xml:space="preserve"><value>New analyses are selected automatically. Historical questions remain unchanged; choose a previous analysis to view them without sending another request.</value></data>
   <data name="AnalysisAllScope" xml:space="preserve"><value>All chat</value></data>
@@ -48,8 +64,8 @@
   <data name="ImportHint" xml:space="preserve"><value>End the current conversation first. Import a saved record as a separate local copy; no listening or Work IQ requests start automatically.</value></data>
   <data name="SaveNow" xml:space="preserve"><value>Save Now</value></data>
   <data name="ViewSession" xml:space="preserve"><value>View Log</value></data>
-  <data name="ViewSessionHint" xml:space="preserve"><value>Open this conversation's Work IQ call log in Notepad. Includes prompts, responses and errors; protect confidential content.</value></data>
-  <data name="SessionLogPrivacy" xml:space="preserve"><value>A companion .workiq.log stores detailed Work IQ requests, replies and failures beside each conversation JSON. Common credential formats are redacted, but conversation and workplace content remain readable. Protect these local files.</value></data>
+  <data name="ViewSessionHint" xml:space="preserve"><value>Open this conversation's analysis call log in Notepad. Includes prompts, responses and errors; protect confidential content.</value></data>
+  <data name="SessionLogPrivacy" xml:space="preserve"><value>A companion .workiq.log stores analysis requests, replies and failures for either provider beside each conversation JSON. Common credential formats are redacted, but conversation and workplace content remain readable. Protect these local files.</value></data>
   <data name="ErrorSessionLogOpen" xml:space="preserve"><value>The session log could not be opened in Notepad. Check the record folder permissions and Notepad installation.</value></data>
   <data name="ErrorSessionLogWrite" xml:space="preserve"><value>The Work IQ session log could not be written. Analysis will continue; check the record folder.</value></data>
   <data name="RecordNone" xml:space="preserve"><value>One JSON file per conversation</value></data>
@@ -60,7 +76,7 @@
   <data name="OpenRecordsFolder" xml:space="preserve"><value>Open Record Folder</value></data>
   <data name="PauseScrolling" xml:space="preserve"><value>Pause scrolling</value></data>
   <data name="ResumeScrolling" xml:space="preserve"><value>Resume scrolling</value></data>
-  <data name="QuestionsHeader" xml:space="preserve"><value>WORK IQ · CONVERSATION ANALYSIS</value></data>
+  <data name="QuestionsHeader" xml:space="preserve"><value>CONVERSATION ANALYSIS</value></data>
   <data name="AssistanceHeader" xml:space="preserve"><value>USEFUL NOW</value></data>
   <data name="AssistanceWordingHeader" xml:space="preserve"><value>You could say</value></data>
   <data name="AssistanceUncertaintyHeader" xml:space="preserve"><value>Needs confirmation</value></data>
@@ -80,7 +96,7 @@
   <data name="StageSummariesTab" xml:space="preserve"><value>Stage summaries</value></data>
   <data name="RecommendedQuestionsTab" xml:space="preserve"><value>Recommended questions</value></data>
   <data name="ProductGuideTab" xml:space="preserve"><value>Product guide</value></data>
-  <data name="ProductGuideHint" xml:space="preserve"><value>Products are collected during conversation analysis. Open a cached card to view details; opening it does not send another Work IQ request.</value></data>
+  <data name="ProductGuideHint" xml:space="preserve"><value>Products are collected during conversation analysis. Open a cached card to view details; opening it does not send another analysis request.</value></data>
   <data name="ProductGuideEmpty" xml:space="preserve"><value>Analyze a conversation mentioning products to populate this guide.</value></data>
   <data name="ProductGuideCaveat" xml:space="preserve"><value>Reference only: capabilities, licensing and prices depend on version, region and date. Verify current official terms before making commitments.</value></data>
   <data name="ProductOverviewHeader" xml:space="preserve"><value>Capabilities</value></data>
@@ -102,7 +118,7 @@
   <data name="RecommendationConversationControl" xml:space="preserve"><value>Guide the discussion</value></data>
   <data name="RecommendationEvidence" xml:space="preserve"><value>Transcript evidence</value></data>
   <data name="RecommendationRole" xml:space="preserve"><value>Role / perspective rationale (inferred)</value></data>
-  <data name="AnswersHeader" xml:space="preserve"><value>WORK IQ · ANSWER HISTORY</value></data>
+  <data name="AnswersHeader" xml:space="preserve"><value>ANSWER HISTORY</value></data>
   <data name="ShowAnswerPanel" xml:space="preserve"><value>Show questions &amp; answers (1/3)</value></data>
   <data name="CollapseAnswerPanel" xml:space="preserve"><value>Collapse questions &amp; answers</value></data>
   <data name="ExpandAnswerPanel" xml:space="preserve"><value>Expand to 3/4</value></data>
@@ -154,7 +170,7 @@
   <data name="Balanced" xml:space="preserve"><value>Balanced</value></data>
   <data name="Detailed" xml:space="preserve"><value>Detailed</value></data>
   <data name="AnswerLanguage" xml:space="preserve"><value>Answer language</value></data>
-  <data name="GroundingNote" xml:space="preserve"><value>Enterprise grounding: Work IQ (on). Web grounding control is unavailable in the CLI.</value></data>
+  <data name="GroundingNote" xml:space="preserve"><value>Enterprise grounding is enabled. Copilot Chat web search is disabled; the Work IQ CLI does not expose a web-search control.</value></data>
   <data name="StoreAudio" xml:space="preserve"><value>Store audio</value></data>
   <data name="StoreTranscript" xml:space="preserve"><value>Save conversation records (JSON)</value></data>
   <data name="ClearAfterConversation" xml:space="preserve"><value>Clear after conversation</value></data>
@@ -166,10 +182,10 @@
   <data name="StatusStartingOffline" xml:space="preserve"><value>◌ Loading offline model...</value></data>
   <data name="StatusSpeechDetected" xml:space="preserve"><value>● Speech detected</value></data>
   <data name="StatusQuestionDetected" xml:space="preserve"><value>● Question or request detected</value></data>
-  <data name="StatusThinking" xml:space="preserve"><value>◌ Thinking with Work IQ</value></data>
+  <data name="StatusThinking" xml:space="preserve"><value>◌ Analyzing</value></data>
   <data name="StatusAnswering" xml:space="preserve"><value>● Answer ready</value></data>
   <data name="StatusPaused" xml:space="preserve"><value>● Paused</value></data>
-  <data name="StatusOffline" xml:space="preserve"><value>● Work IQ offline · transcript continues</value></data>
+  <data name="StatusOffline" xml:space="preserve"><value>● Analysis offline · transcript continues</value></data>
   <data name="StatusError" xml:space="preserve"><value>● Error</value></data>
   <data name="MicrophoneAzure" xml:space="preserve"><value>Microphone · shared · Azure online</value></data>
   <data name="MicrophoneWhisper" xml:space="preserve"><value>Microphone · shared · local Whisper</value></data>
@@ -197,12 +213,12 @@
   <data name="EndpointPreview" xml:space="preserve"><value>SDK connection address: {0}</value></data>
   <data name="EndpointInvalid" xml:space="preserve"><value>Enter a valid Azure AI Services / Speech endpoint.</value></data>
   <data name="ModelSettingsReadFailed" xml:space="preserve"><value>Unable to read Speech settings. Re-enter the endpoint and Entra settings, then save.</value></data>
-  <data name="ModelAzure" xml:space="preserve"><value>Azure AI Speech · Microsoft Entra ID (no resource key). Shares the sign-in entry point with Work IQ; tokens remain separate.</value></data>
+  <data name="ModelAzure" xml:space="preserve"><value>Azure AI Speech · Microsoft Entra ID (no resource key). Shares the sign-in entry point with the selected analysis provider; tokens remain separate.</value></data>
   <data name="ModelWhisper" xml:space="preserve"><value>Whisper offline transcription with local speaker detection (Chinese/English). Audio stays on this PC. Requires the packaged speaker models; run App\Speech\Install-OfflineSpeakerModels.ps1 before rebuilding.</value></data>
   <data name="SpeakerAccuracyHint" xml:space="preserve"><value>Speaker numbers are anonymous voice estimates for this listening session, not verified identities. Similar voices, short turns, noise and simultaneous speech can cause mistakes.</value></data>
   <data name="SettingsReadyAzure" xml:space="preserve"><value>Endpoint saved. Sign in with Microsoft for Entra authorization, then test the resource connection.</value></data>
   <data name="SettingsMissingAzure" xml:space="preserve"><value>Save the resource endpoint, resource Tenant ID and audio consent before signing in with Microsoft.</value></data>
-  <data name="SettingsReadyWhisper" xml:space="preserve"><value>Using local Whisper. The sign-in button only handles Work IQ.</value></data>
+  <data name="SettingsReadyWhisper" xml:space="preserve"><value>Using local Whisper. The sign-in button handles the selected analysis provider.</value></data>
   <data name="SettingsEndFirst" xml:space="preserve"><value>End the conversation before changing service settings.</value></data>
   <data name="SettingsBusy" xml:space="preserve"><value>End the conversation or wait for the current settings operation to finish.</value></data>
   <data name="SettingsSaveFirst" xml:space="preserve"><value>Save the current settings before testing the connection.</value></data>
@@ -211,7 +227,7 @@
   <data name="SettingsEncryptionError" xml:space="preserve"><value>Windows could not encrypt the configuration. Settings were not saved.</value></data>
   <data name="AnalysisIdle" xml:space="preserve"><value>Chat is recorded without per-utterance questions. Analyze it, then choose a question for assistance.</value></data>
   <data name="AnalysisPending" xml:space="preserve"><value>Queued to analyze all {0} transcript entries.</value></data>
-  <data name="AnalysisProcessing" xml:space="preserve"><value>Work IQ is analyzing all {0} transcript entries...</value></data>
+  <data name="AnalysisProcessing" xml:space="preserve"><value>Analyzing all {0} transcript entries...</value></data>
   <data name="AnalysisCompletedEmpty" xml:space="preserve"><value>Analysis complete; no new questions found. Existing questions and answers are unchanged.</value></data>
   <data name="AnalysisCompletedNew" xml:space="preserve"><value>Analysis complete: {0} new questions. Choose a question for information.</value></data>
   <data name="AnalysisFailed" xml:space="preserve"><value>Analysis failed; chat is retained. Retry manually; requests will not repeat every second.</value></data>
@@ -231,11 +247,11 @@
   <data name="TranscriptFailed" xml:space="preserve"><value>Request failed · click to retry</value></data>
   <data name="TranscriptCancelled" xml:space="preserve"><value>Cancelled · click to ask again</value></data>
   <data name="TranscriptUnanswered" xml:space="preserve"><value>No reply yet · click to ask</value></data>
-  <data name="SuggestionUnasked" xml:space="preserve"><value>Click for Work IQ assistance</value></data>
+  <data name="SuggestionUnasked" xml:space="preserve"><value>Click to request assistance</value></data>
   <data name="AnswerSelect" xml:space="preserve"><value>Select a question to view its answer.</value></data>
-  <data name="AnswerPending" xml:space="preserve"><value>Question queued for Work IQ.</value></data>
-  <data name="AnswerProcessing" xml:space="preserve"><value>Thinking with Work IQ...</value></data>
-  <data name="AnswerFailed" xml:space="preserve"><value>Work IQ could not answer. See the error below, then retry.</value></data>
+  <data name="AnswerPending" xml:space="preserve"><value>Question queued.</value></data>
+  <data name="AnswerProcessing" xml:space="preserve"><value>Thinking...</value></data>
+  <data name="AnswerFailed" xml:space="preserve"><value>The analysis provider could not answer. See the error below, then retry.</value></data>
   <data name="AnswerCancelled" xml:space="preserve"><value>This question was cancelled.</value></data>
   <data name="AnswerIgnored" xml:space="preserve"><value>This question was ignored.</value></data>
   <data name="AnswerEmpty" xml:space="preserve"><value>Work IQ returned an empty answer. Retry this question.</value></data>

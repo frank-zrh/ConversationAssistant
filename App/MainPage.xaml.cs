@@ -294,6 +294,11 @@ public sealed partial class MainPage : Page
         flyout.ShowAt((FrameworkElement)sender);
     }
 
+    private async void SaveAnalysisSettings_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.SaveAnalysisSettingsAsync();
+    }
+
     private async void SaveSpeechSettings_Click(object sender, RoutedEventArgs e)
     {
         await _viewModel.SaveSpeechSettingsAsync();
@@ -367,7 +372,27 @@ public sealed partial class MainPage : Page
     private async void End_Click(object sender, RoutedEventArgs e) => await _viewModel.EndAsync();
     private async void Pause_Click(object sender, RoutedEventArgs e) => await _viewModel.PauseAsync();
     private async void Resume_Click(object sender, RoutedEventArgs e) => await _viewModel.ResumeAsync();
-    private async void SignIn_Click(object sender, RoutedEventArgs e) => await _viewModel.SignInAsync();
+    private async void SignIn_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_viewModel.CanSignIn) return;
+        await _viewModel.SignInAsync();
+        if (_pageCancellation.IsCancellationRequested || string.IsNullOrEmpty(_viewModel.LastError) ||
+            _linkDialogOpen) return;
+        _linkDialogOpen = true;
+        try
+        {
+            var texts = _viewModel.Texts;
+            await new ContentDialog
+            {
+                XamlRoot = XamlRoot,
+                Language = texts.LanguageTag,
+                Title = texts["SignIn"],
+                Content = new TextBlock { Text = _viewModel.LastError, TextWrapping = TextWrapping.Wrap },
+                CloseButtonText = texts["Cancel"]
+            }.ShowAsync();
+        }
+        finally { _linkDialogOpen = false; }
+    }
     private void Retry_Click(object sender, RoutedEventArgs e) => _viewModel.Retry();
     private void Dismiss_Click(object sender, RoutedEventArgs e) => _viewModel.Dismiss();
     private void Scroll_Click(object sender, RoutedEventArgs e) => _viewModel.ToggleScroll();

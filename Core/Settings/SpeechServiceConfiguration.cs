@@ -1,3 +1,6 @@
+using ConversationAssistant.Core.Analysis;
+using ConversationAssistant.Core.Copilot;
+
 namespace ConversationAssistant.Core.Settings;
 
 public enum SpeechProvider { AzureSpeech, OfflineWhisper }
@@ -9,6 +12,14 @@ public sealed class SpeechServiceConfiguration
     public string TenantId { get; init; } = "";
     public string ClientId { get; init; } = "";
     public bool CloudAudioConsent { get; init; }
+    public AnalysisProvider AnalysisProvider { get; init; } = AnalysisProvider.WorkIq;
+    public CopilotConfiguration Copilot { get; init; } = new();
+
+    public SpeechServiceConfiguration WithAnalysis(AnalysisProvider provider, CopilotConfiguration copilot) => new()
+    {
+        Provider = Provider, ServiceUri = ServiceUri, TenantId = TenantId, ClientId = ClientId,
+        CloudAudioConsent = CloudAudioConsent, AnalysisProvider = provider, Copilot = copilot
+    };
 
     public override string ToString() => $"Speech configuration: {Provider} (credentials redacted)";
 
@@ -24,9 +35,9 @@ public sealed class SpeechServiceConfiguration
             throw new InvalidOperationException("请在 Settings 中确认允许将麦克风音频发送到 Azure Speech。");
     }
 
-    public void ValidateIdentity()
+    public void ValidateIdentity(bool requireResourceTenant = true)
     {
-        if (Provider == SpeechProvider.AzureSpeech && string.IsNullOrWhiteSpace(TenantId))
+        if (requireResourceTenant && Provider == SpeechProvider.AzureSpeech && string.IsNullOrWhiteSpace(TenantId))
             throw new InvalidOperationException(
                 "请填写 Azure AI 资源所在目录的 Tenant ID，再保存并重新 Microsoft 登录；不能默认使用 Work IQ/M365 的租户。");
         if (TenantId.Length > 0 && (!Guid.TryParse(TenantId, out var tenant) || tenant == Guid.Empty))

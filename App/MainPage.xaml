@@ -490,6 +490,32 @@
                                           AutomationProperties.Name="{Binding Texts[DisplayLanguage]}"
                                           ToolTipService.ToolTip="{Binding Texts[DisplayLanguageHint]}" />
                             </Grid>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="{Binding Texts[AnalysisSection]}" FontWeight="SemiBold" />
+                                <ComboBox x:Name="AnalysisProviderPicker" Header="{Binding Texts[AnalysisProvider]}"
+                                          HorizontalAlignment="Stretch" IsEnabled="{Binding CanEditAnalysisSettings}"
+                                          ItemsSource="{Binding AnalysisProviderOptions}" DisplayMemberPath="Label"
+                                          SelectedIndex="{Binding AnalysisProviderIndex, Mode=TwoWay}"
+                                          AutomationProperties.Name="{Binding Texts[AnalysisProvider]}" />
+                                <TextBlock Text="{Binding Texts[AnalysisProviderHelp]}" TextWrapping="Wrap" Opacity=".7" />
+                                <StackPanel Spacing="8" Visibility="{Binding CopilotSettingsVisibility}">
+                                    <TextBlock Text="{Binding Texts[CopilotRequirements]}" TextWrapping="Wrap" />
+                                    <TextBox Header="{Binding Texts[CopilotTenantId]}"
+                                             IsEnabled="{Binding CanEditAnalysisSettings}"
+                                             Text="{Binding CopilotTenantId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Header="{Binding Texts[CopilotClientId]}"
+                                             IsEnabled="{Binding CanEditAnalysisSettings}"
+                                             Text="{Binding CopilotClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="{Binding Texts[CopilotRegistrationHelp]}" TextWrapping="Wrap" Opacity=".7" />
+                                    <CheckBox IsChecked="{Binding CopilotPreviewConsent, Mode=TwoWay}"
+                                              IsEnabled="{Binding CanEditAnalysisSettings}">
+                                        <TextBlock Text="{Binding Texts[CopilotPreviewConsent]}" TextWrapping="Wrap" />
+                                    </CheckBox>
+                                </StackPanel>
+                                <Button Content="{Binding Texts[SaveAnalysisSettings]}" Click="SaveAnalysisSettings_Click"
+                                        IsEnabled="{Binding CanEditAnalysisSettings}" />
+                                <TextBlock Text="{Binding AnalysisSettingsStatus}" TextWrapping="Wrap" />
+                            </StackPanel>
                             <TextBlock Text="{Binding ModelStatus}" TextWrapping="Wrap" />
                             <TextBlock Text="{Binding Texts[SpeakerAccuracyHint]}" TextWrapping="Wrap" Opacity=".7" />
                             <StackPanel Spacing="8">

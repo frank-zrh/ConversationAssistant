@@ -1,6 +1,6 @@
 # Conversation Assistant
 
-Windows WinUI 3 / .NET 10 desktop application. **Supports speaker-labeled transcript groups, Work IQ analysis history, linked replies, and importable JSON conversation records.** Continues to use Microsoft Entra ID identities in the target resource tenant to access Azure AI Speech, without using a resource key. Azure Speech and Work IQ share a sign-in entry point while managing their own credentials separately; Whisper offline mode can also be selected explicitly. Transcription and Q&A run independently.
+Windows WinUI 3 / .NET 10 desktop application. **Supports speaker-labeled transcript groups, Work IQ or Microsoft 365 Copilot Chat analysis history, linked replies, and importable JSON conversation records.** Work IQ remains the default. Azure AI Speech and the selected analysis provider share a sign-in entry point but manage credentials separately; Whisper offline mode can also be selected explicitly. Transcription and Q&A run independently.
 
 ## Animated demo
 
@@ -18,9 +18,74 @@ A fictional UI simulation of the current Teams-inspired interface: read-only liv
 - Azure mode requires an **Azure AI Services / Speech custom resource Endpoint, an organizational work account, and resource RBAC permissions**. No key, client secret, or Azure OpenAI is required. Azure public cloud `*.cognitiveservices.azure.com` is currently supported. Listening audio is sent to the configured Azure resource and may incur charges; the app does not change the resource's key-disabling policy.
 - The offline `ggml-small.bin` model (about 466 MiB) is still included for explicit use with Whisper; its SHA-1 is `55356645c2b361a969dfd0ef2c5a50d530afd8d5`. Whisper mode also requires about **44 MiB of local speaker models**, provisioned explicitly before building as described below. Whisper prefers the Vulkan GPU and falls back to the local CPU; audio is not uploaded. Model source: [official whisper.cpp model list](https://github.com/ggml-org/whisper.cpp/blob/master/models/README.md); license: `App\Models\LICENSE-*.txt`.
 - The input language defaults to **Chinese (zh-CN)**, with **English (en-US)** also available; this provides speech-to-text, not translation between Chinese and English. Pause and resume to change the language. `Auto` under answer language controls only the language of Work IQ responses.
-- [Install the official Work IQ CLI](https://github.com/microsoft/work-iq) and obtain `workiq.exe`. The app uses the executable (not a `.cmd` script) and safely passes questions as an argument list. If it is not on PATH, set the `CONVERSATIONASSISTANT_WORKIQ_PATH` environment variable to the **absolute path** of `workiq.exe`; restart the app to read the new variable. The legacy variable `MEETINGCOPILOT_WORKIQ_PATH` remains supported when the new variable is unset. If Microsoft Scout is installed locally, the app also attempts to discover the official CLI bundled with it.
+- [Install the official Work IQ CLI](https://github.com/microsoft/work-iq). **Seeing only `workiq.cmd` on PATH is normal for npm installations.** The app discovers the bundled `node_modules/@microsoft/workiq/bin/win-x64/workiq.exe` next to npm PATH entries, or under the default `%APPDATA%\npm` prefix. It starts the native executable directly and safely passes questions as an argument list; it does not execute the `.cmd` script. For a custom installation, set `CONVERSATIONASSISTANT_WORKIQ_PATH` to the **absolute path** of `workiq.exe` or the npm `workiq.cmd` launcher; the latter is resolved to the adjacent native package binary. Restart the app to read environment changes. The legacy variable `MEETINGCOPILOT_WORKIQ_PATH` remains supported when the new variable is unset. Microsoft Scout's bundled CLI is also detected as a fallback.
 - Before use, read and accept the [Work IQ evaluation terms](https://github.com/microsoft/work-iq/tree/main/EULA) by running `workiq accept-eula` in a terminal as directed by the official instructions. The Work IQ CLI manages its own OAuth cache; this app does not read its token files. The work account obtained through Entra sign-in is used for the CLI's `--account` argument, and the same account is explicitly specified for subsequent questions. Work IQ admin consent and a Microsoft 365 Copilot license are separate from Azure RBAC; see the [official tenant enablement guide](https://github.com/microsoft/work-iq/blob/main/ADMIN-INSTRUCTIONS.md).
 - Rich-text answers use the **Microsoft Edge WebView2 Runtime** on Windows, which is usually installed with Windows 11. If it is missing, the app displays the raw answer and an error. The app creates an InPrivate WebView2 session and disables scripts, host objects, and automatic external resource requests.
+
+### Fix “Work IQ CLI required” on a new PC
+
+Work IQ is a separate prerequisite; the Conversation Assistant package does not include it. Installing or signing in to Microsoft 365 Copilot alone does not install this command-line tool.
+
+1. Install a supported **Node.js LTS** release (the official Work IQ CLI requires Node.js 18 or later), then open a **new PowerShell window**. If your organization permits Windows Package Manager, you can install Node.js with `winget install --id OpenJS.NodeJS.LTS --exact`. Otherwise, ask IT to install an approved Node.js release.
+2. Verify Node.js and install the official Microsoft package. Using `npm.cmd` avoids a PowerShell execution-policy error from the npm PowerShell launcher; do not disable execution policy.
+
+   ```powershell
+   node --version
+   npm.cmd --version
+   npm.cmd install --global @microsoft/workiq
+   workiq.cmd version
+   ```
+
+   Stop if installation fails. Proxy, certificate, registry-access or permission errors need to be resolved with IT; do not disable TLS validation. If `workiq.cmd` is not recognized after a successful install, reopen PowerShell and check that the directory printed by `npm.cmd prefix --global` is on your user PATH.
+
+3. **Restart the updated app.** You do not need a separate `workiq.exe` beside `workiq.cmd`: npm exposes the launcher while keeping the native binary inside its package. The updated app discovers this layout automatically. For an older app build or troubleshooting a custom npm prefix, find the bundled **Windows x64** binary with:
+
+   ```powershell
+   $npmRoot = npm.cmd root --global
+   if ($LASTEXITCODE -ne 0) { throw 'Cannot locate the global npm directory.' }
+	  $workIqExe = Join-Path $npmRoot '@microsoft/workiq/bin/win-x64/workiq.exe'
+   if (-not (Test-Path -LiteralPath $workIqExe -PathType Leaf)) { throw 'The bundled x64 executable is missing. Repair the official Work IQ npm installation.' }
+   $workIqExe
+   ```
+
+	  In a default per-user npm installation the path is normally `%APPDATA%\npm\node_modules\@microsoft\workiq\bin\win-x64\workiq.exe`. If the file is absent, the `.cmd` launcher alone is not a complete native CLI installation: repair the approved package with `npm.cmd install --global @microsoft/workiq`, or contact IT if downloads are blocked. **Never rename `.cmd` to `.exe`.**
+
+4. **Optional workaround for older builds or custom installations:** after running step 3 in the same PowerShell window, set the application's user-level override to the discovered native executable. This also works with older app versions that do not recognize npm launchers. Updated builds additionally accept the full path of an npm `workiq.cmd` and locate its associated binary; they never execute arbitrary command scripts. Do not point the variable at `node.exe`.
+
+   ```powershell
+   if (-not (Test-Path -LiteralPath $workIqExe -PathType Leaf)) { throw 'workiq.exe was not found at this path.' }
+   & $workIqExe version
+   if ($LASTEXITCODE -ne 0) { throw 'The Work IQ executable could not run successfully.' }
+   [Environment]::SetEnvironmentVariable('CONVERSATIONASSISTANT_WORKIQ_PATH', $workIqExe, 'User')
+   $env:CONVERSATIONASSISTANT_WORKIQ_PATH = $workIqExe
+   ```
+
+5. Read the official Work IQ evaluation terms linked above. **Only if you agree**, run `workiq.cmd accept-eula`. This setup does not accept terms automatically. Then fully exit Conversation Assistant and launch it again. If a normal desktop launch still inherits an old environment, sign out of Windows and back in. Click **Microsoft Sign In** and select the organizational account. Work IQ licensing, administrator consent and Azure Speech resource permissions remain separate requirements.
+
+For managed deployment, IT can install the approved CLI and set `CONVERSATIONASSISTANT_WORKIQ_PATH` for each user. Never distribute another user's OAuth cache or accept the evaluation terms on their behalf. As an alternative, the separately configured **Microsoft 365 Copilot Chat preview** provider below does not require the Work IQ CLI; it has its own tenant registration, permissions, license and preview limitations and is not an automatic fallback.
+
+## Microsoft 365 Copilot Chat analysis (optional preview)
+
+This integration uses **Microsoft 365 Copilot Chat API**, not Azure OpenAI, Copilot Studio, or a configurable LLM endpoint. Official documentation verified during implementation:
+
+- [Chat API overview, availability and licensing](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/api/ai-services/chat/overview)
+- [Create a conversation and required permissions](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/api/ai-services/chat/copilotroot-post-conversations): `POST https://graph.microsoft.com/beta/copilot/conversations`, empty JSON body.
+- [Continue a synchronous chat](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/api/ai-services/chat/copilotconversation-chat): `POST https://graph.microsoft.com/beta/copilot/conversations/{conversationId}/chat` with `message.text` and required IANA `locationHint.timeZone`. The app uses `Etc/UTC` rather than sending geographic location, and explicitly sets `contextualResources.webContext.isWebEnabled` to `false` (the API otherwise enables web grounding by default).
+- [Microsoft 365 Copilot APIs preview terms](https://learn.microsoft.com/en-us/legal/m365-copilot-apis/terms-of-use)
+
+**Availability:** currently a **beta/preview**, global Microsoft cloud only (not US Government or China clouds). Microsoft explicitly states that `/beta` APIs are subject to change and **are not supported for production applications**. The signed-in work/school user needs a **Microsoft 365 Copilot add-on license**; the overview currently lists no extra API cost for those users. Users without that add-on, personal Microsoft accounts, and application-only/client-credentials authentication are not supported. Tenant policies and conditional access still apply; the app cannot grant a license or bypass consent.
+
+### Register and configure
+
+1. In the Microsoft 365 tenant, register a **separate Microsoft Entra desktop/public-client application**. Add the **Mobile and desktop applications** redirect URI `http://localhost` for interactive browser authentication. Do not create or enter a client secret. Use the organization's directory Tenant ID and this registration's Application (client) ID, both GUIDs; do not copy Speech credentials or rely on an SDK development client.
+2. Add **all seven Microsoft Graph delegated permissions**, as required by both official API operations: `Sites.Read.All`, `Mail.Read`, `People.Read.All`, `OnlineMeetingTranscript.Read.All`, `Chat.Read`, `ChannelMessage.Read.All`, `ExternalItem.Read.All`. Obtain administrator consent for the full set in the target tenant. These are broad organizational read permissions: have an administrator review the preview and access implications before enabling them. There is no invented `Copilot.Chat` scope, and requesting only `Chat.Read` is insufficient.
+3. End listening and wait for pending requests. Open **Settings → Conversation analysis → Analysis provider**, choose **Microsoft 365 Copilot Chat (preview)**, enter the separate tenant/client IDs, review the data-submission and preview notice, acknowledge it, and select **Save analysis settings**. Then use **Microsoft sign-in**. A separate Graph consent/account prompt may appear; Azure Speech still requires its own sign-in if selected. Copilot access verification creates an empty conversation but does **not** submit a question. `Microsoft 365 Copilot ✓` means that access check succeeded, not that every enterprise item is accessible.
+4. Analysis, recommendations, summaries, product guides and explicit questions now use Copilot through the same read-only prompts, evidence validation/retries, ten-open-recommendation cap and safe cached-answer rules. Recommendations are **never automatically submitted**. Long requests retain the existing multipart pipeline. Copilot requests do not start the Work IQ CLI and never fall back silently to another provider. HTTP failures/throttling are not automatically resubmitted; inspect the error and retry explicitly. A 401 invalidates Copilot sign-in; sign in again to reset remote context after an expired or missing conversation.
+5. To return to Work IQ, end listening, wait for queued work, select **Work IQ (default)**, save, and sign in. Switching providers or Copilot identities clears remote conversation context. Remote IDs are provider-tagged in memory and cannot be passed to the other provider; analysis requests use fresh context. Existing transcript and analysis history remain local. Importing an archive never changes your global provider selection or initiates sign-in/requests.
+
+**Storage and privacy:** provider/registration/acknowledgment settings are added to the existing DPAPI-protected `%LOCALAPPDATA%/MeetingCopilot/speech-settings.bin`; saving analysis settings preserves Speech configuration, and saving Speech settings preserves analysis configuration. Copilot has its own encrypted Azure.Identity token cache (`ConversationAssistant.Copilot.*`) and DPAPI account records (`%LOCALAPPDATA%/ConversationAssistant/copilot-account-*.bin`), separate from `MeetingCopilot.Speech.*` and Work IQ. Speech-only credentials explicitly refuse Graph. No token, tenant/client registration, or remote session ID is written to JSON archives; only provider metadata is saved. Old settings and records without a provider default to Work IQ. Acknowledgment can be revoked while returning to Work IQ; cached credentials are not automatically deleted, but cannot be used without acknowledgment and sign-in.
+
+The selected cloud provider receives transcripts, questions and analysis context, even when speech recognition uses local Whisper. Organizational grounding remains enabled; disabling web search does not turn Copilot into an offline model. Existing `.workiq.log` companion files now cover **both** providers and contain readable prompts/results with existing credential-format redaction. Raw HTTP error bodies and authentication exceptions are not recorded by the Copilot integration; bearer tokens are only attached to fixed Graph requests and redirects are disabled. Keep logs and archives confidential. The app exposes no workplace mutation/tool execution endpoints and does not automatically open citations. No installed application is updated by building this source.
 
 ## Shared microphone and system audio
 
@@ -74,6 +139,8 @@ Offline inference speed depends on hardware. Diarization runs locally on the CPU
 7. Before changing the account, Tenant ID, Client ID, or recognition service, select **End Conversation**. Azure Identity uses an OS-encrypted token cache, and the Speech SDK automatically requests renewal; the app does not automatically display a sign-in window in the background. If MFA or conditional access requires renewed interaction, end the conversation and click Microsoft Sign In again. In offline mode, the sign-in button handles Work IQ only.
 
 After successful verification, the button changes to **已登录 / Signed in** with green text. It shows **正在登录 / Signing in...** while an attempt is running and returns to the ordinary sign-in state after a failed attempt or invalidation of the required Azure identity. In Azure mode both Entra and Work IQ sign-in must be ready; offline mode requires only Work IQ. The signed-in button can still be clicked to reauthenticate when no conversation is active. Its label, hint and accessibility name follow the listening/UI language.
+
+On a new PC, an unset Speech Tenant ID no longer blocks organizational account sign-in: the initial sign-in uses the `organizations` authority and opens the system browser when no usable cached session exists. Clicking **Microsoft Sign In** explicitly starts interactive browser account selection, without pinning the previously cached account. An expired or unreadable account record is replaced after successful authentication; cancellation does not trigger another browser attempt. Manual sign-in failures are also shown in a dialog. This does **not** configure Azure Speech automatically: save the resource Endpoint, its actual Tenant ID and audio consent, then sign in again before transcription. The official Work IQ CLI, its evaluation terms, permissions and license are still required separately on each PC. Never copy another PC's DPAPI-encrypted settings or token cache to provision a new installation.
 
 The implementation uses the official `Azure.Identity.InteractiveBrowserCredential` and the Speech SDK's `TokenCredential` overload. It does not construct legacy `aad#...` strings or pass M365/Graph/Work IQ tokens to Speech. The SDK handles routing and token refresh for the HTTPS custom resource Endpoint. Input remains 16 kHz / 16-bit / mono PCM; audio is not written to disk.
 

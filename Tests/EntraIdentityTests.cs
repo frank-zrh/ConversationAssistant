@@ -11,6 +11,79 @@ namespace ConversationAssistant.Tests;
 public sealed class EntraIdentityTests
 {
     [TestMethod]
+    public void FreshInstallationCanSignInBeforeAzureResourceConfiguration()
+    {
+        var configuration = new SpeechServiceConfiguration();
+        var options = SpeechEntraIdentity.CreateOptions(configuration, null, "fresh-install");
+        Assert.AreEqual("organizations", options.TenantId);
+        Assert.IsNull(options.AuthenticationRecord);
+        Assert.IsFalse(options.BrowserCustomization.UseEmbeddedWebView);
+        Assert.IsTrue(options.DisableAutomaticAuthentication);
+        Assert.ThrowsExactly<InvalidOperationException>(() => configuration.ValidateIdentity());
+        Assert.ThrowsExactly<InvalidOperationException>(() => configuration.ValidateForAzure());
+        Assert.ThrowsExactly<InvalidOperationException>(() => SpeechEntraIdentity.CreateOptions(
+            new SpeechServiceConfiguration { TenantId = "not-a-tenant" }, null, "invalid"));
+    }
+
+    [TestMethod]
+    public void InteractiveSignInIgnoresSavedAccountRecord()
+    {
+        var unreadableFile = new CurrentUserProtectedFile(
+            Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N")), "test");
+        Assert.IsNull(EntraSignInFlow.ReadRecord(unreadableFile, true, CancellationToken.None));
+    }
+
+    [TestMethod]
+    public async Task MissingRecordOpensInteractiveSignInWithoutSilentAttempt()
+    {
+        var silentCalls = 0;
+        var browserCalls = 0;
+        var result = await EntraSignInFlow.AuthenticateAsync<string>(null,
+            () => { silentCalls++; return Task.CompletedTask; },
+            () => { browserCalls++; return Task.FromResult("selected-account"); });
+        Assert.AreEqual("selected-account", result);
+        Assert.AreEqual(0, silentCalls);
+        Assert.AreEqual(1, browserCalls);
+    }
+
+    [TestMethod]
+    public async Task ValidCachedSignInDoesNotOpenBrowser()
+    {
+        var browserCalls = 0;
+        var result = await EntraSignInFlow.AuthenticateAsync("cached-account",
+            () => Task.CompletedTask,
+            () => { browserCalls++; return Task.FromResult("selected-account"); });
+        Assert.AreEqual("cached-account", result);
+        Assert.AreEqual(0, browserCalls);
+    }
+
+    [TestMethod]
+    public async Task FailedCachedSignInFallsBackToBrowserOnce()
+    {
+        var browserCalls = 0;
+        var result = await EntraSignInFlow.AuthenticateAsync("expired-account",
+            () => Task.FromException(new AuthenticationFailedException("interaction required")),
+            () => { browserCalls++; return Task.FromResult("selected-account"); });
+        Assert.AreEqual("selected-account", result);
+        Assert.AreEqual(1, browserCalls);
+    }
+
+    [TestMethod]
+    public async Task CanceledSignInDoesNotLaunchAnotherBrowser()
+    {
+        var browserCalls = 0;
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(() =>
+            EntraSignInFlow.AuthenticateAsync("cached-account",
+                () => Task.FromException(new OperationCanceledException()),
+                () => { browserCalls++; return Task.FromResult("selected-account"); }));
+        Assert.AreEqual(0, browserCalls);
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(() =>
+            EntraSignInFlow.AuthenticateAsync<string>(null, () => Task.CompletedTask,
+                () => { browserCalls++; return Task.FromException<string>(new OperationCanceledException()); }));
+        Assert.AreEqual(1, browserCalls);
+    }
+
+    [TestMethod]
     public void WorkIqLoginAndEveryAskArePinnedToAzureSignedInAccount()
     {
         const string account = "example@contoso.invalid";

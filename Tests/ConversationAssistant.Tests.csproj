@@ -35,6 +35,8 @@
     <Compile Include="..\App\Speech\AzureSpeechConnectionTester.cs" Link="AzureSpeechConnectionTester.cs" />
     <Compile Include="..\App\Speech\AzureSpeechDiagnostics.cs" Link="AzureSpeechDiagnostics.cs" />
     <Compile Include="..\App\Authentication\SpeechEntraIdentity.cs" Link="SpeechEntraIdentity.cs" />
+    <Compile Include="..\App\Authentication\EntraSignInFlow.cs" Link="EntraSignInFlow.cs" />
+    <Compile Include="..\App\Authentication\CopilotEntraIdentity.cs" Link="CopilotEntraIdentity.cs" />
     <Compile Include="..\App\Audio\*.cs" Link="Audio\%(Filename)%(Extension)" />
     <Compile Include="..\App\Speech\OfflineSpeaker*.cs" Link="Speech\%(Filename)%(Extension)" />
     <Compile Include="..\App\Speech\OfflineWhisper*.cs" Link="Speech\%(Filename)%(Extension)" />

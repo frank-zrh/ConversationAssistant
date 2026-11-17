@@ -23,49 +23,31 @@ public sealed partial class SpeechEntraIdentity(ISpeechSettingsStore settings) :
     public string? AccountName { get; private set; }
     public event Action? StateChanged;
 
-    public async Task SignInAsync(CancellationToken cancellationToken)
+    public async Task SignInAsync(CancellationToken cancellationToken, bool forceInteractive = false)
     {
         await _signInGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             Invalidate();
             var configuration = settings.Load();
-            configuration.ValidateIdentity();
+            configuration.ValidateIdentity(requireResourceTenant: false);
             var cacheId = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
                 configuration.TenantId.ToLowerInvariant() + "|" + configuration.ClientId.ToLowerInvariant())))[..20];
             // Retain the original path and DPAPI purpose for existing sign-in records.
             var recordFile = new CurrentUserProtectedFile(Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "MeetingCopilot", $"entra-account-{cacheId}.bin"), "MeetingCopilot.Speech.EntraAccount.v1");
-            AuthenticationRecord? record = null;
-            var plaintext = recordFile.Read();
-            if (plaintext is not null)
-            {
-                try
-                {
-                    using var memory = new MemoryStream(plaintext);
-                    record = AuthenticationRecord.Deserialize(memory, cancellationToken);
-                }
-                finally { CryptographicOperations.ZeroMemory(plaintext); }
-            }
-
+            var record = EntraSignInFlow.ReadRecord(recordFile, forceInteractive, cancellationToken);
             var options = CreateOptions(configuration, record, cacheId);
             var browser = new InteractiveBrowserCredential(options);
             var context = new TokenRequestContext([CognitiveScope]);
-            if (record is not null)
-            {
-                try { await browser.GetTokenAsync(context, cancellationToken).ConfigureAwait(false); }
-                catch (AuthenticationRequiredException)
-                {
-                    record = await browser.AuthenticateAsync(context, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                record = await browser.AuthenticateAsync(context, cancellationToken).ConfigureAwait(false);
-            }
+            record = await EntraSignInFlow.AuthenticateAsync(record,
+                async () => { await browser.GetTokenAsync(context, cancellationToken).ConfigureAwait(false); },
+                () => new InteractiveBrowserCredential(CreateOptions(configuration, null, cacheId))
+                    .AuthenticateAsync(context, cancellationToken)).ConfigureAwait(false);
 
-            if (!string.Equals(record.TenantId, configuration.TenantId, StringComparison.OrdinalIgnoreCase))
+            if (configuration.TenantId.Length > 0 &&
+                !string.Equals(record.TenantId, configuration.TenantId, StringComparison.OrdinalIgnoreCase))
                 throw new SpeechConnectionException(
                     "Entra 返回的帐号租户不符合配置的资源 Tenant ID，请核对目录并重新登录。");
 
@@ -75,7 +57,8 @@ public sealed partial class SpeechEntraIdentity(ISpeechSettingsStore settings) :
             try { recordFile.Write(serialized); }
             finally { CryptographicOperations.ZeroMemory(serialized); }
             _identitySettings = configuration;
-            _credential = new SpeechOnlyCredential(browser, Invalidate);
+            _credential = new SpeechOnlyCredential(
+                new InteractiveBrowserCredential(CreateOptions(configuration, record, cacheId)), Invalidate);
             AccountName = record.Username;
             IsSignedIn = true;
             StateChanged?.Invoke();
@@ -111,10 +94,11 @@ public sealed partial class SpeechEntraIdentity(ISpeechSettingsStore settings) :
     internal static InteractiveBrowserCredentialOptions CreateOptions(
         SpeechServiceConfiguration configuration, AuthenticationRecord? record, string cacheId)
     {
-        configuration.ValidateIdentity();
+        configuration.ValidateIdentity(requireResourceTenant: false);
         var options = new InteractiveBrowserCredentialOptions
         {
-            TenantId = configuration.TenantId,
+            TenantId = configuration.TenantId.Length > 0 ? configuration.TenantId : "organizations",
+            BrowserCustomization = new BrowserCustomizationOptions { UseEmbeddedWebView = false },
             DisableAutomaticAuthentication = true,
             AuthenticationRecord = record,
             IsUnsafeSupportLoggingEnabled = false,
