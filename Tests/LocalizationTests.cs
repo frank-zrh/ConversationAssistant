@@ -5,11 +5,8 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using ConversationAssistant.Core.Localization;
 using ConversationAssistant.Core.Models;
-using ConversationAssistant.Core.Settings;
 using ConversationAssistant.Core.Transcript;
 using ConversationAssistant.Core.WorkIQ;
-using ConversationAssistant_App.Speech;
-using Microsoft.CognitiveServices.Speech;
 
 namespace ConversationAssistant.Tests;
 
@@ -117,95 +114,6 @@ public sealed class LocalizationTests
         Assert.AreEqual(Chinese.Format("DiagnosticUnknown", vendorMessage), message.Resolve(Chinese));
         Assert.IsNull(UiMessage.FromDiagnostic(""));
         Assert.IsNull(UiMessage.FromDiagnostic(null));
-    }
-
-    [TestMethod]
-    public void MissingOfflineSpeakerModelGuidanceFollowsTheListeningLanguage()
-    {
-        var directory = Path.Combine(Path.GetTempPath(), $"missing-speaker-models-{Guid.NewGuid():N}");
-        var error = Assert.Throws<FileNotFoundException>(() => new OfflineSpeakerModelManager(directory).Validate());
-        var message = UiMessage.FromDiagnostic(error.Message)!;
-
-        Assert.AreEqual("ErrorSpeakerModelMissing", message.Key);
-        Assert.AreEqual(English["ErrorSpeakerModelMissing"], message.Resolve(English));
-        Assert.AreEqual(Chinese["ErrorSpeakerModelMissing"], message.Resolve(Chinese));
-        StringAssert.Contains(message.Resolve(Chinese), "Install-OfflineSpeakerModels.ps1");
-        StringAssert.Contains(message.Resolve(Chinese), "监听时不会自动下载模型");
-    }
-
-    [TestMethod]
-    [DataRow("Offline speaker separation returned invalid turn boundaries. Pause and resume; reinstall the speaker models if this repeats.",
-        "ErrorSpeakerBoundaries")]
-    [DataRow("Offline speaker separation requires short 16 kHz mono audio windows (at most 15 seconds). Pause and resume after checking the audio source.",
-        "ErrorSpeakerWindow")]
-    [DataRow("Offline speaker separation requires normalized 16 kHz mono PCM audio. Select a supported microphone or loopback source.",
-        "ErrorSpeakerPcm")]
-    [DataRow("Offline speaker separation reached its session limit. Pause and resume to start a new speaker session.",
-        "ErrorSpeakerSessionLimit")]
-    [DataRow("Offline speaker separation requires the Windows x64 build. Install that build or select Azure Speech explicitly.",
-        "ErrorSpeakerPlatform")]
-    [DataRow("Offline speaker models are incompatible. Run App\\Speech\\Install-OfflineSpeakerModels.ps1 and rebuild.",
-        "ErrorSpeakerModelsIncompatible")]
-    [DataRow("Offline speaker separation could not load its local models or native runtime. Reinstall the Windows x64 app and Microsoft Visual C++ x64 runtime, and run App\\Speech\\Install-OfflineSpeakerModels.ps1 before rebuilding.",
-        "ErrorSpeakerRuntime")]
-    [DataRow("Offline speaker separation returned invalid timing. Pause and resume; reinstall the speaker models if this repeats.",
-        "ErrorSpeakerTiming")]
-    [DataRow("Offline speaker separation could not extract a valid voice embedding. Check the audio source and reinstall the speaker models if this repeats.",
-        "ErrorSpeakerEmbedding")]
-    [DataRow("Offline speech recognition or speaker separation stopped. Check the audio source and CPU load, then pause and resume. Reinstall the local speaker models if this repeats.",
-        "ErrorWhisperSpeakerStopped")]
-    public void OfflineSpeakerDiagnosticsTranslateWithoutLosingRecoveryGuidance(string diagnostic, string key)
-    {
-        var message = UiMessage.FromDiagnostic(diagnostic)!;
-        Assert.AreEqual(key, message.Key);
-        Assert.AreEqual(English[key], message.Resolve(English));
-        Assert.AreEqual(Chinese[key], message.Resolve(Chinese));
-    }
-
-    [TestMethod]
-    public void ExistingSettingsErrorsAreTranslatedWithoutChangingExceptionContracts()
-    {
-        var missingEndpoint = Assert.Throws<InvalidOperationException>(() =>
-            new SpeechServiceConfiguration().ValidateForAzure());
-        Assert.AreEqual(English["ErrorEndpointMissing"], English.LocalizeDiagnostic(missingEndpoint.Message));
-        var invalidEndpoint = Assert.Throws<InvalidOperationException>(() => AzureSpeechEndpoint.Parse("invalid"));
-        Assert.AreEqual(English["ErrorEndpointInvalid"], English.LocalizeDiagnostic(invalidEndpoint.Message));
-        var tenant = Assert.Throws<InvalidOperationException>(() =>
-            new SpeechServiceConfiguration { TenantId = "not-a-guid" }.ValidateIdentity());
-        Assert.AreEqual(English["ErrorTenantInvalid"], English.LocalizeDiagnostic(tenant.Message));
-    }
-
-    [TestMethod]
-    [DataRow(CancellationErrorCode.AuthenticationFailure, "ErrorAzureAuth")]
-    [DataRow(CancellationErrorCode.Forbidden, "ErrorAzureForbidden")]
-    [DataRow(CancellationErrorCode.BadRequest, "ErrorAzureBadRequest")]
-    [DataRow(CancellationErrorCode.TooManyRequests, "ErrorAzureThrottled")]
-    [DataRow(CancellationErrorCode.ConnectionFailure, "ErrorAzureConnection")]
-    [DataRow(CancellationErrorCode.ServiceTimeout, "ErrorAzureConnection")]
-    [DataRow(CancellationErrorCode.ServiceUnavailable, "ErrorAzureConnection")]
-    [DataRow(CancellationErrorCode.ServiceError, "ErrorAzureService")]
-    [DataRow(CancellationErrorCode.NoError, "ErrorAzureStopped")]
-    public void AzureDiagnosticsTranslateGuidanceAndPreserveTechnicalCodes(CancellationErrorCode code, string key)
-    {
-        var original = AzureSpeechDiagnostics.Cancellation(code, "HTTP 400");
-        var message = UiMessage.FromDiagnostic(original)!;
-        Assert.AreEqual(key, message.Key);
-        Assert.AreEqual(English.Format(key, $"Azure AI Speech [{code}/HTTP 400]"), message.Resolve(English));
-        Assert.AreEqual(Chinese.Format(key, $"Azure AI Speech [{code}/HTTP 400]"), message.Resolve(Chinese));
-    }
-
-    [TestMethod]
-    public void AzureTenantAndInitializationDiagnosticsKeepSafeCodes()
-    {
-        var tenant = UiMessage.FromDiagnostic(AzureSpeechDiagnostics.Cancellation(CancellationErrorCode.BadRequest,
-            "HTTP 400 Tenant provided in token does not match resource token"))!;
-        Assert.AreEqual("ErrorAzureTenantMismatch", tenant.Key);
-        StringAssert.Contains(tenant.Resolve(English), "[TenantMismatch]");
-        StringAssert.Contains(tenant.Resolve(English), "[BadRequest/HTTP 400]");
-        var initialization = UiMessage.FromDiagnostic(AzureSpeechDiagnostics.Initialization(
-            new InvalidOperationException("SPXERR_CONNECTION_FAILURE")))!;
-        Assert.AreEqual("ErrorAzureSdkInit", initialization.Key);
-        StringAssert.Contains(initialization.Resolve(English), "[SPXERR_CONNECTION_FAILURE]");
     }
 
     [TestMethod]

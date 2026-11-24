@@ -341,11 +341,11 @@ public sealed partial class PipelineTests
             var analysis = fake.Conversation.AnalyzeConversation();
             await WaitUntil(() => analysis.Status == QuestionStatus.Completed);
             var suggestion = analysis.Questions.Single();
-            fake.Work.BlockCall = fake.Work.Calls.Count + 1;
+            var calls = fake.Work.Calls.Count + 1;
+            fake.Work.BlockCall = calls;
             var manual = fake.Conversation.AskManually(question);
             StringAssert.Contains(manual.ContextUsed, question);
-            await WaitUntil(() => manual.Status == QuestionStatus.Processing);
-            var calls = fake.Work.Calls.Count;
+            await WaitUntil(() => manual.Status == QuestionStatus.Processing && fake.Work.Calls.Count == calls);
             Assert.AreSame(manual, fake.Conversation.AskSuggestedQuestion(suggestion.Id));
             Assert.HasCount(1, fake.Conversation.AnswerHistory);
             Assert.HasCount(calls, fake.Work.Calls);

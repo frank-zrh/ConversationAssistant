@@ -6,7 +6,16 @@ namespace ConversationAssistant.Core.WorkIQ;
 
 public sealed class LoggedWorkIqClient(IWorkIqClient inner, WorkIqDiagnostics diagnostics) : IWorkIqClient
 {
-    public async Task<WorkIqAnswer> AskAsync(string prompt, string? conversationId, CancellationToken cancellationToken)
+    public bool SupportsFullPrompt => inner.SupportsFullPrompt;
+
+    public Task<WorkIqAnswer> AskAsync(string prompt, string? conversationId, CancellationToken cancellationToken) =>
+        SendAsync(prompt, conversationId, inner.AskAsync, cancellationToken);
+
+    public Task<WorkIqAnswer> AnalyzeAsync(string prompt, string? conversationId, CancellationToken cancellationToken) =>
+        SendAsync(prompt, conversationId, inner.AnalyzeAsync, cancellationToken);
+
+    private async Task<WorkIqAnswer> SendAsync(string prompt, string? conversationId,
+        Func<string, string?, CancellationToken, Task<WorkIqAnswer>> send, CancellationToken cancellationToken)
     {
         using var scope = diagnostics.BeginCall();
         var context = diagnostics.Capture();
@@ -15,7 +24,7 @@ public sealed class LoggedWorkIqClient(IWorkIqClient inner, WorkIqDiagnostics di
             .ConfigureAwait(false);
         try
         {
-            var answer = await inner.AskAsync(prompt, conversationId, cancellationToken).ConfigureAwait(false);
+            var answer = await send(prompt, conversationId, cancellationToken).ConfigureAwait(false);
             await diagnostics.WriteAsync(context, "CallCompleted", new
             {
                 ElapsedMs = timer.ElapsedMilliseconds, Response = answer.Text,

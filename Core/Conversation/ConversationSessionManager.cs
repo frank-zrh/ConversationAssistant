@@ -1,3 +1,4 @@
+using ConversationAssistant.Core.Analysis;
 using ConversationAssistant.Core.Context;
 using ConversationAssistant.Core.Models;
 using ConversationAssistant.Core.Persistence;
@@ -11,7 +12,6 @@ public sealed partial class ConversationSessionManager
 {
     private readonly IAudioCaptureService _audio;
     private readonly ISpeechRecognitionService _speech;
-    private readonly IAuthenticationService _auth;
     private readonly INetworkStatus _network;
     private readonly IWorkIqClient _workIq;
     private readonly WorkIqDiagnostics _workIqDiagnostics;
@@ -33,6 +33,7 @@ public sealed partial class ConversationSessionManager
     private Task _speechRecovery = Task.CompletedTask;
     private bool _closing;
     private bool _committingFinal;
+    private ConversationSession? _drainingSpeech;
 
     public ConversationSession? Session { get; private set; }
     public ConversationSession? CurrentConversation { get; private set; }
@@ -116,18 +117,17 @@ public sealed partial class ConversationSessionManager
     public event Action? GroupsUpdated;
 
     public ConversationSessionManager(IAudioCaptureService audio, ISpeechRecognitionService speech,
-        IAuthenticationService auth, INetworkStatus network, IWorkIqClient workIq, ITranscriptEngine transcript,
+        INetworkStatus network, IWorkIqClient workIq, ITranscriptEngine transcript,
         IContextBuilder contextBuilder, TimeProvider? timeProvider = null,
         IConversationArchiveStore? archiveStore = null, WorkIqDiagnostics? workIqDiagnostics = null)
     {
         _audio = audio;
         _speech = speech;
-        _auth = auth;
         _network = network;
         _workIqDiagnostics = workIqDiagnostics ?? new WorkIqDiagnostics();
         _workIq = workIq is LoggedWorkIqClient ? workIq : new LoggedWorkIqClient(workIq, _workIqDiagnostics);
         _workIqDiagnostics.Failed += _ => ErrorOccurred?.Invoke(
-            "The Work IQ session log could not be written. Analysis will continue; check the record folder.");
+            "The analysis log could not be written. Analysis will continue; check the record folder.");
         _transcript = transcript;
         _contextBuilder = contextBuilder;
         _timeProvider = timeProvider ?? TimeProvider.System;
@@ -192,6 +192,7 @@ public sealed partial class ConversationSessionManager
             _paused = false;
             _capturing = false;
             _workIqBusy = false;
+            settings.AnalysisProvider = AnalysisProvider.Qwen;
             Session = new ConversationSession { Settings = settings, StartTime = _timeProvider.GetUtcNow() };
             CurrentConversation = Session;
             _userQuestionHistory.Clear();
@@ -257,23 +258,42 @@ public sealed partial class ConversationSessionManager
 
     public void Pause()
     {
+        _lifecycle.Wait();
+        try { PauseCore(); }
+        finally { _lifecycle.Release(); }
+    }
+
+    private void PauseCore()
+    {
         lock (_gate)
         {
             if (Session is null || _paused || !_capturing)
                 throw new InvalidOperationException("Conversation is not listening.");
             _paused = true;
             _capturing = false;
+            _drainingSpeech = Session;
             _resumed = new(TaskCreationOptions.RunContinuationsAsynchronously);
         }
         try { _audio.Stop(); }
         finally
         {
-            _speech.Stop();
-            SetState(ConversationUiState.Paused);
+            try { _speech.Stop(); }
+            finally
+            {
+                lock (_gate) _drainingSpeech = null;
+                SetState(ConversationUiState.Paused);
+            }
         }
     }
 
     public void Resume()
+    {
+        _lifecycle.Wait();
+        try { ResumeCore(); }
+        finally { _lifecycle.Release(); }
+    }
+
+    private void ResumeCore()
     {
         _speechRecovery.GetAwaiter().GetResult();
         ConversationSettings settings;
@@ -348,6 +368,7 @@ public sealed partial class ConversationSessionManager
         {
             if (CurrentConversation is null) return;
             hadAudio = Session is not null;
+            if (_capturing) _drainingSpeech = Session;
             if (Session is not null) Session.EndTime = _timeProvider.GetUtcNow();
             Session = null;
             _closing = true;
@@ -385,6 +406,7 @@ public sealed partial class ConversationSessionManager
                         _queue = null;
                         _worker = null;
                         _analysisSchedule.Reset();
+                        _drainingSpeech = null;
                         _closing = false;
                         CurrentConversation!.WorkIqConversationId = null;
                         PersistLocked(CurrentConversation!);
@@ -649,7 +671,7 @@ public sealed partial class ConversationSessionManager
         if (!_queue!.TryEnqueue(request))
         {
             request.Status = QuestionStatus.Failed;
-            request.Error = "Work IQ request queue is full.";
+            request.Error = "The analysis request queue is full.";
         }
     }
 
@@ -714,10 +736,8 @@ public sealed partial class ConversationSessionManager
                 if (Session == session && !_paused) SetState(ConversationUiState.Thinking);
                 try
                 {
-                    if (!_auth.IsSignedIn)
-                        throw new InvalidOperationException("Sign in with Microsoft before asking Work IQ.");
                     if (!_network.IsAvailable)
-                        throw new System.Net.Http.HttpRequestException("Work IQ offline. Check your network.");
+                        throw new System.Net.Http.HttpRequestException("Qwen is offline. Check your network.");
                     if (request is ConversationAnalysisRequest analysis)
                         await ProcessAnalysisAsync(session, analysis, token).ConfigureAwait(false);
                     else if (request is QuestionRequest question)
@@ -902,23 +922,27 @@ public sealed partial class ConversationSessionManager
 
     private void OnFinal(SpeechText speech)
     {
-        if (!IsListening || string.IsNullOrWhiteSpace(speech.Text)) return;
+        if (string.IsNullOrWhiteSpace(speech.Text)) return;
+        bool draining;
         lock (_gate)
         {
-            if (Session is null || _paused || !_capturing) return;
+            draining = _drainingSpeech is not null;
+            var session = draining ? _drainingSpeech : !_paused && _capturing ? Session : null;
+            if (session is null) return;
             _committingFinal = true;
             try
             {
                 var segment = _transcript.CommitFinal(speech);
-                Session.TranscriptSegments.Add(segment);
+                session.TranscriptSegments.Add(segment);
                 _buffer!.Add(segment);
                 _analysisSchedule.RecordFinal(_timeProvider.GetUtcNow());
-                PersistLocked(Session);
+                PersistLocked(session);
             }
             finally { _committingFinal = false; }
             TranscriptUpdated?.Invoke(null);
         }
         AnalysisUpdated?.Invoke();
+        if (draining) return;
         AnalyzeIfDue();
         if (!_workIqBusy) SetState(ConversationUiState.Listening);
     }

@@ -1,20 +1,16 @@
 using ConversationAssistant.Core.Context;
-using ConversationAssistant.Core.Analysis;
-using ConversationAssistant.Core.Copilot;
 using ConversationAssistant.Core.Conversation;
+using ConversationAssistant.Core.Localization;
+using ConversationAssistant.Core.Models;
 using ConversationAssistant.Core.Persistence;
-using ConversationAssistant.Core.Settings;
-using ConversationAssistant.Core.Speech;
+using ConversationAssistant.Core.Qwen;
 using ConversationAssistant.Core.Transcript;
-using ConversationAssistant.Core.WorkIQ;
 using ConversationAssistant_App.Audio;
-using ConversationAssistant_App.Authentication;
-using ConversationAssistant_App.Speech;
 using ConversationAssistant_App.UI;
-using ConversationAssistant_App.WorkIQ;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace ConversationAssistant_App;
 
@@ -28,41 +24,23 @@ public partial class App : Application
         InitializeComponent();
         var services = new ServiceCollection();
         services.AddLogging(builder => builder.AddDebug());
-        services.AddSingleton<OfflineWhisperModelManager>();
-        // Keep the original data directory so the rename preserves existing protected settings.
-        services.AddSingleton<ISpeechSettingsStore>(_ => new ProtectedSpeechSettingsStore(
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "MeetingCopilot", "speech-settings.bin")));
+        services.AddSingleton(_ => LocalAppProfile.ForCurrentUser());
+        services.AddSingleton<IQwenSettingsStore>(provider => new ProtectedQwenSettingsStore(
+            provider.GetRequiredService<LocalAppProfile>().QwenSettingsFile));
         services.AddSingleton<IAudioCaptureService, AudioCaptureService>();
-        services.AddSingleton<OfflineWhisperSpeechRecognitionService>();
-        services.AddSingleton<SpeechEntraIdentity>();
-        services.AddSingleton<CopilotEntraIdentity>();
-        services.AddSingleton<ICopilotTokenProvider>(provider => provider.GetRequiredService<CopilotEntraIdentity>());
-        services.AddSingleton(provider => new CopilotChatClient(
-            new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromMinutes(3) },
-            provider.GetRequiredService<ICopilotTokenProvider>()));
-        services.AddSingleton<ISpeechCredentialProvider>(provider => provider.GetRequiredService<SpeechEntraIdentity>());
-        services.AddSingleton<IAzureSpeechSessionFactory, AzureSpeechSessionFactory>();
-        services.AddSingleton<AzureSpeechConnectionTester>();
-        services.AddSingleton<AzureSpeechRecognitionService>();
-        services.AddSingleton<ISpeechRecognitionService>(provider => new SelectableSpeechRecognitionService(
-            provider.GetRequiredService<ISpeechSettingsStore>(),
-            provider.GetRequiredService<AzureSpeechRecognitionService>(),
-            provider.GetRequiredService<OfflineWhisperSpeechRecognitionService>()));
+        services.AddSingleton<QwenSpeechRecognitionService>();
+        services.AddSingleton<ISpeechRecognitionService>(provider => provider.GetRequiredService<QwenSpeechRecognitionService>());
+        services.AddSingleton(_ => new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
+        {
+            Timeout = TimeSpan.FromMinutes(2), MaxResponseContentBufferSize = 4 * 1024 * 1024
+        });
+        services.AddSingleton<QwenAnalysisClient>();
+        services.AddSingleton<IWorkIqClient>(provider => provider.GetRequiredService<QwenAnalysisClient>());
         services.AddSingleton<ITranscriptEngine, TranscriptEngine>();
         services.AddSingleton<PromptBuilder>();
         services.AddSingleton<IContextBuilder, ContextBuilder>();
-        services.AddSingleton<WorkIqDiagnostics>();
-        services.AddSingleton<WorkIqProcess>();
         services.AddSingleton<INetworkStatus, NetworkStatus>();
-        services.AddSingleton<IAuthenticationService, AuthenticationService>();
-        services.AddSingleton<WorkIqClient>();
-        services.AddSingleton<IWorkIqClient>(provider => new LoggedWorkIqClient(
-            new SelectableAnalysisClient(provider.GetRequiredService<WorkIqClient>(),
-                provider.GetRequiredService<CopilotChatClient>(),
-                () => provider.GetRequiredService<ISpeechSettingsStore>().Load().AnalysisProvider),
-            provider.GetRequiredService<WorkIqDiagnostics>()));
-        services.AddSingleton(_ => new JsonConversationArchiveStore(ConversationRecordLocation.DirectoryPath));
+        services.AddSingleton(provider => new JsonConversationArchiveStore(provider.GetRequiredService<LocalAppProfile>().Conversations));
         services.AddSingleton<IConversationArchiveStore>(provider => provider.GetRequiredService<JsonConversationArchiveStore>());
         services.AddSingleton<ConversationSessionManager>();
         services.AddSingleton<MainViewModel>();
@@ -71,7 +49,26 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        Services.GetRequiredService<ILogger<App>>().LogInformation("Conversation Assistant started");
+        var logger = Services.GetRequiredService<ILogger<App>>();
+        try { Services.GetRequiredService<LocalAppProfile>().EnsureCreated(); }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            var code = $"0x{error.HResult:X8}";
+            logger.LogError("Could not initialize the local application profile: {ErrorType} ({Code})", error.GetType().Name, code);
+            var texts = UiText.For(new ConversationSettings().DisplayLanguage);
+            _window = new Window
+            {
+                Title = texts["AppTitle"],
+                Content = new TextBlock
+                {
+                    Language = texts.LanguageTag, Margin = new Thickness(24), TextWrapping = TextWrapping.Wrap,
+                    IsTextSelectionEnabled = true, Text = texts.Format("ErrorLocalAppProfile", code)
+                }
+            };
+            _window.Activate();
+            return;
+        }
+        logger.LogInformation("Conversation Assistant started");
         _window = new MainWindow();
         _window.Activate();
     }

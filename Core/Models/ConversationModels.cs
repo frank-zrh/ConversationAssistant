@@ -13,7 +13,7 @@ public enum QuestionStatus { Pending, Processing, Completed, Ignored, Failed, Ca
 
 public sealed class ConversationSettings
 {
-    public Analysis.AnalysisProvider AnalysisProvider { get; set; } = Analysis.AnalysisProvider.WorkIq;
+    public Analysis.AnalysisProvider AnalysisProvider { get; set; } = Analysis.AnalysisProvider.Qwen;
     public ConversationLanguage Language { get; set; } = ConversationLanguage.Chinese;
     // Retain the archive/API field name for older records. Analysis and answers
     // share an explicit output language, independent of speech and interface text.

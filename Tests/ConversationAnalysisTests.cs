@@ -400,13 +400,10 @@ public sealed partial class PipelineTests
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public async Task FailedAuthenticationOrNetworkDoesNotSendOrDiscardConversation(bool authenticationFailure)
+    public async Task OfflineAnalysisDoesNotSendOrDiscardConversation()
     {
         var fake = new Harness();
-        fake.Auth.IsSignedIn = !authenticationFailure;
-        fake.Network.IsAvailable = authenticationFailure;
+        fake.Network.IsAvailable = false;
         fake.Conversation.StartConversation(new ConversationSettings());
         try
         {
@@ -415,7 +412,6 @@ public sealed partial class PipelineTests
             Assert.IsEmpty(fake.Work.Calls);
             Assert.AreEqual(7, fake.Conversation.PendingAnalysisCount);
             Assert.IsFalse(string.IsNullOrWhiteSpace(fake.Conversation.Analysis!.Error));
-            fake.Auth.IsSignedIn = true;
             fake.Network.IsAvailable = true;
             var retry = fake.Conversation.AnalyzeConversation();
             await WaitUntil(() => retry.Status == QuestionStatus.Completed);

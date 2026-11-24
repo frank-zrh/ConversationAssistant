@@ -1,12 +1,9 @@
 using System.Collections.Concurrent;
-using System.Globalization;
-using ConversationAssistant.Core.Authentication;
 using ConversationAssistant.Core.Context;
 using ConversationAssistant.Core.Conversation;
 using ConversationAssistant.Core.Models;
 using ConversationAssistant.Core.Persistence;
 using ConversationAssistant.Core.QuestionDetection;
-using ConversationAssistant.Core.Speech;
 using ConversationAssistant.Core.Transcript;
 using ConversationAssistant.Core.WorkIQ;
 
@@ -16,182 +13,11 @@ namespace ConversationAssistant.Tests;
 public sealed partial class PipelineTests
 {
     [TestMethod]
-    public async Task FinalSpeechPreemptsSlowPreviewAndDiscardsStaleHypotheses()
-    {
-        using var queue = new SpeechInferenceQueue();
-        var time = DateTimeOffset.Now;
-        var partial = new SpeechAudioWindow([.1f], time, time.AddSeconds(3), false);
-        var newerPartial = partial with { End = time.AddSeconds(4) };
-        var final = partial with { End = time.AddSeconds(5), IsFinal = true };
-        queue.Publish(partial);
-        Assert.AreSame(partial, await queue.ReadAsync(CancellationToken.None));
-        var preview = queue.BeginPreview(CancellationToken.None);
-        queue.Publish(newerPartial);
-        queue.Publish(final);
-        Assert.IsTrue(preview.IsCancellationRequested);
-        queue.EndPreview(preview);
-        Assert.AreSame(final, await queue.ReadAsync(CancellationToken.None));
-        queue.Complete();
-        Assert.IsNull(await queue.ReadAsync(CancellationToken.None));
-    }
-
-    [TestMethod]
-    public async Task NewestPreviewReplacesObsoletePreviewWithoutBlockingAudioIntake()
-    {
-        using var queue = new SpeechInferenceQueue();
-        var time = DateTimeOffset.Now;
-        var first = new SpeechAudioWindow([.1f], time, time.AddSeconds(3), false);
-        var second = first with { End = time.AddSeconds(6) };
-        queue.Publish(first);
-        queue.Publish(second);
-        Assert.AreSame(second, await queue.ReadAsync(CancellationToken.None));
-    }
-    [TestMethod]
-    public void OfflineSpeechWindowsIgnoreSilenceAndFinalizeOnlyOnStableSpeech()
-    {
-        var segmenter = new SpeechWindowSegmenter();
-        var time = DateTimeOffset.Now;
-        for (var i = 0; i < 20; i++)
-            Assert.IsEmpty(segmenter.Add(new float[1600], time.AddMilliseconds(i * 100)));
-
-        IReadOnlyList<SpeechAudioWindow> result = [];
-        for (var i = 0; i < 10; i++)
-            result = segmenter.Add(Enumerable.Repeat(.15f, 1600).ToArray(),
-                time.AddSeconds(2).AddMilliseconds(i * 100));
-        Assert.IsEmpty(result);
-        for (var i = 0; i < 8; i++)
-            result = segmenter.Add(new float[1600],
-                time.AddSeconds(3).AddMilliseconds(i * 100));
-        Assert.HasCount(1, result);
-        Assert.IsTrue(result[0].IsFinal);
-        Assert.AreEqual(time.AddSeconds(3).AddMilliseconds(700), result[0].End);
-        Assert.IsGreaterThan(16000, result[0].Samples.Length);
-    }
-
-    [TestMethod]
-    public void OfflineSpeechWindowsProvidePartialWithoutCommittingQuestionEarly()
-    {
-        var segmenter = new SpeechWindowSegmenter();
-        var time = DateTimeOffset.Now;
-        var windows = new List<SpeechAudioWindow>();
-        for (var i = 0; i < 35; i++)
-            windows.AddRange(segmenter.Add(Enumerable.Repeat(.12f, 1600).ToArray(),
-                time.AddMilliseconds((i + 1) * 100)));
-        Assert.HasCount(1, windows);
-        Assert.IsFalse(windows[0].IsFinal);
-        segmenter.Clear();
-        Assert.IsEmpty(segmenter.Add(new float[1600], time.AddSeconds(4)));
-    }
-
-    [TestMethod]
-    public void SilenceOrMissingAudioForFiveSecondsForcesFinalWindow()
-    {
-        var segmenter = new SpeechWindowSegmenter();
-        var end = DateTimeOffset.Now;
-        Assert.IsEmpty(segmenter.Add(new float[1600], end.AddSeconds(-1)));
-        for (var i = 0; i < 3; i++)
-            segmenter.Add(Enumerable.Repeat(.12f, 1600).ToArray(),
-                end.AddMilliseconds(-200 + i * 100));
-        Assert.IsNull(segmenter.FinalizeIfIdle(end.AddSeconds(4.9)));
-        var final = segmenter.FinalizeIfIdle(end.AddSeconds(5));
-        Assert.IsNotNull(final);
-        Assert.IsTrue(final.IsFinal);
-        Assert.AreEqual(end, final.End);
-        Assert.IsNull(segmenter.FinalizeIfIdle(end.AddSeconds(10)));
-    }
-    [TestMethod]
     public void ChineseIsTheExplicitDefaultSpeechLanguage()
     {
         Assert.AreEqual(ConversationLanguage.Chinese, new ConversationSettings().Language);
         Assert.AreEqual(ConversationLanguage.Chinese, new ConversationSettings().AnalysisLanguage);
         Assert.AreEqual(ConversationLanguage.Chinese, new ConversationSettings().DisplayLanguage);
-    }
-
-    [TestMethod]
-    public void SelectedLanguageChoosesMatchingLocalRecognizerNotSystemUiLanguage()
-    {
-        var enGb = CultureInfo.GetCultureInfo("en-GB");
-        var enUs = CultureInfo.GetCultureInfo("en-US");
-        var zhTw = CultureInfo.GetCultureInfo("zh-TW");
-        var zhCn = CultureInfo.GetCultureInfo("zh-CN");
-        CultureInfo[] installed = [enGb, zhTw, enUs, zhCn];
-        Assert.AreEqual(zhCn, SpeechLocaleSelector.Select(installed, ConversationLanguage.Chinese));
-        Assert.AreEqual(enUs, SpeechLocaleSelector.Select(installed, ConversationLanguage.English));
-        Assert.AreEqual(enGb, SpeechLocaleSelector.Select([enGb, zhTw], ConversationLanguage.English));
-        Assert.ThrowsExactly<InvalidOperationException>(() =>
-            SpeechLocaleSelector.Select([zhTw, enUs], ConversationLanguage.Chinese));
-        Assert.ThrowsExactly<InvalidOperationException>(() =>
-            SpeechLocaleSelector.Select(installed, ConversationLanguage.Auto));
-    }
-
-    [TestMethod]
-    public void TranscriptNormalizationUsesSelectedLanguageWithoutChangingTechnicalTerms()
-    {
-        Assert.AreEqual("我们在讨论 DLP, 安全吗？",
-            SpeechTextNormalizer.Normalize("我 们 在 讨 论 ＤＬＰ ， 安 全 吗 ？", ConversationLanguage.Chinese));
-        Assert.AreEqual("中文，语音。 3.14 AI 技术",
-            SpeechTextNormalizer.Normalize("中 文,语 音. 3.14 ＡＩ 技 术", ConversationLanguage.Chinese));
-        Assert.AreEqual("What is DLP?",
-            SpeechTextNormalizer.Normalize(" What  is  DLP ? ", ConversationLanguage.English));
-        Assert.AreEqual("今天，我们如何。",
-            SpeechTextNormalizer.Normalize("今 天, 我 们 如 何 .", ConversationLanguage.Chinese));
-        Assert.AreEqual("Hello.",
-            SpeechTextNormalizer.Normalize("Hello .", ConversationLanguage.English));
-    }
-
-    [TestMethod]
-    public void OfflineChineseOutputIsConvertedToSimplifiedWithoutTouchingEnglishTerms()
-    {
-        var input = "我們目前有20個環境,應該如何制定數據防洩漏策略。 DLP 3.14";
-        var output = ChineseScriptConverter.ToSimplified(input);
-        Assert.AreEqual("我们目前有20个环境,应该如何制定数据防泄漏策略。 DLP 3.14", output);
-        Assert.AreEqual("", ChineseScriptConverter.ToSimplified(""));
-    }
-
-    [TestMethod]
-    public async Task LivePcmStreamSupportsSapiLengthAndReadPosition()
-    {
-        using var stream = new PcmAudioStream();
-        Assert.AreEqual(-1, stream.Length);
-        Assert.AreEqual(0, stream.Position);
-        stream.WriteChunk([1, 2, 3, 4]);
-        var buffer = new byte[4];
-        Assert.AreEqual(2, stream.Read(buffer, 0, 2));
-        Assert.AreEqual(2, stream.Position);
-        Assert.AreEqual(2, stream.Seek(0, SeekOrigin.Current));
-        Assert.AreEqual(2, stream.Read(buffer, 2, 2));
-        CollectionAssert.AreEqual(new byte[] { 1, 2, 3, 4 }, buffer);
-        Assert.ThrowsExactly<NotSupportedException>(() => stream.Seek(0, SeekOrigin.Begin));
-        var pending = Task.Run(() => stream.Read(buffer, 0, 1));
-        stream.Complete();
-        Assert.AreEqual(0, await pending.WaitAsync(TimeSpan.FromSeconds(2)));
-        stream.Dispose();
-    }
-
-    [TestMethod]
-    public async Task LivePcmStreamWaitsForEnoughAudioInsteadOfReportingPrematureEndOfStream()
-    {
-        using var stream = new PcmAudioStream();
-        var read = new byte[4];
-        var pending = Task.Run(() => stream.Read(read, 0, read.Length));
-        stream.WriteChunk([1, 2]);
-        Assert.IsFalse(pending.IsCompleted);
-        stream.WriteChunk([3, 4]);
-        Assert.AreEqual(4, await pending.WaitAsync(TimeSpan.FromSeconds(2)));
-        CollectionAssert.AreEqual(new byte[] { 1, 2, 3, 4 }, read);
-        Assert.AreEqual(4, stream.Position);
-    }
-
-    [TestMethod]
-    public void LiveHypothesisWithoutRecordedAudioStillHasValidTimestamps()
-    {
-        var now = DateTimeOffset.Now;
-        var partial = SpeechTiming.Create("testing", null, now);
-        Assert.AreEqual(now, partial.Start);
-        Assert.AreEqual(now, partial.End);
-        var final = SpeechTiming.Create("testing", TimeSpan.FromSeconds(2), now);
-        Assert.AreEqual(now.AddSeconds(-2), final.Start);
-        Assert.AreEqual(now, final.End);
     }
     [TestMethod]
     public void PartialSpeechNeverEntersContextOrTriggersQuestion()
@@ -381,7 +207,7 @@ public sealed partial class PipelineTests
     }
 
     [TestMethod]
-    public async Task ChineseWhisperQuestionStaysLocalUntilCardClickAndKeepsRelevantContext()
+    public async Task ChineseTranscriptionStaysLocalUntilCardClickAndKeepsRelevantContext()
     {
         var fake = new Harness();
         fake.Conversation.StartConversation(new ConversationSettings { Language = ConversationLanguage.Chinese });
@@ -389,13 +215,11 @@ public sealed partial class PipelineTests
         fake.Speech.EmitFinal("安全团队担心数据泄漏。", now.AddSeconds(-3));
         fake.Speech.EmitPartial("我们目前有20个环境");
         Assert.IsEmpty(fake.Work.Calls);
-        var recognized = ChineseScriptConverter.ToSimplified(
-            "我們目前有20個環境,應該如何制定數據防洩漏策略。");
-        fake.Speech.EmitFinal(recognized, now);
+        fake.Speech.EmitFinal("我们目前有20个环境,应该如何制定数据防泄漏策略。", now);
         Assert.IsEmpty(fake.Work.Calls);
         var request = fake.Conversation.AskFromTranscript(fake.Conversation.TranscriptSegments.Last().Id);
         await WaitUntil(() => fake.Work.Calls.Count == 1);
-        Assert.AreEqual(recognized, request.Question);
+        Assert.AreEqual("我们目前有20个环境,应该如何制定数据防泄漏策略。", request.Question);
         StringAssert.Contains(request.ContextUsed, "安全团队担心数据泄漏");
         var prompt = fake.Work.Calls.ToArray()[0].Prompt;
         StringAssert.Contains(prompt, "QUESTION:");
@@ -434,17 +258,6 @@ public sealed partial class PipelineTests
     }
 
     [TestMethod]
-    public void CliJsonResponseKeepsAnswerAndConversation()
-    {
-        var answer = WorkIqResponseParser.Parse(
-            """{"isError":false,"response":"Suggested response [1]","conversationId":"abc","artifacts":[{"name":"Answer","parts":[{"text":"Suggested response [1]"}]}]}""");
-        Assert.AreEqual("Suggested response [1]", answer.Text);
-        Assert.AreEqual("abc", answer.ConversationId);
-        Assert.ThrowsExactly<WorkIqException>(() =>
-            WorkIqResponseParser.Parse("""{"isError":true,"response":"not available"}"""));
-    }
-
-    [TestMethod]
     public void AnswerSectionsPreserveCitationsAndFallback()
     {
         var sections = AnswerSections.Parse(
@@ -453,19 +266,6 @@ public sealed partial class PipelineTests
         Assert.AreEqual("- Start small.", sections.KeyPoints);
         Assert.AreEqual("[1] Policy note", sections.Sources);
         Assert.AreEqual("Plain response", AnswerSections.Parse("Plain response").SuggestedAnswer);
-    }
-
-    [TestMethod]
-    public async Task AuthenticationRequiresARealWorkIqAnswer()
-    {
-        var workIq = new FakeWorkIq();
-        await AuthenticationVerifier.VerifyAsync(workIq);
-        Assert.HasCount(1, workIq.Calls);
-        Assert.AreEqual(AuthenticationVerifier.Probe, workIq.Calls.ToArray()[0].Prompt);
-        Assert.IsNull(workIq.Calls.ToArray()[0].ConversationId);
-        workIq.Reply = "Work IQ unavailable";
-        await Assert.ThrowsExactlyAsync<WorkIqException>(
-            () => AuthenticationVerifier.VerifyAsync(workIq));
     }
 
     [TestMethod]
@@ -479,7 +279,7 @@ public sealed partial class PipelineTests
         StringAssert.Contains(prompt, "untrusted context");
         StringAssert.Contains(prompt, "## SUGGESTED ANSWER");
         StringAssert.Contains(prompt, "Markdown table");
-        StringAssert.Contains(prompt, "![meaningful alt text]");
+        Assert.Contains("only if a relevant direct HTTPS image URL was supplied in the context", prompt);
     }
 
     [TestMethod]
@@ -543,7 +343,7 @@ public sealed partial class PipelineTests
     }
 
     [TestMethod]
-    public async Task OfflineModelInitializesBeforeMicrophoneCaptureStarts()
+    public async Task SpeechConnectionInitializesBeforeMicrophoneCaptureStarts()
     {
         var fake = new Harness();
         fake.Speech.BeforeStart = () =>
@@ -593,27 +393,6 @@ public sealed partial class PipelineTests
         fake.Network.IsAvailable = true;
         Assert.IsTrue(fake.Conversation.Retry(request.Id));
         await WaitUntil(() => request.Status == QuestionStatus.Completed);
-        await fake.Conversation.EndConversationAsync();
-    }
-
-    [TestMethod]
-    public async Task ManualQuestionCanRecoverAfterSignInWithoutTranscriptDisclosure()
-    {
-        var fake = new Harness();
-        fake.Auth.IsSignedIn = false;
-        fake.Conversation.StartConversation(new ConversationSettings { AutomaticAnalysis = false });
-        fake.Speech.EmitPartial("What is licensing?");
-        Assert.IsEmpty(fake.Work.Calls);
-        fake.Speech.EmitFinal("We use twenty environments.", DateTimeOffset.Now.AddSeconds(-2));
-        Assert.IsEmpty(fake.Work.Calls);
-        var request = fake.Conversation.AskManually("What is licensing?");
-        await WaitUntil(() => request.Status == QuestionStatus.Failed);
-        Assert.IsEmpty(fake.Work.Calls);
-        fake.Auth.IsSignedIn = true;
-        Assert.IsTrue(fake.Conversation.Retry(request.Id));
-        await WaitUntil(() => request.Status == QuestionStatus.Completed);
-        Assert.HasCount(1, fake.Work.Calls);
-        StringAssert.Contains(fake.Work.Calls.ToArray()[0].Prompt, "We use twenty environments.");
         await fake.Conversation.EndConversationAsync();
     }
 
@@ -833,23 +612,15 @@ public sealed partial class PipelineTests
         public FakeSpeech Speech { get; } = new();
         public FakeWorkIq Work { get; } = new();
         public FakeNetwork Network { get; } = new();
-        public FakeAuth Auth { get; } = new();
         public ManualTimeProvider Clock { get; } = new();
         public ConversationSessionManager Conversation { get; }
 
-        public Harness(IConversationArchiveStore? archiveStore = null) => Conversation = new ConversationSessionManager(Audio, Speech, Auth,
-            Network, Work, new TranscriptEngine(), new ContextBuilder(new PromptBuilder()), Clock, archiveStore);
+        public Harness(IConversationArchiveStore? archiveStore = null) => Conversation = new ConversationSessionManager(Audio, Speech, Network, Work, new TranscriptEngine(), new ContextBuilder(new PromptBuilder()), Clock, archiveStore);
     }
 
     private sealed class FakeNetwork : INetworkStatus
     {
         public bool IsAvailable { get; set; } = true;
-    }
-
-    private sealed class FakeAuth : IAuthenticationService
-    {
-        public bool IsSignedIn { get; set; } = true;
-        public Task SignInAsync(CancellationToken token = default) => Task.CompletedTask;
     }
 
     private sealed class FakeAudio : IAudioCaptureService
@@ -888,6 +659,7 @@ public sealed partial class PipelineTests
         public int StartCount { get; private set; }
         public int StopCount { get; private set; }
         public Action? BeforeStart { get; set; }
+        public Action? BeforeStop { get; set; }
         public Exception? StartError { get; set; }
         public IReadOnlyList<ConversationLanguage> AvailableLanguages() =>
             [ConversationLanguage.Chinese, ConversationLanguage.English];
@@ -898,7 +670,7 @@ public sealed partial class PipelineTests
             StartCount++;
             SpeechStarted?.Invoke();
         }
-        public void Stop() { StopCount++; SpeechEnded?.Invoke(); }
+        public void Stop() { StopCount++; BeforeStop?.Invoke(); SpeechEnded?.Invoke(); }
         public void AcceptAudio(byte[] data) => AudioChunks++;
         public void EmitFinal(string text, DateTimeOffset at) =>
             FinalTranscriptReceived?.Invoke(new SpeechText(text, at, at.AddSeconds(1)));

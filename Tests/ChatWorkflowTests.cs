@@ -1,5 +1,4 @@
 using System.Xml.Linq;
-using ConversationAssistant.Core.Authentication;
 using ConversationAssistant.Core.Conversation;
 using ConversationAssistant.Core.Localization;
 using ConversationAssistant.Core.Models;
@@ -118,47 +117,6 @@ public sealed partial class PipelineTests
 public sealed class ChatWorkspaceBehaviorTests
 {
     [TestMethod]
-    public async Task StartupSignInDoesNotBlockTheCallerAndRunsOnlyOnce()
-    {
-        using var release = new ManualResetEventSlim();
-        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var auth = new DelegateAuth(_ =>
-        {
-            entered.TrySetResult();
-            release.Wait();
-            return Task.CompletedTask;
-        });
-        var runner = new StartupSignIn(auth);
-        Assert.AreEqual(0, auth.Calls);
-        var returned = new TaskCompletionSource<Task>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _ = Task.Run(() => returned.TrySetResult(runner.StartAsync()));
-        Task? attempt = null;
-        try
-        {
-            attempt = await returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            Assert.IsFalse(attempt.IsCompleted);
-            Assert.AreSame(attempt, runner.StartAsync());
-            Assert.AreEqual(1, auth.Calls);
-        }
-        finally { release.Set(); }
-        await attempt!;
-    }
-
-    [TestMethod]
-    public async Task StartupSignInPropagatesCancellationWithoutRetrying()
-    {
-        using var cancellation = new CancellationTokenSource();
-        var auth = new DelegateAuth(token => Task.Delay(Timeout.Infinite, token));
-        var runner = new StartupSignIn(auth);
-        var attempt = runner.StartAsync(cancellation.Token);
-        cancellation.Cancel();
-        await Assert.ThrowsAsync<OperationCanceledException>(() => attempt);
-        Assert.AreSame(attempt, runner.StartAsync());
-        Assert.IsTrue(auth.Calls <= 1);
-    }
-
-    [TestMethod]
     public void ExplicitCollapseWorksFromEveryModeAndLeftClickStillRestores()
     {
         foreach (var cycles in new[] { 0, 1, 2 })
@@ -226,27 +184,15 @@ public sealed class ChatWorkspaceBehaviorTests
     }
 
     [TestMethod]
-    public void StartupSignInIsScheduledAfterPageLoadAndObsoleteTranscriptHandlersAreGone()
+    public void PageDoesNotStartMicrosoftSignInAndObsoleteTranscriptHandlersAreGone()
     {
         var source = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "MainPageCode.txt"));
-        StringAssert.Contains(source, "Loaded += ScheduleStartupSignIn;");
-        StringAssert.Contains(source, "DispatcherQueuePriority.Low");
-        StringAssert.Contains(source, "SignInAtStartupAsync(_pageCancellation.Token)");
+        Assert.IsFalse(source.Contains("ScheduleStartupSignIn", StringComparison.Ordinal));
+        Assert.IsFalse(source.Contains("SignInAtStartupAsync", StringComparison.Ordinal));
+        Assert.IsFalse(source.Contains("SignIn_Click", StringComparison.Ordinal));
         Assert.IsFalse(source.Contains("TranscriptCard_Click", StringComparison.Ordinal));
         Assert.IsFalse(source.Contains("TranscriptCard_RightTapped", StringComparison.Ordinal));
         foreach (var language in new[] { ConversationLanguage.English, ConversationLanguage.Chinese })
             Assert.IsFalse(UiText.For(language).TryGetValue("TranscriptCardHint", out _));
-    }
-
-    private sealed class DelegateAuth(Func<CancellationToken, Task> signIn) : IAuthenticationService
-    {
-        private int _calls;
-        public int Calls => _calls;
-        public bool IsSignedIn => false;
-        public Task SignInAsync(CancellationToken cancellationToken = default)
-        {
-            Interlocked.Increment(ref _calls);
-            return signIn(cancellationToken);
-        }
     }
 }

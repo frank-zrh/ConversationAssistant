@@ -2,7 +2,6 @@ using ConversationAssistant.Core.Localization;
 using ConversationAssistant.Core.Models;
 using ConversationAssistant.Core.Transcript;
 using ConversationAssistant.Core.WorkIQ;
-using ConversationAssistant_App.Speech;
 
 namespace ConversationAssistant.Tests;
 
@@ -89,40 +88,5 @@ public sealed class SpeakerTurnTests
         Assert.AreEqual("说话人 2", TranscriptSpeaker.Label(2, chinese));
         Assert.AreEqual("Speaker not identified", TranscriptSpeaker.Label(null, english));
         Assert.AreEqual("说话人未识别", TranscriptSpeaker.Label(null, chinese));
-    }
-
-    [TestMethod]
-    [DataRow(ConversationLanguage.English, " Hello . ", "Hello.")]
-    [DataRow(ConversationLanguage.Chinese, " 我們使用 DLP。 ", "我们使用 DLP。")]
-    public void AzureMappingPreservesDiarizedOffsetsTextAndSessionScopedIdentity(
-        ConversationLanguage language, string input, string expected)
-    {
-        var origin = DateTimeOffset.UnixEpoch;
-        var first = AzureSpeechSession.CreateSpeechText(input, TimeSpan.FromSeconds(3).Ticks,
-            TimeSpan.FromMilliseconds(1200), "Guest-1", language, origin, "session-a")!;
-        var same = AzureSpeechSession.CreateSpeechText("Same voice", 0, TimeSpan.FromSeconds(1),
-            "Guest-1", language, origin, "session-a")!;
-        var reconnect = AzureSpeechSession.CreateSpeechText("Another connection", 0, TimeSpan.FromSeconds(1),
-            "Guest-1", language, origin, "session-b")!;
-        Assert.AreEqual(expected, first.Text);
-        Assert.AreEqual(origin.AddSeconds(3), first.Start);
-        Assert.AreEqual(origin.AddMilliseconds(4200), first.End);
-        Assert.AreEqual(first.SpeakerId, same.SpeakerId);
-        Assert.AreNotEqual(first.SpeakerId, reconnect.SpeakerId);
-    }
-
-    [TestMethod]
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow("Unknown")]
-    [DataRow(" unknown ")]
-    public void AzureUnknownSpeakerIsNotAssignedAFabricatedIdentity(string? speakerId)
-    {
-        var speech = AzureSpeechSession.CreateSpeechText("Unattributed words", 0, TimeSpan.FromSeconds(1),
-            speakerId, ConversationLanguage.English, DateTimeOffset.UnixEpoch, "session");
-        Assert.IsNotNull(speech);
-        Assert.IsNull(speech.SpeakerId);
-        Assert.IsNull(AzureSpeechSession.CreateSpeechText(" ", 0, TimeSpan.Zero, speakerId,
-            ConversationLanguage.English, DateTimeOffset.UnixEpoch, "session"));
     }
 }

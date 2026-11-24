@@ -8,16 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.17.2" />
-    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.51.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <PackageReference Include="MSTest" Version="4.0.2" />
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="org.k2fsa.sherpa.onnx" Version="1.13.8" />
-    <PackageReference Include="System.Speech" Version="10.0.0" />
-    <PackageReference Include="Whisper.net" Version="1.9.1" />
-    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
-    <PackageReference Include="Whisper.net.Runtime.NoAvx" Version="1.9.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,29 +19,23 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\ConversationAssistant.Core.csproj" />
+    <Compile Include="..\App\LocalAppProfile.cs" Link="LocalAppProfile.cs" />
     <Compile Include="..\App\UI\AnswerPanelLayout.cs" Link="AnswerPanelLayout.cs" />
     <Compile Include="..\App\UI\AnalysisDocument.cs" Link="AnalysisDocument.cs" />
     <Compile Include="..\App\UI\ConversationHistoryRow.cs" Link="ConversationHistoryRow.cs" />
     <Compile Include="..\App\UI\ProductGuideRow.cs" Link="ProductGuideRow.cs" />
+    <Compile Include="..\App\UI\QwenSettingsSave.cs" Link="QwenSettingsSave.cs" />
     <Compile Include="..\App\UI\SuggestedQuestionRow.cs" Link="SuggestedQuestionRow.cs" />
-    <Compile Include="..\App\Speech\AzureSpeechSessionFactory.cs" Link="AzureSpeechSessionFactory.cs" />
-    <Compile Include="..\App\Speech\AzureSpeechConnectionTester.cs" Link="AzureSpeechConnectionTester.cs" />
-    <Compile Include="..\App\Speech\AzureSpeechDiagnostics.cs" Link="AzureSpeechDiagnostics.cs" />
-    <Compile Include="..\App\Authentication\SpeechEntraIdentity.cs" Link="SpeechEntraIdentity.cs" />
-    <Compile Include="..\App\Authentication\EntraSignInFlow.cs" Link="EntraSignInFlow.cs" />
-    <Compile Include="..\App\Authentication\CopilotEntraIdentity.cs" Link="CopilotEntraIdentity.cs" />
     <Compile Include="..\App\Audio\*.cs" Link="Audio\%(Filename)%(Extension)" />
-    <Compile Include="..\App\Speech\OfflineSpeaker*.cs" Link="Speech\%(Filename)%(Extension)" />
-    <Compile Include="..\App\Speech\OfflineWhisper*.cs" Link="Speech\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="MeetingCopilot.Tests.csproj" />
     <None Include="..\App\MainPage.xaml" Link="MainPage.xaml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\App\MainPage.xaml.cs" Link="MainPageCode.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\App\Themes\TeamsTheme.xaml" Link="TeamsTheme.xaml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\App\App.xaml" Link="AppResources.xaml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\App\ConversationAssistant.App.csproj" Link="AppProject.xml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="MeetingCopilot.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

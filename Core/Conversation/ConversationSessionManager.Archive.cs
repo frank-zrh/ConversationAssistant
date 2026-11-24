@@ -1,3 +1,4 @@
+using ConversationAssistant.Core.Analysis;
 using ConversationAssistant.Core.Models;
 using ConversationAssistant.Core.Persistence;
 using ConversationAssistant.Core.WorkIQ;
@@ -10,8 +11,10 @@ public sealed partial class ConversationSessionManager
     private ConversationArchiveWriter? _archiveWriter;
     private InvalidDataException? _snapshotFailure;
     public string? RecordPath { get; private set; }
-    public string? WorkIqLogPath => RecordPath is null ? null : WorkIqDiagnostics.GetPath(RecordPath);
-    public Task FlushWorkIqLogAsync() => _workIqDiagnostics.FlushAsync();
+    public string? AnalysisLogPath => RecordPath is null ? null : WorkIqDiagnostics.GetPath(RecordPath);
+    public Task FlushAnalysisLogAsync() => _workIqDiagnostics.FlushAsync();
+    public string? WorkIqLogPath => AnalysisLogPath;
+    public Task FlushWorkIqLogAsync() => FlushAnalysisLogAsync();
     public DateTimeOffset? LastSavedAt { get; private set; }
     public bool HasSaveError { get; private set; }
     public event Action? ArchiveUpdated;
@@ -94,6 +97,7 @@ public sealed partial class ConversationSessionManager
                     throw new InvalidOperationException("End the current conversation before importing a record.");
             var archive = await store.LoadAsync(path).ConfigureAwait(false);
             var restored = archive.Fork().Restore();
+            restored.Settings.AnalysisProvider = AnalysisProvider.Qwen;
             await CloseConversationCoreAsync().ConfigureAwait(false);
             var recordPath = await store.SaveAsync(ConversationArchive.Capture(restored)).ConfigureAwait(false);
             lock (_gate)

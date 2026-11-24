@@ -126,21 +126,25 @@ public sealed partial class MainPage
         }
     }
 
-    private async void OpenRecordsFolder_Click(object sender, RoutedEventArgs e)
+    private async void OpenRecordsFolder_Click(object sender, RoutedEventArgs e) =>
+        await OpenLocalFolderAsync(_localProfile.Conversations, "ErrorRecordsFolder");
+
+    private async void OpenLocalDataFolder_Click(object sender, RoutedEventArgs e) =>
+        await OpenLocalFolderAsync(_localProfile.Root, "ErrorLocalDataFolder");
+
+    private async Task OpenLocalFolderAsync(string directory, string errorKey)
     {
         try
         {
-            var directory = Path.GetDirectoryName(_viewModel.RecordPath);
-            if (string.IsNullOrWhiteSpace(directory)) directory = ConversationRecordLocation.DirectoryPath;
             Directory.CreateDirectory(directory);
             var folder = await StorageFolder.GetFolderFromPathAsync(directory);
             if (!await Launcher.LaunchFolderAsync(folder))
-                _viewModel.ShowRenderingError(_viewModel.Texts["ErrorRecordsFolder"]);
+                _viewModel.ShowRenderingError(_viewModel.Texts[errorKey]);
         }
         catch (Exception error) when (error is InvalidOperationException or IOException or UnauthorizedAccessException or
-            System.Runtime.InteropServices.COMException)
+            System.Security.SecurityException or System.Runtime.InteropServices.COMException)
         {
-            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorRecordsFolder"]);
+            _viewModel.ShowRenderingError(_viewModel.Texts[errorKey]);
         }
     }
 }

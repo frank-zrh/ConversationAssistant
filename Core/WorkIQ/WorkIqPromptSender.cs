@@ -24,8 +24,9 @@ public static class WorkIqPromptSender
                 "Return only one complete JSON object matching the requested schema. " +
                 "Use JSON string escapes for table newlines. Do not include prose or fences. " +
                 "Do not invent missing facts; use the schema's empty arrays or explicit unknowns.";
-            var answer = await AskAsync(client, retryPrompt, conversationId, cancellationToken)
-                .ConfigureAwait(false);
+            var answer = client.SupportsFullPrompt
+                ? RequireAnswer(await client.AnalyzeAsync(retryPrompt, conversationId, cancellationToken).ConfigureAwait(false))
+                : await AskAsync(client, retryPrompt, conversationId, cancellationToken).ConfigureAwait(false);
             try
             {
                 var analysis = ConversationQuestionParser.ParseAnalysis(answer.Text);
@@ -43,7 +44,9 @@ public static class WorkIqPromptSender
                     }).ConfigureAwait(false);
                 if (attempt >= MaximumAnalysisAttempts)
                     throw new WorkIqException(
-                        "Work IQ analysis could not be validated after three automatic attempts. No partial results were saved.", error);
+                        client.SupportsFullPrompt
+                            ? "Qwen analysis could not be validated after three attempts. No partial results were saved."
+                            : "Work IQ analysis could not be validated after three automatic attempts. No partial results were saved.", error);
                 // Only schema failures are retried here; auth, process failures and
                 // caller cancellation must not turn into repeated external requests.
                 await Task.Delay(TimeSpan.FromMilliseconds(250 * attempt), cancellationToken)
@@ -56,7 +59,7 @@ public static class WorkIqPromptSender
         string? conversationId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
-        if (prompt.Length <= MaxPartCharacters)
+        if (client.SupportsFullPrompt || prompt.Length <= MaxPartCharacters)
             return RequireAnswer(await client.AskAsync(prompt, conversationId, cancellationToken)
                 .ConfigureAwait(false));
 

@@ -3,6 +3,68 @@
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
   <data name="AppTitle" xml:space="preserve"><value>会话助手</value></data>
+  <data name="QwenSection" xml:space="preserve"><value>千问 AI 平台 · 按量付费</value></data>
+  <data name="QwenSetupHelp" xml:space="preserve"><value>两个模型共用一个千问 AI 平台按量付费 API Key（sk-ws- 开头，早期为 sk-）。请复制创建时显示的完整 Key，不要复制列表中的掩码。不支持 Token Plan 套餐密钥。</value></data>
+  <data name="QwenGetApiKey" xml:space="preserve"><value>创建按量付费 API Key</value></data>
+  <data name="QwenPrivacy" xml:space="preserve"><value>所选音频、转录文字和提问会发送至阿里云。请在开始采集前征得参与者同意。模型调用可能产生费用。</value></data>
+  <data name="QwenApiKey" xml:space="preserve"><value>按量付费 API Key</value></data>
+  <data name="QwenKeyPlaceholder" xml:space="preserve"><value>粘贴千问 AI 平台的完整密钥</value></data>
+  <data name="QwenKeyStored" xml:space="preserve"><value>已保存；留空可保留原密钥</value></data>
+  <data name="QwenSpeechModel" xml:space="preserve"><value>语音转录模型</value></data>
+  <data name="QwenAnalysisModel" xml:space="preserve"><value>会话分析和问答模型</value></data>
+  <data name="QwenSpeakerHint" xml:space="preserve"><value>当前实时转录模型不区分说话人；旧记录中的说话人标签会保留。</value></data>
+  <data name="QwenSave" xml:space="preserve"><value>保存千问设置</value></data>
+  <data name="QwenTest" xml:space="preserve"><value>测试两个模型</value></data>
+  <data name="QwenNotConfigured" xml:space="preserve"><value>请在设置中配置千问</value></data>
+  <data name="QwenReplaceTokenPlanKey" xml:space="preserve"><value>请在设置中更换 Token Plan 密钥</value></data>
+  <data name="QwenConfigured" xml:space="preserve"><value>已保存千问 API Key</value></data>
+  <data name="QwenUnsaved" xml:space="preserve"><value>请先保存更改，再进行测试。</value></data>
+  <data name="QwenSaving" xml:space="preserve"><value>正在本机加密并验证千问设置…</value></data>
+  <data name="QwenSaved" xml:space="preserve"><value>千问设置已为当前 Windows 用户保存。点击“测试两个模型”验证调用权限。</value></data>
+  <data name="QwenTesting" xml:space="preserve"><value>正在测试转录与分析模型，不会采集音频…</value></data>
+  <data name="QwenTestSuccess" xml:space="preserve"><value>两个千问模型均已通过连接测试，未发送音频或转录记录。</value></data>
+  <data name="StatusStartingQwen" xml:space="preserve"><value>◌ 正在连接千问语音转录…</value></data>
+  <data name="MicrophoneQwen" xml:space="preserve"><value>麦克风 · 共享 · 千问</value></data>
+  <data name="SystemAudioQwen" xml:space="preserve"><value>系统声音 · 共享 · 千问</value></data>
+  <data name="CombinedAudioQwen" xml:space="preserve"><value>麦克风与系统声音 · 共享 · 千问</value></data>
+  <data name="ErrorQwenKeyRequired" xml:space="preserve"><value>请先在设置中保存千问 AI 平台的按量付费 API Key。</value></data>
+  <data name="ErrorQwenTokenPlanKey" xml:space="preserve"><value>本应用不支持 Token Plan 套餐密钥，请改用千问 AI 平台的按量付费 API Key。</value></data>
+  <data name="ErrorQwenKeyInvalid" xml:space="preserve"><value>请粘贴千问 AI 平台创建时显示的完整按量付费 API Key（sk-ws- 或 sk- 开头），不要使用掩码或密钥 ID。</value></data>
+  <data name="ErrorQwenModelInvalid" xml:space="preserve"><value>请选择支持的千问转录和分析模型。</value></data>
+  <data name="ErrorQwenSettingsRead" xml:space="preserve"><value>无法读取千问设置，请重新保存 API Key 和模型。</value></data>
+  <data name="ErrorQwenSettingsBusy" xml:space="preserve"><value>暂时无法保存千问设置。请先结束当前会话，并等待正在处理的任务完成。</value></data>
+  <data name="ErrorQwenSaveKeyRequired" xml:space="preserve"><value>千问设置未保存：请在密钥框中粘贴完整的按量付费 API Key。</value></data>
+  <data name="ErrorQwenSettingsSaveInput" xml:space="preserve"><value>千问设置未保存，请检查 API Key 和所选模型。</value></data>
+  <data name="ErrorQwenSettingsAccess" xml:space="preserve"><value>千问设置未保存：Windows 拒绝访问。请关闭其他应用实例，并检查 %LOCALAPPDATA%\ConversationAssistant 的写入权限。（{0}）</value></data>
+  <data name="ErrorQwenSettingsEncrypt" xml:space="preserve"><value>千问设置未保存：Windows 无法为当前用户加密 API Key。请重新登录 Windows 账户后重试。（{0}）</value></data>
+  <data name="ErrorQwenSettingsDiskFull" xml:space="preserve"><value>千问设置未保存：磁盘空间不足，请释放空间后重试。（{0}）</value></data>
+  <data name="ErrorQwenSettingsLocked" xml:space="preserve"><value>千问设置未保存：设置文件被占用，请关闭其他应用实例后重试。（{0}）</value></data>
+  <data name="ErrorQwenSettingsLocation" xml:space="preserve"><value>千问设置未保存：本地设置位置或加密功能不可用，请检查 Windows 用户配置。（{0}）</value></data>
+  <data name="ErrorQwenSettingsWrite" xml:space="preserve"><value>千问设置未保存：Windows 无法写入 %LOCALAPPDATA%\ConversationAssistant\qwen-settings.bin。（{0}）</value></data>
+  <data name="ErrorQwenSettingsVerify" xml:space="preserve"><value>无法确认千问设置已保存：Windows 无法读取或解密设置文件。（{0}）</value></data>
+  <data name="ErrorQwenSettingsVerifyMismatch" xml:space="preserve"><value>无法确认千问设置已保存：设置文件缺失或与刚才输入的内容不一致，请关闭其他应用实例后重试。</value></data>
+  <data name="ErrorQwenSpeechTest" xml:space="preserve"><value>转录模型测试失败：{0}</value></data>
+  <data name="ErrorQwenAnalysisTest" xml:space="preserve"><value>分析模型测试失败：{0}</value></data>
+  <data name="ErrorQwenAnalysisPermissions" xml:space="preserve"><value>千问拒绝了请求，请确认按量付费 API Key 已启用，且所属业务空间有权调用所选模型。</value></data>
+  <data name="ErrorQwenAnalysisRequest" xml:space="preserve"><value>千问拒绝了模型或输入，请确认模型可用，或尝试较短的转录分组。</value></data>
+  <data name="ErrorQwenRateLimit" xml:space="preserve"><value>已达到千问调用频率限制，请检查额度并稍后重试。</value></data>
+  <data name="ErrorQwenAnalysisHttp" xml:space="preserve"><value>千问分析请求失败（HTTP {0}）。</value></data>
+  <data name="ErrorQwenAnalysisTimeout" xml:space="preserve"><value>千问分析超时，请检查网络后重试。</value></data>
+  <data name="ErrorQwenAnalysisConnect" xml:space="preserve"><value>无法连接千问分析，请检查网络后重试。</value></data>
+  <data name="ErrorQwenAnalysisResponse" xml:space="preserve"><value>千问返回的分析响应格式异常。</value></data>
+  <data name="ErrorQwenAnalysisEmpty" xml:space="preserve"><value>千问返回了空回复，请重试或更换分析模型。</value></data>
+  <data name="ErrorQwenAnalysisOutputLimit" xml:space="preserve"><value>千问输出达到长度限制，请尝试较短的转录分组或更换分析模型。</value></data>
+  <data name="ErrorQwenAnalysisRetry" xml:space="preserve"><value>尝试三次后仍无法验证千问分析结果，未保存不完整的结果。</value></data>
+  <data name="ErrorQwenOffline" xml:space="preserve"><value>千问当前无法联网，请检查网络。</value></data>
+  <data name="ErrorQwenSpeechStart" xml:space="preserve"><value>无法启动千问转录，请检查按量付费 API Key、转录模型和网络后重试。</value></data>
+  <data name="ErrorQwenSpeechInterrupted" xml:space="preserve"><value>千问转录已中断，请检查网络后重试。</value></data>
+  <data name="ErrorQwenSpeechFinish" xml:space="preserve"><value>千问未能及时完成转录，最后一段语音可能未保存。</value></data>
+  <data name="ErrorQwenSpeechRejected" xml:space="preserve"><value>千问拒绝了转录请求，请检查按量付费 API Key、模型权限和账户额度后重试。</value></data>
+  <data name="ErrorQwenSpeechBacklog" xml:space="preserve"><value>千问转录无法跟上音频采集速度，请检查网络后重试。</value></data>
+  <data name="ErrorQwenSpeechPcm" xml:space="preserve"><value>千问转录收到了无效音频，请检查音频设备后重试。</value></data>
+  <data name="ErrorQwenSpeechModel" xml:space="preserve"><value>请在设置中选择受支持的千问转录模型。</value></data>
+  <data name="ErrorQwenAnalysisQueue" xml:space="preserve"><value>分析请求队列已满。</value></data>
+  <data name="ErrorQwenLogWrite" xml:space="preserve"><value>无法写入分析日志。分析会继续，请检查会话记录目录。</value></data>
   <data name="AnalysisSection" xml:space="preserve"><value>会话分析</value></data>
   <data name="AnalysisProvider" xml:space="preserve"><value>分析提供方</value></data>
   <data name="WorkIqProvider" xml:space="preserve"><value>Work IQ（默认）</value></data>
@@ -61,11 +123,11 @@
   <data name="AnalysisAllScope" xml:space="preserve"><value>全部聊天</value></data>
   <data name="AnalysisHistoryItem" xml:space="preserve"><value>分析{0} · {1} · {2}</value></data>
   <data name="ImportConversation" xml:space="preserve"><value>导入记录</value></data>
-  <data name="ImportHint" xml:space="preserve"><value>请先结束当前会话。导入的 JSON 会保存为独立副本，不覆盖原文件，也不会自动监听或向 Work IQ 发送请求。</value></data>
+  <data name="ImportHint" xml:space="preserve"><value>请先结束当前会话。导入的 JSON 会保存为独立副本，不覆盖原文件，也不会自动监听或向千问发送请求。</value></data>
   <data name="SaveNow" xml:space="preserve"><value>立即保存</value></data>
   <data name="ViewSession" xml:space="preserve"><value>查看日志</value></data>
   <data name="ViewSessionHint" xml:space="preserve"><value>使用记事本打开当前会话的分析调用记录，包含请求、回复和错误，请保护其中的敏感内容。</value></data>
-  <data name="SessionLogPrivacy" xml:space="preserve"><value>每个会话 JSON 旁会保存 .workiq.log，记录两个提供方的分析请求、回复和失败。常见凭据格式会被隐藏，但对话和企业内容仍为可读文本，请妥善保护这些本地文件。</value></data>
+  <data name="SessionLogPrivacy" xml:space="preserve"><value>每个会话 JSON 旁会保存 .qwen.log，记录分析请求、回复和错误。常见凭据格式会被隐藏，但对话内容仍为可读文本，请妥善保护这些本地文件。</value></data>
   <data name="ErrorSessionLogOpen" xml:space="preserve"><value>无法使用记事本打开会话记录，请检查记录文件夹权限及记事本是否可用。</value></data>
   <data name="ErrorSessionLogWrite" xml:space="preserve"><value>无法写入 Work IQ 会话记录，分析会继续，请检查记录文件夹。</value></data>
   <data name="RecordNone" xml:space="preserve"><value>每次会话独立保存为 JSON</value></data>
@@ -74,6 +136,8 @@
   <data name="RecordSaveFailed" xml:space="preserve"><value>保存失败，请点击立即保存</value></data>
   <data name="RecordPrivacy" xml:space="preserve"><value>转写、分组、分析及回复会自动保存为本机可读的 JSON，结束会话后仍可查看。不保存音频或登录凭据。文件可能包含敏感对话和企业信息，请妥善保管。</value></data>
   <data name="OpenRecordsFolder" xml:space="preserve"><value>打开记录文件夹</value></data>
+  <data name="OpenLocalDataFolder" xml:space="preserve"><value>打开本地数据文件夹</value></data>
+  <data name="LocalDataLocation" xml:space="preserve"><value>设置、会话记录和答案查看器的浏览器配置均保存在 %LOCALAPPDATA%\ConversationAssistant。目录由应用创建和管理，不使用 OneDrive。</value></data>
   <data name="PauseScrolling" xml:space="preserve"><value>暂停滚动</value></data>
   <data name="ResumeScrolling" xml:space="preserve"><value>继续滚动</value></data>
   <data name="QuestionsHeader" xml:space="preserve"><value>对话分析</value></data>
@@ -159,7 +223,7 @@
   <data name="AudioSystem" xml:space="preserve"><value>仅系统声音</value></data>
   <data name="AudioBoth" xml:space="preserve"><value>麦克风 + 系统声音</value></data>
   <data name="AudioSharedHint" xml:space="preserve"><value>WASAPI 共享采集不会独占设备，也不更改音量或默认设备。更改来源前请暂停监听。请选择与 Teams 相同的输入／输出设备，或选择默认通信设备。</value></data>
-  <data name="SystemAudioNotice" xml:space="preserve"><value>系统声音会采集所选输出上所有应用的声音，不限于 Teams；Azure 模式下这些音频也会发送用于转写。请确保参与者知情同意，建议使用耳机减少麦克风回声。</value></data>
+  <data name="SystemAudioNotice" xml:space="preserve"><value>系统声音会采集所选输出上所有应用的声音，不限于 Teams。这些音频会发送到千问进行转录。请确保参与者知情同意，建议使用耳机减少麦克风回声。</value></data>
   <data name="RefreshDevices" xml:space="preserve"><value>刷新</value></data>
   <data name="ContextWindow" xml:space="preserve"><value>手动提问上下文（不限制完整聊天分析）</value></data>
   <data name="ShortContext" xml:space="preserve"><value>短（1 分钟）</value></data>
@@ -170,7 +234,7 @@
   <data name="Balanced" xml:space="preserve"><value>适中</value></data>
   <data name="Detailed" xml:space="preserve"><value>详细</value></data>
   <data name="AnswerLanguage" xml:space="preserve"><value>回复语言</value></data>
-  <data name="GroundingNote" xml:space="preserve"><value>企业资料检索已开启。Copilot Chat 已禁用网页搜索；Work IQ 命令行工具不提供网页搜索控制选项。</value></data>
+  <data name="GroundingNote" xml:space="preserve"><value>分析使用提供的会话内容和千问通用知识，不搜索互联网，也不检索企业内部资料。</value></data>
   <data name="StoreAudio" xml:space="preserve"><value>保存音频</value></data>
   <data name="StoreTranscript" xml:space="preserve"><value>保存会话记录（JSON）</value></data>
   <data name="ClearAfterConversation" xml:space="preserve"><value>对话结束后清除</value></data>
@@ -413,6 +477,9 @@
   <data name="ErrorArchiveSave" xml:space="preserve"><value>无法保存会话 JSON，记录仍保留在内存中。请检查磁盘空间及文件夹权限，并在开始新会话或导入前点击“立即保存”重试。</value></data>
   <data name="ErrorRecordPicker" xml:space="preserve"><value>无法打开 JSON 文件选择器，未导入任何会话。</value></data>
   <data name="ErrorRecordsFolder" xml:space="preserve"><value>无法打开会话记录文件夹，请检查路径和访问权限。</value></data>
+  <data name="ErrorLocalDataFolder" xml:space="preserve"><value>无法打开本地数据文件夹，请检查 %LOCALAPPDATA%\ConversationAssistant 的访问权限。</value></data>
+  <data name="ErrorLocalAppProfile" xml:space="preserve"><value>无法初始化应用的本地数据目录。请确认当前 Windows 帐户有权写入 %LOCALAPPDATA%\ConversationAssistant，然后重新启动应用。（{0}）</value></data>
+  <data name="ErrorLocalBrowserData" xml:space="preserve"><value>无法打开富文本答案查看器。请检查 WebView2 运行时及 %LOCALAPPDATA%\ConversationAssistant\WebView2 的访问权限。仍可查看纯文本答案。</value></data>
   <data name="ErrorArchiveInterrupted" xml:space="preserve"><value>该请求在保存会话前已中断，导入时未继续执行。如需重新提交，请手动重试。</value></data>
   <data name="ErrorArchiveSize" xml:space="preserve"><value>会话记录超过 64 MiB 的文件大小限制。</value></data>
   <data name="ErrorArchiveJson" xml:space="preserve"><value>会话记录不是有效的 JSON 文件，或包含无效的字段值。</value></data>

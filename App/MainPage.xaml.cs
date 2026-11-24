@@ -16,6 +16,7 @@ namespace ConversationAssistant_App;
 public sealed partial class MainPage : Page
 {
     private readonly MainViewModel _viewModel;
+    private readonly LocalAppProfile _localProfile;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly AnswerMarkdownFormatter _answerFormatter = new();
     private readonly AnswerRenderQueue _answerDocuments = new();
@@ -38,7 +39,9 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         InitializeComponent();
-        _viewModel = ((App)Application.Current).Services.GetRequiredService<MainViewModel>();
+        var services = ((App)Application.Current).Services;
+        _viewModel = services.GetRequiredService<MainViewModel>();
+        _localProfile = services.GetRequiredService<LocalAppProfile>();
         DataContext = _viewModel;
         UpdateLanguage();
         ActualThemeChanged += (_, _) => _viewModel.RefreshTheme();
@@ -50,7 +53,6 @@ public sealed partial class MainPage : Page
         RenderAnswer();
         Loaded += InitializeAnswerView;
         Loaded += Records_Loaded;
-        Loaded += ScheduleStartupSignIn;
         Unloaded += async (_, _) =>
         {
             _timer.Stop();
@@ -65,18 +67,13 @@ public sealed partial class MainPage : Page
         };
     }
 
-    private void ScheduleStartupSignIn(object sender, RoutedEventArgs e) =>
-        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,
-            async () => await _viewModel.SignInAtStartupAsync(_pageCancellation.Token));
-
     private async void InitializeAnswerView(object sender, RoutedEventArgs e)
     {
         if (_answerViewReady || _initializingAnswerView) return;
         _initializingAnswerView = true;
         try
         {
-            var browserData = Path.Combine(Path.GetTempPath(),
-                "ConversationAssistant-WebView2-" + Guid.NewGuid().ToString("N"));
+            var browserData = _localProfile.EnsureBrowserDataDirectory();
             var environment = await CoreWebView2Environment.CreateWithOptionsAsync(null, browserData, null);
             var options = environment.CreateCoreWebView2ControllerOptions();
             options.ProfileName = "ConversationAssistantRichAnswers";
@@ -96,8 +93,13 @@ public sealed partial class MainPage : Page
             _answerViewReady = true;
             RenderAnswer();
         }
-        catch (Exception error) when (error is InvalidOperationException or
-            System.Runtime.InteropServices.COMException or FileNotFoundException)
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            _renderStatusKey = "RenderUnavailable";
+            UpdateAnswerVisibility();
+            _viewModel.ShowRenderingError(_viewModel.Texts["ErrorLocalBrowserData"]);
+        }
+        catch (Exception error) when (error is InvalidOperationException or System.Runtime.InteropServices.COMException)
         {
             _renderStatusKey = "RenderUnavailable";
             UpdateAnswerVisibility();
@@ -214,7 +216,7 @@ public sealed partial class MainPage : Page
             if (revision != _renderRevision) return;
             if (!args.IsSuccess)
                 throw new InvalidOperationException(_viewModel.Texts.Format("ErrorRichNavigation", args.WebErrorStatus));
-            // Execute only this fixed readiness check, never content supplied by Work IQ.
+            // Execute only this fixed readiness check, never content supplied by the model.
             var visible = await AnswerWebView.ExecuteScriptAsync($$"""
                 (() => {
                     const main = document.querySelector('main');
@@ -291,22 +293,18 @@ public sealed partial class MainPage : Page
     {
         var flyout = (Flyout)AssistantLayout.Resources["SettingsFlyout"];
         ((FrameworkElement)flyout.Content).DataContext = _viewModel;
+        QwenApiKeyBox.Password = "";
         flyout.ShowAt((FrameworkElement)sender);
     }
 
-    private async void SaveAnalysisSettings_Click(object sender, RoutedEventArgs e)
+    private async void SaveQwenSettings_Click(object sender, RoutedEventArgs e)
     {
-        await _viewModel.SaveAnalysisSettingsAsync();
+        if (await _viewModel.SaveQwenSettingsAsync(QwenApiKeyBox.Password)) QwenApiKeyBox.Password = "";
     }
 
-    private async void SaveSpeechSettings_Click(object sender, RoutedEventArgs e)
+    private async void TestQwen_Click(object sender, RoutedEventArgs e)
     {
-        await _viewModel.SaveSpeechSettingsAsync();
-    }
-
-    private async void TestSpeechConnection_Click(object sender, RoutedEventArgs e)
-    {
-        await _viewModel.TestSpeechConnectionAsync();
+        await _viewModel.TestQwenAsync(QwenApiKeyBox.Password.Length > 0, _pageCancellation.Token);
     }
 
     private async Task ConfirmExternalLinkAsync(Uri uri)
@@ -372,27 +370,6 @@ public sealed partial class MainPage : Page
     private async void End_Click(object sender, RoutedEventArgs e) => await _viewModel.EndAsync();
     private async void Pause_Click(object sender, RoutedEventArgs e) => await _viewModel.PauseAsync();
     private async void Resume_Click(object sender, RoutedEventArgs e) => await _viewModel.ResumeAsync();
-    private async void SignIn_Click(object sender, RoutedEventArgs e)
-    {
-        if (!_viewModel.CanSignIn) return;
-        await _viewModel.SignInAsync();
-        if (_pageCancellation.IsCancellationRequested || string.IsNullOrEmpty(_viewModel.LastError) ||
-            _linkDialogOpen) return;
-        _linkDialogOpen = true;
-        try
-        {
-            var texts = _viewModel.Texts;
-            await new ContentDialog
-            {
-                XamlRoot = XamlRoot,
-                Language = texts.LanguageTag,
-                Title = texts["SignIn"],
-                Content = new TextBlock { Text = _viewModel.LastError, TextWrapping = TextWrapping.Wrap },
-                CloseButtonText = texts["Cancel"]
-            }.ShowAsync();
-        }
-        finally { _linkDialogOpen = false; }
-    }
     private void Retry_Click(object sender, RoutedEventArgs e) => _viewModel.Retry();
     private void Dismiss_Click(object sender, RoutedEventArgs e) => _viewModel.Dismiss();
     private void Scroll_Click(object sender, RoutedEventArgs e) => _viewModel.ToggleScroll();

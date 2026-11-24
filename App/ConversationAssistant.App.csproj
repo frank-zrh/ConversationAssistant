@@ -35,10 +35,6 @@
     <Content Include="Assets\AppIcon.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\AppIcon.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="Models\ggml-small.bin" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Models\LICENSE-*.txt" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Models\Speakers\*.onnx" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Models\Speakers\*.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -61,9 +57,6 @@
   <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <ProjectCapability Include="Msix" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="MeetingCopilot.App.csproj" />
-  </ItemGroup>
 
   <!--
     Microsoft.Windows.SDK.BuildTools.WinApp adds first-class support for
@@ -74,20 +67,14 @@
     <PropertyGroup> above to opt out.
   -->
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.17.2" />
-    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.51.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.9" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.9" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Runtime" Version="2.5.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" Version="0.7.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="org.k2fsa.sherpa.onnx" Version="1.13.8" />
-    <PackageReference Include="System.Speech" Version="10.0.0" />
-    <PackageReference Include="Whisper.net" Version="1.9.1" />
-    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
-    <PackageReference Include="Whisper.net.Runtime.NoAvx" Version="1.9.1" />
-    <PackageReference Include="Whisper.net.Runtime.Vulkan" Version="1.9.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\ConversationAssistant.Core.csproj" />
@@ -96,6 +83,13 @@
     <Page Update="Themes\TeamsTheme.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Speech\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MeetingCopilot.App.csproj" />
   </ItemGroup>
 
   <!--

@@ -3,6 +3,68 @@
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
   <data name="AppTitle" xml:space="preserve"><value>Conversation Assistant</value></data>
+  <data name="QwenSection" xml:space="preserve"><value>Qwen AI Platform · Pay-as-you-go</value></data>
+  <data name="QwenSetupHelp" xml:space="preserve"><value>Use one pay-as-you-go Qwen AI Platform key (sk-ws- or legacy sk-) for both models. Copy the full key shown at creation, not the masked one in the list. Token Plan keys are not supported.</value></data>
+  <data name="QwenGetApiKey" xml:space="preserve"><value>Create a pay-as-you-go API key</value></data>
+  <data name="QwenPrivacy" xml:space="preserve"><value>Selected audio, transcripts, and questions are sent to Alibaba Cloud. Get participant consent before recording. Usage charges may apply.</value></data>
+  <data name="QwenApiKey" xml:space="preserve"><value>Pay-as-you-go API key</value></data>
+  <data name="QwenKeyPlaceholder" xml:space="preserve"><value>Paste the full key from Qwen AI Platform</value></data>
+  <data name="QwenKeyStored" xml:space="preserve"><value>Key saved; leave blank to keep it</value></data>
+  <data name="QwenSpeechModel" xml:space="preserve"><value>Speech transcription model</value></data>
+  <data name="QwenAnalysisModel" xml:space="preserve"><value>Conversation analysis and Q&amp;A model</value></data>
+  <data name="QwenSpeakerHint" xml:space="preserve"><value>These real-time transcription models do not identify speakers. Labels in older records are preserved.</value></data>
+  <data name="QwenSave" xml:space="preserve"><value>Save Qwen settings</value></data>
+  <data name="QwenTest" xml:space="preserve"><value>Test both models</value></data>
+  <data name="QwenNotConfigured" xml:space="preserve"><value>Set up Qwen in Settings</value></data>
+  <data name="QwenReplaceTokenPlanKey" xml:space="preserve"><value>Replace the Token Plan key in Settings</value></data>
+  <data name="QwenConfigured" xml:space="preserve"><value>Qwen API key saved</value></data>
+  <data name="QwenUnsaved" xml:space="preserve"><value>Save the changed settings before testing.</value></data>
+  <data name="QwenSaving" xml:space="preserve"><value>Encrypting and verifying the Qwen settings on this device...</value></data>
+  <data name="QwenSaved" xml:space="preserve"><value>Qwen settings saved for this Windows user. Test both models to verify access.</value></data>
+  <data name="QwenTesting" xml:space="preserve"><value>Testing transcription and analysis without recording audio...</value></data>
+  <data name="QwenTestSuccess" xml:space="preserve"><value>Both Qwen models passed the connection test. No audio or transcript was sent.</value></data>
+  <data name="StatusStartingQwen" xml:space="preserve"><value>◌ Connecting to Qwen speech...</value></data>
+  <data name="MicrophoneQwen" xml:space="preserve"><value>Microphone · shared · Qwen</value></data>
+  <data name="SystemAudioQwen" xml:space="preserve"><value>System audio · shared · Qwen</value></data>
+  <data name="CombinedAudioQwen" xml:space="preserve"><value>Microphone + system · shared · Qwen</value></data>
+  <data name="ErrorQwenKeyRequired" xml:space="preserve"><value>Save a Qwen AI Platform pay-as-you-go API key in Settings first.</value></data>
+  <data name="ErrorQwenTokenPlanKey" xml:space="preserve"><value>Token Plan keys are not supported in this app. Use a Qwen AI Platform pay-as-you-go API key.</value></data>
+  <data name="ErrorQwenKeyInvalid" xml:space="preserve"><value>Paste the full pay-as-you-go API key from the Qwen AI Platform (starts with sk-ws- or sk-). A masked key or key ID will not work.</value></data>
+  <data name="ErrorQwenModelInvalid" xml:space="preserve"><value>Select supported Qwen models for speech and analysis.</value></data>
+  <data name="ErrorQwenSettingsRead" xml:space="preserve"><value>Qwen settings could not be read. Save the API key and models again.</value></data>
+  <data name="ErrorQwenSettingsBusy" xml:space="preserve"><value>Qwen settings cannot be saved right now. End the conversation and wait for pending operations to finish.</value></data>
+  <data name="ErrorQwenSaveKeyRequired" xml:space="preserve"><value>Qwen settings were not saved. Paste a complete pay-as-you-go API key into the key field.</value></data>
+  <data name="ErrorQwenSettingsSaveInput" xml:space="preserve"><value>Qwen settings were not saved. Check the API key and selected models.</value></data>
+  <data name="ErrorQwenSettingsAccess" xml:space="preserve"><value>Qwen settings were not saved. Windows denied access. Close other app instances and check write permissions for %LOCALAPPDATA%\ConversationAssistant. ({0})</value></data>
+  <data name="ErrorQwenSettingsEncrypt" xml:space="preserve"><value>Qwen settings were not saved. Windows could not encrypt the API key for the current user. Sign in again to your Windows account and retry. ({0})</value></data>
+  <data name="ErrorQwenSettingsDiskFull" xml:space="preserve"><value>Qwen settings were not saved. Free disk space and try again. ({0})</value></data>
+  <data name="ErrorQwenSettingsLocked" xml:space="preserve"><value>Qwen settings were not saved. Another process is using the settings file. Close other instances of the app and try again. ({0})</value></data>
+  <data name="ErrorQwenSettingsLocation" xml:space="preserve"><value>Qwen settings were not saved. The local settings location or encryption is unavailable. Check your Windows user profile. ({0})</value></data>
+  <data name="ErrorQwenSettingsWrite" xml:space="preserve"><value>Qwen settings were not saved. Windows could not write %LOCALAPPDATA%\ConversationAssistant\qwen-settings.bin. ({0})</value></data>
+  <data name="ErrorQwenSettingsVerify" xml:space="preserve"><value>Could not verify the saved Qwen settings. Windows could not read or decrypt the settings file. ({0})</value></data>
+  <data name="ErrorQwenSettingsVerifyMismatch" xml:space="preserve"><value>Could not verify the saved Qwen settings. The file is missing or does not match the settings just entered. Close other app instances and try again.</value></data>
+  <data name="ErrorQwenSpeechTest" xml:space="preserve"><value>Speech model test failed: {0}</value></data>
+  <data name="ErrorQwenAnalysisTest" xml:space="preserve"><value>Analysis model test failed: {0}</value></data>
+  <data name="ErrorQwenAnalysisPermissions" xml:space="preserve"><value>Qwen rejected the request. Check that the pay-as-you-go API key is enabled and its workspace has access to the selected model.</value></data>
+  <data name="ErrorQwenAnalysisRequest" xml:space="preserve"><value>Qwen rejected the model or input. Check model availability or try a shorter transcript group.</value></data>
+  <data name="ErrorQwenRateLimit" xml:space="preserve"><value>Qwen rate limit reached. Wait before retrying and check your quota.</value></data>
+  <data name="ErrorQwenAnalysisHttp" xml:space="preserve"><value>Qwen analysis request failed (HTTP {0}).</value></data>
+  <data name="ErrorQwenAnalysisTimeout" xml:space="preserve"><value>Qwen analysis timed out. Check the network and retry.</value></data>
+  <data name="ErrorQwenAnalysisConnect" xml:space="preserve"><value>Could not connect to Qwen analysis. Check the network and retry.</value></data>
+  <data name="ErrorQwenAnalysisResponse" xml:space="preserve"><value>Qwen returned an unexpected analysis response.</value></data>
+  <data name="ErrorQwenAnalysisEmpty" xml:space="preserve"><value>Qwen returned an empty answer. Retry or select a different analysis model.</value></data>
+  <data name="ErrorQwenAnalysisOutputLimit" xml:space="preserve"><value>Qwen reached the output limit. Try a shorter transcript group or a different analysis model.</value></data>
+  <data name="ErrorQwenAnalysisRetry" xml:space="preserve"><value>Qwen analysis could not be validated after three attempts. No partial results were saved.</value></data>
+  <data name="ErrorQwenOffline" xml:space="preserve"><value>Qwen is offline. Check your network.</value></data>
+  <data name="ErrorQwenSpeechStart" xml:space="preserve"><value>Could not start Qwen speech recognition. Check the pay-as-you-go API key, speech model, and network, then retry.</value></data>
+  <data name="ErrorQwenSpeechInterrupted" xml:space="preserve"><value>Qwen speech recognition was interrupted. Check the network and retry.</value></data>
+  <data name="ErrorQwenSpeechFinish" xml:space="preserve"><value>Qwen speech recognition did not finish in time. The last words may not have been saved.</value></data>
+  <data name="ErrorQwenSpeechRejected" xml:space="preserve"><value>Qwen rejected the speech request. Check the pay-as-you-go API key, model access, and account quota, then retry.</value></data>
+  <data name="ErrorQwenSpeechBacklog" xml:space="preserve"><value>Qwen speech recognition could not keep up with microphone audio. Check the network and retry.</value></data>
+  <data name="ErrorQwenSpeechPcm" xml:space="preserve"><value>Qwen speech recognition received invalid microphone audio. Check the audio device and retry.</value></data>
+  <data name="ErrorQwenSpeechModel" xml:space="preserve"><value>Select a supported Qwen speech model in settings.</value></data>
+  <data name="ErrorQwenAnalysisQueue" xml:space="preserve"><value>The analysis request queue is full.</value></data>
+  <data name="ErrorQwenLogWrite" xml:space="preserve"><value>The analysis log could not be written. Analysis will continue; check the record folder.</value></data>
   <data name="AnalysisSection" xml:space="preserve"><value>Conversation analysis</value></data>
   <data name="AnalysisProvider" xml:space="preserve"><value>Analysis provider</value></data>
   <data name="WorkIqProvider" xml:space="preserve"><value>Work IQ (default)</value></data>
@@ -61,11 +123,11 @@
   <data name="AnalysisAllScope" xml:space="preserve"><value>All chat</value></data>
   <data name="AnalysisHistoryItem" xml:space="preserve"><value>Analysis {0} · {1} · {2}</value></data>
   <data name="ImportConversation" xml:space="preserve"><value>Import JSON</value></data>
-  <data name="ImportHint" xml:space="preserve"><value>End the current conversation first. Import a saved record as a separate local copy; no listening or Work IQ requests start automatically.</value></data>
+  <data name="ImportHint" xml:space="preserve"><value>End the current conversation first. Import a saved record as a separate local copy; no listening or Qwen requests start automatically.</value></data>
   <data name="SaveNow" xml:space="preserve"><value>Save Now</value></data>
   <data name="ViewSession" xml:space="preserve"><value>View Log</value></data>
   <data name="ViewSessionHint" xml:space="preserve"><value>Open this conversation's analysis call log in Notepad. Includes prompts, responses and errors; protect confidential content.</value></data>
-  <data name="SessionLogPrivacy" xml:space="preserve"><value>A companion .workiq.log stores analysis requests, replies and failures for either provider beside each conversation JSON. Common credential formats are redacted, but conversation and workplace content remain readable. Protect these local files.</value></data>
+  <data name="SessionLogPrivacy" xml:space="preserve"><value>A companion .qwen.log stores analysis requests, replies and errors beside each conversation JSON. Common credential formats are redacted, but conversation content remains readable. Protect these local files.</value></data>
   <data name="ErrorSessionLogOpen" xml:space="preserve"><value>The session log could not be opened in Notepad. Check the record folder permissions and Notepad installation.</value></data>
   <data name="ErrorSessionLogWrite" xml:space="preserve"><value>The Work IQ session log could not be written. Analysis will continue; check the record folder.</value></data>
   <data name="RecordNone" xml:space="preserve"><value>One JSON file per conversation</value></data>
@@ -74,6 +136,8 @@
   <data name="RecordSaveFailed" xml:space="preserve"><value>Save failed — retry Save Now</value></data>
   <data name="RecordPrivacy" xml:space="preserve"><value>Transcripts, groups, analysis and replies are saved automatically as readable JSON on this PC. End keeps the workspace visible. No audio or credentials are included. Protect these files: they may contain confidential conversation or workplace information.</value></data>
   <data name="OpenRecordsFolder" xml:space="preserve"><value>Open Record Folder</value></data>
+  <data name="OpenLocalDataFolder" xml:space="preserve"><value>Open Local Data Folder</value></data>
+  <data name="LocalDataLocation" xml:space="preserve"><value>Settings, conversation records, and the answer viewer's browser profile are stored on this PC under %LOCALAPPDATA%\ConversationAssistant. The app creates and manages this folder without OneDrive.</value></data>
   <data name="PauseScrolling" xml:space="preserve"><value>Pause scrolling</value></data>
   <data name="ResumeScrolling" xml:space="preserve"><value>Resume scrolling</value></data>
   <data name="QuestionsHeader" xml:space="preserve"><value>CONVERSATION ANALYSIS</value></data>
@@ -159,7 +223,7 @@
   <data name="AudioSystem" xml:space="preserve"><value>System audio only</value></data>
   <data name="AudioBoth" xml:space="preserve"><value>Microphone + system audio</value></data>
   <data name="AudioSharedHint" xml:space="preserve"><value>WASAPI shared capture does not take exclusive control or change device volume/defaults. Pause before changing sources. Match Teams input/output devices, or choose the communications defaults.</value></data>
-  <data name="SystemAudioNotice" xml:space="preserve"><value>System audio captures ALL apps playing through the selected output, not just Teams. In Azure mode this audio is also sent for transcription. Ensure participants consent; use headphones to reduce microphone echo.</value></data>
+  <data name="SystemAudioNotice" xml:space="preserve"><value>System audio captures ALL apps playing through the selected output, not just Teams. This audio is sent to Qwen for transcription. Ensure participants consent; use headphones to reduce microphone echo.</value></data>
   <data name="RefreshDevices" xml:space="preserve"><value>Refresh</value></data>
   <data name="ContextWindow" xml:space="preserve"><value>Manual question context (does not limit full-chat analysis)</value></data>
   <data name="ShortContext" xml:space="preserve"><value>Short (1 min)</value></data>
@@ -170,7 +234,7 @@
   <data name="Balanced" xml:space="preserve"><value>Balanced</value></data>
   <data name="Detailed" xml:space="preserve"><value>Detailed</value></data>
   <data name="AnswerLanguage" xml:space="preserve"><value>Answer language</value></data>
-  <data name="GroundingNote" xml:space="preserve"><value>Enterprise grounding is enabled. Copilot Chat web search is disabled; the Work IQ CLI does not expose a web-search control.</value></data>
+  <data name="GroundingNote" xml:space="preserve"><value>Analysis uses the supplied context and Qwen's general knowledge. It does not search the web or retrieve private workplace data.</value></data>
   <data name="StoreAudio" xml:space="preserve"><value>Store audio</value></data>
   <data name="StoreTranscript" xml:space="preserve"><value>Save conversation records (JSON)</value></data>
   <data name="ClearAfterConversation" xml:space="preserve"><value>Clear after conversation</value></data>
@@ -413,6 +477,9 @@
   <data name="ErrorArchiveSave" xml:space="preserve"><value>The conversation JSON could not be saved. Records remain in memory. Check disk space and folder access, then choose Save Now before starting or importing another conversation.</value></data>
   <data name="ErrorRecordPicker" xml:space="preserve"><value>The JSON file picker could not be opened. No conversation was imported.</value></data>
   <data name="ErrorRecordsFolder" xml:space="preserve"><value>The conversation record folder could not be opened. Check its location and access permissions.</value></data>
+  <data name="ErrorLocalDataFolder" xml:space="preserve"><value>Could not open the local data folder. Check access to %LOCALAPPDATA%\ConversationAssistant.</value></data>
+  <data name="ErrorLocalAppProfile" xml:space="preserve"><value>Could not initialize the local application profile. Check that your Windows account can write to %LOCALAPPDATA%\ConversationAssistant, then restart the app. ({0})</value></data>
+  <data name="ErrorLocalBrowserData" xml:space="preserve"><value>Could not start the rich answer viewer. Check WebView2 Runtime and access to %LOCALAPPDATA%\ConversationAssistant\WebView2. Answers remain available as text.</value></data>
   <data name="ErrorArchiveInterrupted" xml:space="preserve"><value>This request was interrupted before the conversation was saved. It was not resumed on import. Retry explicitly to submit it again.</value></data>
   <data name="ErrorArchiveSize" xml:space="preserve"><value>The conversation archive exceeds the 64 MiB size limit.</value></data>
   <data name="ErrorArchiveJson" xml:space="preserve"><value>The conversation archive is not valid JSON or contains invalid field values.</value></data>

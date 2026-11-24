@@ -79,8 +79,6 @@ public sealed partial class ConversationSessionManager
         lock (_gate)
         {
             if (CurrentConversation is not { } session || _closing) return;
-            if (session.Settings.AnalysisProvider != settings.AnalysisProvider && (Session is not null || HasPendingWork))
-                throw new InvalidOperationException("End listening and wait for pending requests before changing analysis providers.");
             session.Settings.Language = settings.Language;
             session.Settings.AnswerLanguage = settings.AnswerLanguage;
             session.Settings.DisplayLanguage = settings.DisplayLanguage;
@@ -88,19 +86,8 @@ public sealed partial class ConversationSessionManager
             session.Settings.ContextWindowDuration = settings.ContextWindowDuration;
             session.Settings.MaxContextCharacters = settings.MaxContextCharacters;
             session.Settings.AutomaticAnalysis = settings.AutomaticAnalysis;
-            if (session.Settings.AnalysisProvider != settings.AnalysisProvider)
-            {
-                session.Settings.AnalysisProvider = settings.AnalysisProvider;
-                session.WorkIqConversationId = null;
-            }
             PersistLocked(session);
         }
-    }
-
-    public void ResetWorkIqContext()
-    {
-        lock (_gate)
-            if (CurrentConversation is { } session) session.WorkIqConversationId = null;
     }
 
     private static TranscriptGroup FindGroup(ConversationSession session, Guid groupId) =>

@@ -98,7 +98,7 @@ public static class ConversationAnalysisPrompt
             Questions already substantively answered in the analyzed transcript are not open needs.
             QUALITY CHECK BEFORE RETURNING EACH ITEM:
             Preserve questions that were asked but remain unanswered. Merge overlap; never pad.
-            Work IQ results are reusable references, not proof of an answer in the conversation.
+            General model knowledge is not proof of an answer in the conversation.
             RESOLVED QUESTIONS: re-check EXISTING QUESTIONS against later analyzed transcript replies.
             Use {"question":"exact existing question","answerEvidence":"exact answer quote"} only for an
             actual answer from ONE turn. Omission, topic shifts and failed requests never resolve a need.
@@ -106,7 +106,7 @@ public static class ConversationAnalysisPrompt
 
             4. PRODUCT GUIDES: NEW named products from COMPLETE CONVERSATION only; exclude cached aliases.
             Use canonical names/true aliases; distinct SKUs stay separate. Localize fields; invent no products.
-            Read-only lookup only for NEW product facts; mark unknown applicability. None new: products:[].
+            No external lookup is available. Use supplied evidence; mark unknown features, limits and pricing explicitly. None new: products:[].
 
             Speaker numbers are anonymous acoustic groups, not verified identities.
             Keep statements distinct; speaker numbers are local, not cross-conversation identities.

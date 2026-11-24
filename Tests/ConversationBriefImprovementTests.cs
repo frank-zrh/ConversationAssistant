@@ -216,14 +216,14 @@ public sealed partial class PipelineTests
     public async Task AcceptedRetryRemainsSuccessfulWhenWorkerCompletesBeforeReturn()
     {
         var fake = new Harness();
-        fake.Auth.IsSignedIn = false;
+        fake.Network.IsAvailable = false;
         fake.Conversation.StartConversation(new ConversationSettings { AutomaticAnalysis = false });
         using var completed = new ManualResetEventSlim();
         try
         {
             var request = fake.Conversation.AskManually("Check licensing prerequisites.");
             await WaitUntil(() => request.Status == QuestionStatus.Failed);
-            fake.Auth.IsSignedIn = true;
+            fake.Network.IsAvailable = true;
             var retryThread = Environment.CurrentManagedThreadId;
             fake.Conversation.AnswerUpdated += updated =>
             {

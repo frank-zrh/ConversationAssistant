@@ -75,20 +75,9 @@
                 </StackPanel>
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" MaxWidth="320">
-                <TextBlock Text="{Binding AuthText}" TextTrimming="CharacterEllipsis" MaxLines="1" MaxWidth="150"
+                <TextBlock Text="{Binding QwenStatus}" TextTrimming="CharacterEllipsis" MaxLines="1" MaxWidth="220"
                            VerticalAlignment="Center" FontSize="12" Foreground="{ThemeResource TeamsSecondaryTextBrush}"
-                           ToolTipService.ToolTip="{Binding AuthText}" />
-                  <Button x:Name="SignInButton" IsEnabled="{Binding CanSignIn}" Click="SignIn_Click"
-                          AutomationProperties.Name="{Binding SignInButtonText}"
-                          ToolTipService.ToolTip="{Binding SignInButtonHint}">
-                      <Grid>
-                          <TextBlock x:Name="SignedInCaption" Text="{Binding SignInButtonText}"
-                                     Visibility="{Binding SignedInVisibility}"
-                                     Foreground="{ThemeResource SystemFillColorSuccessBrush}" FontWeight="SemiBold" />
-                          <TextBlock x:Name="SignInCaption" Text="{Binding SignInButtonText}"
-                                     Visibility="{Binding SignInVisibility}" />
-                      </Grid>
-                  </Button>
+                           ToolTipService.ToolTip="{Binding QwenStatus}" />
                   <Button x:Name="SettingsButton" Width="32" Padding="0" Click="Settings_Click"
                           AutomationProperties.Name="{Binding Texts[Settings]}" ToolTipService.ToolTip="{Binding Texts[Settings]}">
                       <FontIcon Glyph="&#xE713;" FontSize="16" />
@@ -458,8 +447,39 @@
                 </Grid>
                 <Grid.Resources>
                     <Flyout x:Key="SettingsFlyout">
-                    <ScrollViewer MaxHeight="380" Width="360">
+                    <Grid Width="360">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ScrollViewer MaxHeight="380">
                         <StackPanel Spacing="12" Padding="4,10">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="{Binding Texts[QwenSection]}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Texts[QwenSetupHelp]}" TextWrapping="Wrap" />
+                                <HyperlinkButton Content="{Binding Texts[QwenGetApiKey]}"
+                                                 NavigateUri="https://platform.qianwenai.com/home/api-keys" />
+                                <TextBlock Text="{Binding Texts[QwenPrivacy]}" TextWrapping="Wrap" Opacity=".7" />
+                                <PasswordBox x:Name="QwenApiKeyBox" Header="{Binding Texts[QwenApiKey]}"
+                                             AutomationProperties.Name="{Binding Texts[QwenApiKey]}"
+                                             PlaceholderText="{Binding QwenKeyHint}" PasswordRevealMode="Hidden"
+                                             IsEnabled="{Binding CanEditQwenSettings}" />
+                                <ComboBox x:Name="QwenSpeechModelPicker" Header="{Binding Texts[QwenSpeechModel]}"
+                                          HorizontalAlignment="Stretch" IsEnabled="{Binding CanEditQwenSettings}"
+                                          AutomationProperties.Name="{Binding Texts[QwenSpeechModel]}"
+                                          ItemsSource="{Binding QwenSpeechModels}" SelectedItem="{Binding QwenSpeechModel, Mode=TwoWay}" />
+                                <ComboBox x:Name="QwenAnalysisModelPicker" Header="{Binding Texts[QwenAnalysisModel]}"
+                                          HorizontalAlignment="Stretch" IsEnabled="{Binding CanEditQwenSettings}"
+                                          AutomationProperties.Name="{Binding Texts[QwenAnalysisModel]}"
+                                          ItemsSource="{Binding QwenAnalysisModels}" SelectedItem="{Binding QwenAnalysisModel, Mode=TwoWay}" />
+                                <TextBlock Text="{Binding Texts[QwenSpeakerHint]}" TextWrapping="Wrap" Opacity=".7" />
+                                <TextBlock Text="{Binding Texts[ErrorQwenSettingsBusy]}" TextWrapping="Wrap"
+                                           Visibility="{Binding QwenEditHintVisibility}" />
+                                <Button Content="{Binding Texts[QwenSave]}" Click="SaveQwenSettings_Click"
+                                        IsEnabled="{Binding CanEditQwenSettings}" />
+                                <Button Content="{Binding Texts[QwenTest]}" Click="TestQwen_Click"
+                                        IsEnabled="{Binding CanTestQwen}" />
+                            </StackPanel>
                             <Grid RowSpacing="6" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -490,73 +510,6 @@
                                           AutomationProperties.Name="{Binding Texts[DisplayLanguage]}"
                                           ToolTipService.ToolTip="{Binding Texts[DisplayLanguageHint]}" />
                             </Grid>
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="{Binding Texts[AnalysisSection]}" FontWeight="SemiBold" />
-                                <ComboBox x:Name="AnalysisProviderPicker" Header="{Binding Texts[AnalysisProvider]}"
-                                          HorizontalAlignment="Stretch" IsEnabled="{Binding CanEditAnalysisSettings}"
-                                          ItemsSource="{Binding AnalysisProviderOptions}" DisplayMemberPath="Label"
-                                          SelectedIndex="{Binding AnalysisProviderIndex, Mode=TwoWay}"
-                                          AutomationProperties.Name="{Binding Texts[AnalysisProvider]}" />
-                                <TextBlock Text="{Binding Texts[AnalysisProviderHelp]}" TextWrapping="Wrap" Opacity=".7" />
-                                <StackPanel Spacing="8" Visibility="{Binding CopilotSettingsVisibility}">
-                                    <TextBlock Text="{Binding Texts[CopilotRequirements]}" TextWrapping="Wrap" />
-                                    <TextBox Header="{Binding Texts[CopilotTenantId]}"
-                                             IsEnabled="{Binding CanEditAnalysisSettings}"
-                                             Text="{Binding CopilotTenantId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                    <TextBox Header="{Binding Texts[CopilotClientId]}"
-                                             IsEnabled="{Binding CanEditAnalysisSettings}"
-                                             Text="{Binding CopilotClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                    <TextBlock Text="{Binding Texts[CopilotRegistrationHelp]}" TextWrapping="Wrap" Opacity=".7" />
-                                    <CheckBox IsChecked="{Binding CopilotPreviewConsent, Mode=TwoWay}"
-                                              IsEnabled="{Binding CanEditAnalysisSettings}">
-                                        <TextBlock Text="{Binding Texts[CopilotPreviewConsent]}" TextWrapping="Wrap" />
-                                    </CheckBox>
-                                </StackPanel>
-                                <Button Content="{Binding Texts[SaveAnalysisSettings]}" Click="SaveAnalysisSettings_Click"
-                                        IsEnabled="{Binding CanEditAnalysisSettings}" />
-                                <TextBlock Text="{Binding AnalysisSettingsStatus}" TextWrapping="Wrap" />
-                            </StackPanel>
-                            <TextBlock Text="{Binding ModelStatus}" TextWrapping="Wrap" />
-                            <TextBlock Text="{Binding Texts[SpeakerAccuracyHint]}" TextWrapping="Wrap" Opacity=".7" />
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="{Binding Texts[SpeechSection]}" FontWeight="SemiBold" />
-                                <ComboBox Header="{Binding Texts[SpeechProvider]}" HorizontalAlignment="Stretch"
-                                          IsEnabled="{Binding CanEditSpeechSettings}"
-                                          ItemsSource="{Binding SpeechProviderOptions}" DisplayMemberPath="Label"
-                                          SelectedIndex="{Binding SpeechProviderIndex, Mode=TwoWay}" />
-                                <TextBox Header="{Binding Texts[Endpoint]}"
-                                         IsEnabled="{Binding CanEditSpeechSettings}"
-                                         Text="{Binding SpeechServiceUri, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         PlaceholderText="https://your-resource.cognitiveservices.azure.com/"
-                                         InputScope="Url" />
-                                <TextBlock Text="{Binding SpeechEndpointPreview}" TextWrapping="Wrap" Opacity=".7" />
-                                <TextBlock Text="{Binding Texts[AuthenticationMethod]}"
-                                           TextWrapping="Wrap" />
-                                <TextBox Header="{Binding Texts[TenantId]}"
-                                             IsEnabled="{Binding CanEditSpeechSettings}"
-                                             Text="{Binding SpeechTenantId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                             PlaceholderText="{Binding Texts[TenantPlaceholder]}" />
-                                 <TextBlock Text="{Binding Texts[TenantHelp]}"
-                                            TextWrapping="Wrap" Opacity=".7" />
-                                <TextBox Header="{Binding Texts[ClientId]}"
-                                             IsEnabled="{Binding CanEditSpeechSettings}"
-                                             Text="{Binding SpeechClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                             PlaceholderText="{Binding Texts[ClientPlaceholder]}" />
-                                <TextBlock Text="{Binding Texts[ClientHelp]}"
-                                           TextWrapping="Wrap" Opacity=".7" />
-                                <CheckBox IsChecked="{Binding CloudAudioConsent, Mode=TwoWay}"
-                                          IsEnabled="{Binding CanEditSpeechSettings}">
-                                    <TextBlock Text="{Binding Texts[AudioConsent]}"
-                                               TextWrapping="Wrap" />
-                                </CheckBox>
-                                <Button Content="{Binding Texts[SaveSpeechSettings]}" Click="SaveSpeechSettings_Click"
-                                        IsEnabled="{Binding CanEditSpeechSettings}" />
-                                <Button Content="{Binding SpeechConnectionButtonText}" Click="TestSpeechConnection_Click"
-                                        IsEnabled="{Binding CanEditSpeechSettings}" />
-                            </StackPanel>
-                            <TextBlock Text="{Binding SpeechSettingsStatus}" TextWrapping="Wrap" />
-                            <TextBlock Text="{Binding Texts[IdentityHelp]}"
-                                       TextWrapping="Wrap" Opacity=".7" />
                             <Button Content="{Binding Texts[MicrophonePrivacy]}" Click="MicSettings_Click"
                                     HorizontalAlignment="Left" />
                             <ComboBox x:Name="AudioModePicker" Header="{Binding Texts[AudioSource]}"
@@ -596,8 +549,14 @@
                             <TextBlock Text="{Binding Texts[SessionLogPrivacy]}" TextWrapping="Wrap" />
                             <TextBlock Text="{Binding RecordPath}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
                             <Button Content="{Binding Texts[OpenRecordsFolder]}" Click="OpenRecordsFolder_Click" />
+                            <TextBlock Text="{Binding Texts[LocalDataLocation]}" TextWrapping="Wrap" />
+                            <Button Content="{Binding Texts[OpenLocalDataFolder]}" Click="OpenLocalDataFolder_Click" />
                         </StackPanel>
                     </ScrollViewer>
+                    <InfoBar Grid.Row="1" IsOpen="{Binding HasQwenSettingsStatus}" IsClosable="False"
+                             Message="{Binding QwenSettingsStatus}" Severity="{Binding QwenSettingsStatusSeverity}"
+                             AutomationProperties.LiveSetting="Polite" />
+                    </Grid>
                     </Flyout>
                 </Grid.Resources>
             </Grid>

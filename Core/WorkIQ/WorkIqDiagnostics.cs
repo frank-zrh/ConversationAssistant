@@ -25,7 +25,7 @@ public sealed partial class WorkIqDiagnostics
 
     public event Action<Exception>? Failed;
     public WorkIqLogContext? Capture() => _scope.Value ?? Volatile.Read(ref _current);
-    public static string GetPath(string recordPath) => System.IO.Path.ChangeExtension(recordPath, ".workiq.log");
+    public static string GetPath(string recordPath) => System.IO.Path.ChangeExtension(recordPath, ".qwen.log");
 
     public void BindConversation(Guid sessionId, string? recordPath)
     {
@@ -126,6 +126,7 @@ public sealed partial class WorkIqDiagnostics
     {
         text = Bearer().Replace(text, "$1[REDACTED]");
         text = Credentials().Replace(text, "$1[REDACTED]");
+        text = DashScopeKey().Replace(text, "[REDACTED]");
         return Jwt().Replace(text, "[REDACTED]");
     }
 
@@ -137,6 +138,8 @@ public sealed partial class WorkIqDiagnostics
     private static partial Regex Credentials();
     [GeneratedRegex(@"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b", RegexOptions.None, 1000)]
     private static partial Regex Jwt();
+    [GeneratedRegex(@"\bsk-[A-Za-z0-9_-]{16,}\b", RegexOptions.None, 1000)]
+    private static partial Regex DashScopeKey();
 
     private sealed class Scope(Action restore) : IDisposable
     {

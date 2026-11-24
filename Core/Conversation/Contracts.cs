@@ -30,13 +30,6 @@ public interface ISpeechRecognitionService
     void Stop();
 }
 
-public interface IAuthenticationService
-{
-    bool IsSignedIn { get; }
-    Task SignInAsync(CancellationToken cancellationToken = default);
-    Task SignInInteractivelyAsync(CancellationToken cancellationToken = default) => SignInAsync(cancellationToken);
-}
-
 public interface INetworkStatus
 {
     bool IsAvailable { get; }
@@ -44,8 +37,11 @@ public interface INetworkStatus
 
 public interface IWorkIqClient
 {
+    bool SupportsFullPrompt => false;
     // The conversation ID is null on the first question of a conversation.
     Task<WorkIqAnswer> AskAsync(string prompt, string? conversationId, CancellationToken cancellationToken);
+    Task<WorkIqAnswer> AnalyzeAsync(string prompt, string? conversationId, CancellationToken cancellationToken) =>
+        AskAsync(prompt, conversationId, cancellationToken);
 }
 
 public sealed class WorkIqException(string message, Exception? innerException = null)
