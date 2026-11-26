@@ -5,27 +5,45 @@ using Microsoft.Extensions.Logging;
 
 namespace ConversationAssistant_App.UI;
 
+internal sealed class QwenAutoSave(TimeProvider clock)
+{
+    private static readonly TimeSpan Delay = TimeSpan.FromMinutes(3);
+    private long? _lastEdit;
+
+    internal void Edited() => _lastEdit = clock.GetTimestamp();
+    internal void Cancel() => _lastEdit = null;
+
+    internal bool TryBegin(bool canSave)
+    {
+        if (!canSave || _lastEdit is not long timestamp || clock.GetElapsedTime(timestamp) < Delay) return false;
+        Cancel();
+        return true;
+    }
+}
+
 internal static class QwenSettingsSave
 {
     internal readonly record struct Result(QwenSettings? SavedSettings, UiMessage Message);
 
     internal static Result Save(IQwenSettingsStore store, QwenSettings current, string replacementKey,
-        string speechModel, string analysisModel, ILogger logger)
+        string speechModel, string analysisModel, ILogger logger, QwenBillingMode billingMode = QwenBillingMode.PayAsYouGo,
+        string tokenPlanReplacementKey = "", string tokenPlanAnalysisModel = QwenModels.DefaultTokenPlanAnalysis,
+        string? tokenPlanSpeechModel = null)
     {
         QwenSettings requested;
         try
         {
-            requested = QwenSettings.FromInput(string.IsNullOrWhiteSpace(replacementKey) ? current.ApiKey : replacementKey,
-                speechModel, analysisModel);
-            requested.RequireApiKey();
+            requested = current.WithChanges(billingMode, speechModel, analysisModel, tokenPlanAnalysisModel,
+                replacementKey, tokenPlanReplacementKey, tokenPlanSpeechModel);
         }
         catch (InvalidOperationException error)
         {
             var reason = UiMessage.FromDiagnostic(error.Message)?.Key switch
             {
-                "ErrorQwenKeyRequired" => "ErrorQwenSaveKeyRequired",
                 "ErrorQwenKeyInvalid" => "ErrorQwenKeyInvalid",
+                "ErrorQwenTokenPlanKeyInvalid" => "ErrorQwenTokenPlanKeyInvalid",
                 "ErrorQwenTokenPlanKey" => "ErrorQwenTokenPlanKey",
+                "ErrorQwenBillingMode" => "ErrorQwenBillingMode",
                 "ErrorQwenModelInvalid" => "ErrorQwenModelInvalid",
                 _ => "ErrorQwenSettingsSaveInput"
             };
@@ -51,9 +69,13 @@ internal static class QwenSettingsSave
         try
         {
             var saved = store.Load();
-            if (saved.HasApiKey && saved.ApiKey == requested.ApiKey &&
-                saved.SpeechModel == requested.SpeechModel && saved.AnalysisModel == requested.AnalysisModel)
-                return new(saved, new UiMessage("QwenSaved"));
+            if (saved.HasApiKey == requested.HasApiKey && saved.HasTokenPlanApiKey == requested.HasTokenPlanApiKey &&
+                saved.SpeechModel == requested.SpeechModel && saved.AnalysisModel == requested.AnalysisModel &&
+                saved.BillingMode == requested.BillingMode && saved.TokenPlanAnalysisModel == requested.TokenPlanAnalysisModel &&
+                saved.TokenPlanSpeechModel == requested.TokenPlanSpeechModel &&
+                (string.IsNullOrWhiteSpace(replacementKey) || saved.ApiKey == requested.ApiKey) &&
+                (string.IsNullOrWhiteSpace(tokenPlanReplacementKey) || saved.TokenPlanApiKey == requested.TokenPlanApiKey))
+                return new(saved, new UiMessage(saved.HasAnalysisApiKey ? "QwenSaved" : "QwenSavedWithoutKey"));
         }
         catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or
             CryptographicException or NotSupportedException or System.Security.SecurityException)

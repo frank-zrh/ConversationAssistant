@@ -62,7 +62,6 @@ public sealed class QwenSettingsSaveTests
     }
 
     [TestMethod]
-    [DataRow("", "ErrorQwenSaveKeyRequired")]
     [DataRow("sk-ws-abc...def", "ErrorQwenKeyInvalid")]
     [DataRow("sk-ws-aa=bb", "ErrorQwenKeyInvalid")]
     [DataRow("Authorization: Bearer \r\nsk-ws-invalid", "ErrorQwenKeyInvalid")]
@@ -75,6 +74,121 @@ public sealed class QwenSettingsSaveTests
 
         Assert.AreEqual(expectedMessage, result.Message.Key);
         Assert.IsNull(result.SavedSettings);
+        Assert.AreEqual(0, store.SaveCalls);
+    }
+
+    [TestMethod]
+    [DataRow(TestCredential, "ErrorQwenTokenPlanKeyInvalid")]
+    [DataRow("sk-sp-", "ErrorQwenTokenPlanKeyInvalid")]
+    [DataRow("sk-sp-ab****cd", "ErrorQwenTokenPlanKeyInvalid")]
+    public void Save_TokenPlanRejectsInvalidReplacementEvenWithPayAsYouGoConfigured(string key, string expectedMessage)
+    {
+        var store = new TestStore();
+        var current = new QwenSettings { ApiKey = TestCredential };
+
+        var result = QwenSettingsSave.Save(store, current, "", current.SpeechModel, current.AnalysisModel,
+            NullLogger.Instance, QwenBillingMode.TokenPlan, key);
+
+        Assert.AreEqual(expectedMessage, result.Message.Key);
+        Assert.IsNull(result.SavedSettings);
+        Assert.AreEqual(0, store.SaveCalls);
+    }
+
+    [TestMethod]
+    public void Save_TokenPlanOnlyDoesNotRequirePayAsYouGoKey()
+    {
+        var store = new QwenAnalysisTests.TestStore();
+
+        var result = QwenSettingsSave.Save(store, new QwenSettings(), "", QwenModels.DefaultSpeech,
+            QwenModels.DefaultAnalysis, NullLogger.Instance, QwenBillingMode.TokenPlan, QwenAnalysisTests.TokenPlanTestKey);
+
+        Assert.AreEqual("QwenSaved", result.Message.Key);
+        var saved = store.Load();
+        Assert.AreEqual(QwenBillingMode.TokenPlan, saved.BillingMode);
+        Assert.IsTrue(saved.HasAnalysisApiKey);
+        Assert.IsFalse(saved.HasApiKey);
+        Assert.AreEqual(QwenAnalysisTests.TokenPlanTestKey, saved.TokenPlanApiKey);
+    }
+
+    [TestMethod]
+    public void Save_CanPersistTheSelectedProfileBeforeItsKeyIsConfigured()
+    {
+        var store = new QwenAnalysisTests.TestStore();
+        var current = new QwenSettings { ApiKey = TestCredential };
+
+        var result = QwenSettingsSave.Save(store, current, "", current.SpeechModel, current.AnalysisModel,
+            NullLogger.Instance, QwenBillingMode.TokenPlan);
+
+        Assert.AreEqual("QwenSavedWithoutKey", result.Message.Key);
+        var saved = store.Load();
+        Assert.AreEqual(QwenBillingMode.TokenPlan, saved.BillingMode);
+        Assert.IsFalse(saved.HasAnalysisApiKey);
+        Assert.AreEqual(TestCredential, saved.ApiKey);
+    }
+
+    [TestMethod]
+    public void AutosaveRunsOnceThreeMinutesAfterTheLastEditAndWaitsForBusyWorkspace()
+    {
+        var clock = new AutosaveClock();
+        var autosave = new QwenAutoSave(clock);
+        Assert.IsFalse(autosave.TryBegin(canSave: true));
+        autosave.Edited();
+        clock.Advance(TimeSpan.FromMinutes(2));
+        autosave.Edited();
+        clock.Advance(TimeSpan.FromMinutes(3) - TimeSpan.FromTicks(1));
+        Assert.IsFalse(autosave.TryBegin(canSave: true));
+        clock.Advance(TimeSpan.FromTicks(1));
+        Assert.IsFalse(autosave.TryBegin(canSave: false));
+        Assert.IsTrue(autosave.TryBegin(canSave: true));
+        Assert.IsFalse(autosave.TryBegin(canSave: true));
+    }
+
+    [TestMethod]
+    public void ManualSaveCancelsThePendingAutosaveUntilAnotherEdit()
+    {
+        var clock = new AutosaveClock();
+        var autosave = new QwenAutoSave(clock);
+        autosave.Edited();
+        clock.Advance(TimeSpan.FromMinutes(2));
+        autosave.Cancel();
+        clock.Advance(TimeSpan.FromMinutes(1));
+        Assert.IsFalse(autosave.TryBegin(canSave: true));
+        autosave.Edited();
+        clock.Advance(TimeSpan.FromMinutes(3));
+        Assert.IsTrue(autosave.TryBegin(canSave: true));
+    }
+
+    [TestMethod]
+    public void Save_ChangingBillingModeWithoutRetypingKeysKeepsBothConfigurations()
+    {
+        var store = new QwenAnalysisTests.TestStore();
+        var current = QwenSettings.FromInput(TestCredential, QwenModels.AlternateSpeech, "qwen-max",
+            QwenBillingMode.TokenPlan, QwenAnalysisTests.TokenPlanTestKey, "qwen3.8-max", QwenModels.TokenPlanAsrFlash);
+
+        var result = QwenSettingsSave.Save(store, current, "", current.SpeechModel, current.AnalysisModel,
+            NullLogger.Instance, QwenBillingMode.PayAsYouGo, tokenPlanAnalysisModel: current.TokenPlanAnalysisModel,
+            tokenPlanSpeechModel: current.TokenPlanSpeechModel);
+
+        Assert.AreEqual("QwenSaved", result.Message.Key);
+        var saved = store.Load();
+        Assert.AreEqual(QwenBillingMode.PayAsYouGo, saved.BillingMode);
+        Assert.AreEqual(TestCredential, saved.ApiKey);
+        Assert.AreEqual(QwenAnalysisTests.TokenPlanTestKey, saved.TokenPlanApiKey);
+        Assert.AreEqual("qwen-max", saved.AnalysisModel);
+        Assert.AreEqual("qwen3.8-max", saved.TokenPlanAnalysisModel);
+        Assert.AreEqual(QwenModels.AlternateSpeech, saved.SpeechModel);
+        Assert.AreEqual(QwenModels.TokenPlanAsrFlash, saved.TokenPlanSpeechModel);
+    }
+
+    [TestMethod]
+    public void Save_RejectsPayAsYouGoSpeechModelInTokenPlanProfile()
+    {
+        var store = new TestStore();
+        var current = new QwenSettings { TokenPlanApiKey = QwenAnalysisTests.TokenPlanTestKey };
+        var result = QwenSettingsSave.Save(store, current, "", current.SpeechModel, current.AnalysisModel,
+            NullLogger.Instance, QwenBillingMode.TokenPlan, tokenPlanSpeechModel: QwenModels.DefaultSpeech);
+
+        Assert.AreEqual("ErrorQwenModelInvalid", result.Message.Key);
         Assert.AreEqual(0, store.SaveCalls);
     }
 
@@ -146,6 +260,14 @@ public sealed class QwenSettingsSaveTests
     private static QwenSettingsSave.Result Save(IQwenSettingsStore store, string input,
         QwenSettings? current = null, string analysisModel = QwenModels.DefaultAnalysis) =>
         QwenSettingsSave.Save(store, current ?? new QwenSettings(), input, QwenModels.DefaultSpeech, analysisModel, NullLogger.Instance);
+
+    private sealed class AutosaveClock : TimeProvider
+    {
+        private long _timestamp;
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+        public override long GetTimestamp() => _timestamp;
+        public void Advance(TimeSpan duration) => _timestamp += duration.Ticks;
+    }
 
     private sealed class TestStore : IQwenSettingsStore
     {

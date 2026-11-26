@@ -3,32 +3,61 @@
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
   <data name="AppTitle" xml:space="preserve"><value>会话助手</value></data>
-  <data name="QwenSection" xml:space="preserve"><value>千问 AI 平台 · 按量付费</value></data>
-  <data name="QwenSetupHelp" xml:space="preserve"><value>两个模型共用一个千问 AI 平台按量付费 API Key（sk-ws- 开头，早期为 sk-）。请复制创建时显示的完整 Key，不要复制列表中的掩码。不支持 Token Plan 套餐密钥。</value></data>
-  <data name="QwenGetApiKey" xml:space="preserve"><value>创建按量付费 API Key</value></data>
+  <data name="QwenSection" xml:space="preserve"><value>千问 AI 平台</value></data>
+  <data name="QwenSetupHelp" xml:space="preserve"><value>按量付费模式使用本配置进行实时转录、分析和问答。停止修改 3 分钟后自动保存。</value></data>
+  <data name="QwenTokenPlanHelp" xml:space="preserve"><value>Token Plan 模式只使用套餐。选择转录模型后，音频按 8 秒一段提交识别；关闭转录即可开始文字会话。连接测试只检查分析模型。停止修改 3 分钟后自动保存。</value></data>
+  <data name="QwenTokenPlanSpeechOff" xml:space="preserve"><value>关闭（仅文字）</value></data>
+  <data name="QwenTokenPlanSpeechFlash" xml:space="preserve"><value>qwen-audio-3.0-asr-flash（分段转录）</value></data>
+  <data name="QwenGetApiKey" xml:space="preserve"><value>管理千问 API Key</value></data>
+  <data name="QwenTokenPlanUsageGuide" xml:space="preserve"><value>查看 Token Plan 使用规范</value></data>
   <data name="QwenPrivacy" xml:space="preserve"><value>所选音频、转录文字和提问会发送至阿里云。请在开始采集前征得参与者同意。模型调用可能产生费用。</value></data>
+  <data name="QwenBillingMode" xml:space="preserve"><value>千问计费方式</value></data>
+  <data name="QwenPayAsYouGo" xml:space="preserve"><value>按量付费</value></data>
+  <data name="QwenTokenPlan" xml:space="preserve"><value>Token Plan（试验性）</value></data>
   <data name="QwenApiKey" xml:space="preserve"><value>按量付费 API Key</value></data>
-  <data name="QwenKeyPlaceholder" xml:space="preserve"><value>粘贴千问 AI 平台的完整密钥</value></data>
+  <data name="QwenTokenPlanApiKey" xml:space="preserve"><value>Token Plan API Key</value></data>
+  <data name="QwenKeyPlaceholder" xml:space="preserve"><value>完整密钥，以 sk-ws-（旧版 sk-）开头</value></data>
+  <data name="QwenTokenPlanKeyPlaceholder" xml:space="preserve"><value>完整密钥，以 sk-sp- 开头</value></data>
   <data name="QwenKeyStored" xml:space="preserve"><value>已保存；留空可保留原密钥</value></data>
   <data name="QwenSpeechModel" xml:space="preserve"><value>语音转录模型</value></data>
   <data name="QwenAnalysisModel" xml:space="preserve"><value>会话分析和问答模型</value></data>
   <data name="QwenSpeakerHint" xml:space="preserve"><value>当前实时转录模型不区分说话人；旧记录中的说话人标签会保留。</value></data>
   <data name="QwenSave" xml:space="preserve"><value>保存千问设置</value></data>
   <data name="QwenTest" xml:space="preserve"><value>测试两个模型</value></data>
+  <data name="QwenTestTokenPlan" xml:space="preserve"><value>测试 Token Plan 分析</value></data>
   <data name="QwenNotConfigured" xml:space="preserve"><value>请在设置中配置千问</value></data>
-  <data name="QwenReplaceTokenPlanKey" xml:space="preserve"><value>请在设置中更换 Token Plan 密钥</value></data>
-  <data name="QwenConfigured" xml:space="preserve"><value>已保存千问 API Key</value></data>
-  <data name="QwenUnsaved" xml:space="preserve"><value>请先保存更改，再进行测试。</value></data>
+  <data name="QwenConfigured" xml:space="preserve"><value>千问按量付费</value></data>
+  <data name="QwenTokenPlanConfigured" xml:space="preserve"><value>千问 Token Plan</value></data>
+  <data name="QwenStartTextConversation" xml:space="preserve"><value>开始文字会话</value></data>
+  <data name="QwenUnsaved" xml:space="preserve"><value>千问设置有更改。可立即保存，或停止修改 3 分钟后自动保存。</value></data>
+  <data name="QwenSaveBeforeTest" xml:space="preserve"><value>请先保存更改，再进行连接测试。</value></data>
   <data name="QwenSaving" xml:space="preserve"><value>正在本机加密并验证千问设置…</value></data>
-  <data name="QwenSaved" xml:space="preserve"><value>千问设置已为当前 Windows 用户保存。点击“测试两个模型”验证调用权限。</value></data>
+  <data name="QwenSaved" xml:space="preserve"><value>千问设置已为当前 Windows 用户保存。请运行连接测试验证调用权限。</value></data>
+  <data name="QwenSavedWithoutKey" xml:space="preserve"><value>千问设置已保存。使用当前计费模式前，请添加 API Key。</value></data>
+  <data name="QwenAutoSaved" xml:space="preserve"><value>千问设置已自动保存在本机。</value></data>
+  <data name="QwenAutoSavedWithoutKey" xml:space="preserve"><value>千问设置已自动保存。使用当前计费模式前，请添加 API Key。</value></data>
   <data name="QwenTesting" xml:space="preserve"><value>正在测试转录与分析模型，不会采集音频…</value></data>
   <data name="QwenTestSuccess" xml:space="preserve"><value>两个千问模型均已通过连接测试，未发送音频或转录记录。</value></data>
+  <data name="QwenTokenPlanTesting" xml:space="preserve"><value>正在使用一条简短文本测试 Token Plan…</value></data>
+  <data name="QwenTokenPlanTestSuccess" xml:space="preserve"><value>Token Plan 分析已通过连接测试，未发送音频或转录记录。</value></data>
   <data name="StatusStartingQwen" xml:space="preserve"><value>◌ 正在连接千问语音转录…</value></data>
   <data name="MicrophoneQwen" xml:space="preserve"><value>麦克风 · 共享 · 千问</value></data>
   <data name="SystemAudioQwen" xml:space="preserve"><value>系统声音 · 共享 · 千问</value></data>
   <data name="CombinedAudioQwen" xml:space="preserve"><value>麦克风与系统声音 · 共享 · 千问</value></data>
   <data name="ErrorQwenKeyRequired" xml:space="preserve"><value>请先在设置中保存千问 AI 平台的按量付费 API Key。</value></data>
-  <data name="ErrorQwenTokenPlanKey" xml:space="preserve"><value>本应用不支持 Token Plan 套餐密钥，请改用千问 AI 平台的按量付费 API Key。</value></data>
+  <data name="ErrorQwenTokenPlanKey" xml:space="preserve"><value>这是 Token Plan 密钥，请粘贴到 Token Plan API Key 输入框。</value></data>
+  <data name="ErrorQwenTokenPlanKeyRequired" xml:space="preserve"><value>请先在设置中保存千问 AI 平台的 Token Plan API Key。</value></data>
+  <data name="ErrorQwenTokenPlanKeyInvalid" xml:space="preserve"><value>请粘贴以 sk-sp- 开头的完整 Token Plan API Key，不能使用按量付费密钥或掩码。</value></data>
+  <data name="ErrorQwenBillingMode" xml:space="preserve"><value>请选择受支持的千问分析计费方式。</value></data>
+  <data name="ErrorQwenSpeechTokenPlan" xml:space="preserve"><value>Token Plan 转录已关闭。请在设置中选择 Token Plan 语音模型后再开始录音。</value></data>
+  <data name="ErrorQwenTokenPlanSpeechProbe" xml:space="preserve"><value>Token Plan 转录接口需要音频，请开始录音后验证转录。</value></data>
+  <data name="ErrorQwenTokenPlanSpeechNetwork" xml:space="preserve"><value>无法连接 Token Plan 转录服务，请检查网络后重试。</value></data>
+  <data name="ErrorQwenTokenPlanSpeechResponse" xml:space="preserve"><value>Token Plan 返回了无法识别的转录结果。</value></data>
+  <data name="ErrorQwenTokenPlanSpeechPermissions" xml:space="preserve"><value>Token Plan 拒绝了转录请求，请检查订阅状态、API Key 和转录模型权限。</value></data>
+  <data name="ErrorQwenTokenPlanSpeechQuota" xml:space="preserve"><value>Token Plan 转录请求被限流或套餐 Credits 已用完，请查看订阅用量后再试。</value></data>
+  <data name="ErrorQwenTokenPlanSpeechInput" xml:space="preserve"><value>Token Plan 拒绝了音频或转录模型，请检查设置后重试。</value></data>
+  <data name="ErrorQwenTokenPlanPermissions" xml:space="preserve"><value>千问拒绝了 Token Plan 请求，请检查订阅状态、Token Plan API Key 和所选模型的调用权限。</value></data>
+  <data name="ErrorQwenTokenPlanQuota" xml:space="preserve"><value>Token Plan 请求被限流或套餐 Credits 已用完。请查看订阅用量后再试。</value></data>
   <data name="ErrorQwenKeyInvalid" xml:space="preserve"><value>请粘贴千问 AI 平台创建时显示的完整按量付费 API Key（sk-ws- 或 sk- 开头），不要使用掩码或密钥 ID。</value></data>
   <data name="ErrorQwenModelInvalid" xml:space="preserve"><value>请选择支持的千问转录和分析模型。</value></data>
   <data name="ErrorQwenSettingsRead" xml:space="preserve"><value>无法读取千问设置，请重新保存 API Key 和模型。</value></data>

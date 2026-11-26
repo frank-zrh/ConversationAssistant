@@ -29,6 +29,7 @@ public sealed partial class ConversationSessionManager
     private TaskCompletionSource _resumed = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private bool _paused;
     private bool _capturing;
+    private bool _captureAudioForSession;
     private bool _workIqBusy;
     private Task _speechRecovery = Task.CompletedTask;
     private bool _closing;
@@ -153,7 +154,7 @@ public sealed partial class ConversationSessionManager
     public IReadOnlyList<AudioDevice> ListDevices(AudioDeviceKind kind = AudioDeviceKind.Input) => _audio.ListDevices(kind);
     public IReadOnlyList<ConversationLanguage> AvailableLanguages() => _speech.AvailableLanguages();
 
-    public void StartConversation(ConversationSettings settings)
+    public void StartConversation(ConversationSettings settings, bool captureAudio = true)
     {
         ArgumentNullException.ThrowIfNull(settings);
         _lifecycle.Wait();
@@ -161,24 +162,24 @@ public sealed partial class ConversationSessionManager
         {
             if (Session is not null) throw new InvalidOperationException("End the current conversation first.");
             CloseConversationCoreAsync().GetAwaiter().GetResult();
-            StartConversationCore(settings);
+            StartConversationCore(settings, captureAudio);
         }
         finally { _lifecycle.Release(); }
     }
 
-    public async Task StartNewConversationAsync(ConversationSettings settings)
+    public async Task StartNewConversationAsync(ConversationSettings settings, bool captureAudio = true)
     {
         ArgumentNullException.ThrowIfNull(settings);
         await _lifecycle.WaitAsync().ConfigureAwait(false);
         try
         {
             await CloseConversationCoreAsync().ConfigureAwait(false);
-            StartConversationCore(settings);
+            StartConversationCore(settings, captureAudio);
         }
         finally { _lifecycle.Release(); }
     }
 
-    private void StartConversationCore(ConversationSettings settings)
+    private void StartConversationCore(ConversationSettings settings, bool captureAudio)
     {
         lock (_gate)
         {
@@ -191,6 +192,7 @@ public sealed partial class ConversationSessionManager
             _resumed.SetResult();
             _paused = false;
             _capturing = false;
+            _captureAudioForSession = captureAudio;
             _workIqBusy = false;
             settings.AnalysisProvider = AnalysisProvider.Qwen;
             Session = new ConversationSession { Settings = settings, StartTime = _timeProvider.GetUtcNow() };
@@ -204,24 +206,27 @@ public sealed partial class ConversationSessionManager
         try
         {
             FlushArchiveAsync().GetAwaiter().GetResult();
-            SetState(ConversationUiState.Starting);
-            _speech.Start(settings.Language);
-            lock (_gate)
-                if (_paused) throw new SpeechConnectionException("Speech 服务在启动期间断开，请重试。");
-            _audio.Start(settings.AudioCapture);
-            lock (_gate)
+            if (captureAudio)
             {
-                if (_paused) throw new SpeechConnectionException("Speech 服务在启动期间断开，请重试。");
-                _capturing = true;
+                SetState(ConversationUiState.Starting);
+                _speech.Start(settings.Language);
+                lock (_gate)
+                    if (_paused) throw new SpeechConnectionException("Speech 服务在启动期间断开，请重试。");
+                _audio.Start(settings.AudioCapture);
+                lock (_gate)
+                {
+                    if (_paused) throw new SpeechConnectionException("Speech 服务在启动期间断开，请重试。");
+                    _capturing = true;
+                }
             }
         }
         catch
         {
             WorkIqRequest[] interrupted = [];
-            try { _audio.Stop(); }
+            try { if (captureAudio) _audio.Stop(); }
             finally
             {
-                try { _speech.Stop(); }
+                try { if (captureAudio) _speech.Stop(); }
                 finally
                 {
                     lock (_gate)
@@ -237,6 +242,7 @@ public sealed partial class ConversationSessionManager
                         }
                         Session = null;
                         _capturing = false;
+                        _captureAudioForSession = false;
                         _buffer?.Clear();
                         _buffer = null;
                         _conversationCancellation?.Dispose();
@@ -253,7 +259,7 @@ public sealed partial class ConversationSessionManager
         var queue = _queue!;
         var token = _conversationCancellation!.Token;
         _worker = Task.Run(() => ProcessQueueAsync(session, queue, token));
-        SetState(ConversationUiState.Listening);
+        SetState(captureAudio ? ConversationUiState.Listening : ConversationUiState.Idle);
     }
 
     public void Pause()
@@ -299,7 +305,7 @@ public sealed partial class ConversationSessionManager
         ConversationSettings settings;
         lock (_gate)
         {
-            if (Session is null || !_paused) throw new InvalidOperationException("Conversation is not paused.");
+            if (Session is null || !_paused || !_captureAudioForSession) throw new InvalidOperationException("Conversation is not paused.");
             settings = Session.Settings;
             _paused = false;
             _capturing = false;
@@ -367,7 +373,7 @@ public sealed partial class ConversationSessionManager
         lock (_gate)
         {
             if (CurrentConversation is null) return;
-            hadAudio = Session is not null;
+            hadAudio = Session is not null && _captureAudioForSession;
             if (_capturing) _drainingSpeech = Session;
             if (Session is not null) Session.EndTime = _timeProvider.GetUtcNow();
             Session = null;
@@ -377,6 +383,7 @@ public sealed partial class ConversationSessionManager
             worker = _worker;
             _paused = false;
             _capturing = false;
+            _captureAudioForSession = false;
             _workIqBusy = false;
             _resumed.TrySetResult();
         }
@@ -790,7 +797,7 @@ public sealed partial class ConversationSessionManager
                     if (Session == session)
                         SetState(_paused ? State == ConversationUiState.Error ? ConversationUiState.Error : ConversationUiState.Paused :
                             request.Error?.Contains("offline", StringComparison.OrdinalIgnoreCase) == true ?
-                            ConversationUiState.Offline : ConversationUiState.Listening);
+                            ConversationUiState.Offline : IsListening ? ConversationUiState.Listening : ConversationUiState.Idle);
                 }
                 AnalyzeIfDue();
             }
@@ -953,7 +960,7 @@ public sealed partial class ConversationSessionManager
         {
             lock (_gate)
             {
-                if (Session is null) return;
+                if (Session is null || !_captureAudioForSession) return;
                 if (!_paused)
                 {
                     _paused = true;

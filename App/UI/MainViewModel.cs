@@ -194,7 +194,7 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         var language = Settings.DisplayLanguage;
         Texts = UiText.For(language);
         foreach (var options in new[] { SpeechLanguageOptions, AnalysisLanguageOptions, DisplayLanguageOptions,
-            ContextOptions, AnswerStyleOptions, AnswerLanguageOptions, AudioModeOptions })
+            ContextOptions, AnswerStyleOptions, AnswerLanguageOptions, AudioModeOptions, QwenBillingOptions, QwenTokenPlanSpeechOptions })
             foreach (var option in options) option.UpdateLanguage(Texts);
         foreach (var row in TranscriptItems) row.UpdateLanguage(Texts);
         foreach (var row in SuggestedQuestions) row.UpdateLanguage(Texts);
@@ -207,7 +207,8 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         foreach (var row in OutputDevices) row.UpdateLanguage(Texts);
         Notify(nameof(Texts), nameof(SpeechLanguageIndex), nameof(AnalysisLanguageIndex),
             nameof(DisplayLanguageIndex), nameof(StatusText), nameof(ListeningText),
-            nameof(QwenStatus), nameof(QwenKeyHint), nameof(QwenSettingsStatus), nameof(PartialText),
+            nameof(QwenStatus), nameof(QwenKeyHint), nameof(QwenTokenPlanKeyHint), nameof(QwenTestLabel),
+            nameof(QwenModeHelp), nameof(StartConversationLabel), nameof(QwenSettingsStatus), nameof(PartialText),
             nameof(ScrollText), nameof(LastError), nameof(AnalysisStatus), nameof(AnalysisError),
             nameof(PendingAnalysisText), nameof(AnalysisScheduleText), nameof(RecordStatus),
             nameof(RecordPath), nameof(AutomaticAnalysis));
@@ -258,11 +259,13 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
             return Texts[source + "Qwen"];
         }
     }
-    public bool CanStart => _conversation.Session is null && !WorkspaceBusy && !QwenSettingsBusy && _savedQwen.HasApiKey;
-    public bool CanNewChat => !WorkspaceBusy && !_savingRecord && !QwenSettingsBusy && _savedQwen.HasApiKey;
+    public bool CanStart => _conversation.Session is null && !WorkspaceBusy && !QwenSettingsBusy &&
+        !_hasUnsavedQwenSettings && _savedQwen.HasAnalysisApiKey;
+    public bool CanNewChat => !WorkspaceBusy && !_savingRecord && !QwenSettingsBusy &&
+        !_hasUnsavedQwenSettings && _savedQwen.HasAnalysisApiKey;
     public bool CanEnd => _conversation.Session is not null && !WorkspaceBusy;
     public bool CanPause => _conversation.IsListening && !WorkspaceBusy;
-    public bool CanResume => _conversation.Session is not null && !_conversation.IsListening && !WorkspaceBusy;
+    public bool CanResume => _savedQwen.SpeechEnabled && _conversation.Session is not null && !_conversation.IsListening && !WorkspaceBusy;
     public bool CanChangeSpeechLanguage => !_conversation.IsListening && !WorkspaceBusy;
     public bool CanChangeAudioSettings => !_conversation.IsListening && !WorkspaceBusy;
     public bool CanChooseInputDevice => CanChangeAudioSettings && Settings.AudioCapture.IncludesMicrophone;
@@ -336,7 +339,8 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
         private set => Set(ref _analysisError, UiMessage.FromDiagnostic(value), nameof(AnalysisError));
     }
     public bool CanAnalyzeConversation => _conversation.CurrentConversation is not null &&
-        TranscriptItems.Count > 0 && !_analysisBusy && !WorkspaceBusy && !QwenSettingsBusy && _savedQwen.HasApiKey;
+        TranscriptItems.Count > 0 && !_analysisBusy && !WorkspaceBusy && !QwenSettingsBusy &&
+        !_hasUnsavedQwenSettings && _savedQwen.HasAnalysisApiKey;
     public Visibility EmptySuggestionsVisibility => SuggestedQuestions.Count == 0
         ? Visibility.Visible : Visibility.Collapsed;
     public string PendingAnalysisText => Texts.Format("AnalysisPendingCount", _pendingAnalysisCount);
@@ -430,21 +434,22 @@ public sealed partial class MainViewModel : INotifyPropertyChanged
     {
         if (newChat ? !CanNewChat : !CanStart) return false;
         _starting = true;
+        var captureAudio = _savedQwen.SpeechEnabled;
         State = ConversationUiState.Starting;
         NotifyWorkspaceControls();
         try
         {
             await Task.Run(async () =>
             {
-                if (newChat) await _conversation.StartNewConversationAsync(Settings);
-                else _conversation.StartConversation(Settings);
+                if (newChat) await _conversation.StartNewConversationAsync(Settings, captureAudio);
+                else _conversation.StartConversation(Settings, captureAudio);
             });
             OnUi(() =>
             {
                 LastError = "";
                 Notify(nameof(ListeningText));
             });
-            _logger.LogInformation("Conversation started; audio capture and Qwen speech initialized");
+            _logger.LogInformation("Conversation started with audio capture: {CaptureAudio}", captureAudio);
             return true;
         }
         catch (Exception ex) when (ex is InvalidOperationException or NAudio.MmException or

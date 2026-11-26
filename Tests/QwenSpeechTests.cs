@@ -1,8 +1,11 @@
+using System.Buffers.Binary;
+using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 using ConversationAssistant.Core.Models;
+using ConversationAssistant.Core.Localization;
 using ConversationAssistant.Core.Qwen;
 using ConversationAssistant.Core.Speech;
 
@@ -190,6 +193,120 @@ public sealed class QwenSpeechTests
             Assert.IsFalse(body.RootElement.TryGetProperty("max_tokens", out _));
         }
         finally { File.Delete(path); }
+    }
+
+    [TestMethod]
+    public async Task TokenPlanWithTranscriptionOffNeverOpensThePayAsYouGoSpeechSocket()
+    {
+        var store = new QwenAnalysisTests.TestStore();
+        var socket = new FakeSocket();
+        var opened = 0;
+        using var speech = new QwenSpeechRecognitionService(store, () => { opened++; return socket; }, new TestClock());
+        store.Save(QwenSettings.FromInput("", QwenModels.DefaultSpeech, QwenModels.DefaultAnalysis,
+            QwenBillingMode.TokenPlan, QwenAnalysisTests.TokenPlanTestKey));
+
+        await Assert.ThrowsExactlyAsync<SpeechConnectionException>(() => speech.TestAsync(ConversationLanguage.Chinese));
+        Assert.AreEqual(0, opened);
+
+        store.Save(QwenSettings.FromInput(ApiKey, QwenModels.DefaultSpeech, QwenModels.DefaultAnalysis,
+            QwenBillingMode.TokenPlan, QwenAnalysisTests.TokenPlanTestKey));
+        await Assert.ThrowsExactlyAsync<SpeechConnectionException>(() => speech.TestAsync(ConversationLanguage.Chinese));
+        Assert.AreEqual(0, opened);
+
+        store.Save(QwenSettings.FromInput(ApiKey, QwenModels.DefaultSpeech, QwenModels.DefaultAnalysis,
+            QwenBillingMode.PayAsYouGo, QwenAnalysisTests.TokenPlanTestKey));
+        socket.Reply("""{"type":"session.updated"}""");
+        await speech.TestAsync(ConversationLanguage.Chinese).WaitAsync(Watchdog);
+
+        Assert.AreEqual(1, opened);
+        Assert.AreEqual("maas.qianwenaiapi.com", socket.Endpoint!.Host);
+        Assert.AreEqual(ApiKey, socket.Key);
+    }
+
+    [TestMethod]
+    public async Task TokenPlanUploadsEightSecondWavAndFlushesTrailingAudioUsingOnlyItsOwnModelAndKey()
+    {
+        var store = new QwenAnalysisTests.TestStore();
+        store.Save(QwenSettings.FromInput(ApiKey, QwenModels.AlternateSpeech, QwenModels.DefaultAnalysis,
+            QwenBillingMode.TokenPlan, QwenAnalysisTests.TokenPlanTestKey, tokenPlanSpeechModel: QwenModels.TokenPlanAsrFlash));
+        var transport = new TokenPlanTransport();
+        using var http = new HttpClient(transport);
+        using var speech = new QwenSpeechRecognitionService(store, () => throw new AssertFailedException("Unexpected WebSocket"),
+            new TestClock(), http);
+        var results = Channel.CreateUnbounded<SpeechText>();
+        speech.FinalTranscriptReceived += text => results.Writer.TryWrite(text);
+
+        speech.Start(ConversationLanguage.Chinese);
+        var frame = new byte[32000];
+        frame[0] = 17;
+        for (var index = 0; index < 8; index++) speech.AcceptAudio(frame);
+        var first = await results.Reader.ReadAsync().AsTask().WaitAsync(Watchdog);
+        speech.AcceptAudio(frame);
+        await Task.Run(speech.Stop).WaitAsync(Watchdog);
+        var last = await results.Reader.ReadAsync().AsTask().WaitAsync(Watchdog);
+
+        Assert.AreEqual("Segment 1", first.Text);
+        Assert.AreEqual("Segment 2", last.Text);
+        Assert.AreEqual(TimeSpan.FromSeconds(8), first.End - first.Start);
+        Assert.AreEqual(first.End, last.Start);
+        Assert.AreEqual(TimeSpan.FromSeconds(1), last.End - last.Start);
+        Assert.HasCount(2, transport.Calls);
+        for (var index = 0; index < 2; index++)
+        {
+            var (uri, key, body) = transport.Calls[index];
+            Assert.AreEqual("https://token-plan.maas.qianwenaiapi.com/api/v1/services/aigc/multimodal-generation/generation", uri);
+            Assert.AreEqual("Bearer " + QwenAnalysisTests.TokenPlanTestKey, key);
+            using var json = JsonDocument.Parse(body);
+            var root = json.RootElement;
+            Assert.AreEqual(QwenModels.TokenPlanAsrFlash, root.GetProperty("model").GetString());
+            Assert.AreEqual("zh", root.GetProperty("parameters").GetProperty("language_hints")[0].GetString());
+            var uriData = root.GetProperty("input").GetProperty("messages")[0].GetProperty("content")[0]
+                .GetProperty("input_audio").GetProperty("data").GetString()!;
+            const string prefix = "data:audio/wav;base64,";
+            Assert.StartsWith(prefix, uriData);
+            var wav = Convert.FromBase64String(uriData[prefix.Length..]);
+            var pcmLength = index == 0 ? 8 * frame.Length : frame.Length;
+            Assert.AreEqual(44 + pcmLength, wav.Length);
+            Assert.AreEqual("RIFF", Encoding.ASCII.GetString(wav, 0, 4));
+            Assert.AreEqual(16000, BinaryPrimitives.ReadInt32LittleEndian(wav.AsSpan(24)));
+            Assert.AreEqual(pcmLength, BinaryPrimitives.ReadInt32LittleEndian(wav.AsSpan(40)));
+            for (var offset = 44; offset < wav.Length; offset += frame.Length)
+                Assert.IsTrue(frame.AsSpan().SequenceEqual(wav.AsSpan(offset, frame.Length)));
+        }
+    }
+
+    [TestMethod]
+    public async Task TokenPlanSpeechQuotaErrorIsLocalizedWithoutFallingBack()
+    {
+        var store = new QwenAnalysisTests.TestStore();
+        store.Save(QwenSettings.FromInput(ApiKey, QwenModels.DefaultSpeech, QwenModels.DefaultAnalysis,
+            QwenBillingMode.TokenPlan, QwenAnalysisTests.TokenPlanTestKey, tokenPlanSpeechModel: QwenModels.TokenPlanAsrFlash));
+        var transport = new TokenPlanTransport { Status = HttpStatusCode.TooManyRequests };
+        using var http = new HttpClient(transport);
+        using var speech = new QwenSpeechRecognitionService(store, () => throw new AssertFailedException("Unexpected WebSocket"),
+            new TestClock(), http);
+        speech.Start(ConversationLanguage.Auto);
+        speech.AcceptAudio([1, 0]);
+
+        var error = await Assert.ThrowsExactlyAsync<SpeechConnectionException>(() => Task.Run(speech.Stop).WaitAsync(Watchdog));
+
+        Assert.AreEqual("ErrorQwenTokenPlanSpeechQuota", UiMessage.FromDiagnostic(error.Message)?.Key);
+        Assert.DoesNotContain(QwenAnalysisTests.TokenPlanTestKey, error.Message);
+        Assert.HasCount(1, transport.Calls);
+    }
+
+    private sealed class TokenPlanTransport : HttpMessageHandler
+    {
+        internal List<(string Uri, string? Authorization, string Body)> Calls { get; } = [];
+        internal HttpStatusCode Status { get; init; } = HttpStatusCode.OK;
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Calls.Add((request.RequestUri!.AbsoluteUri, request.Headers.Authorization?.ToString(),
+                await request.Content!.ReadAsStringAsync(cancellationToken)));
+            var body = Status == HttpStatusCode.OK ? JsonSerializer.Serialize(new { output = new { text = $"Segment {Calls.Count}" } }) : "{}";
+            return new HttpResponseMessage(Status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+        }
     }
 
     [TestMethod]

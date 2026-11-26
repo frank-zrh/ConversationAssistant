@@ -18,6 +18,7 @@ public sealed partial class MainPage : Page
     private readonly MainViewModel _viewModel;
     private readonly LocalAppProfile _localProfile;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly QwenAutoSave _qwenAutoSave = new(TimeProvider.System);
     private readonly AnswerMarkdownFormatter _answerFormatter = new();
     private readonly AnswerRenderQueue _answerDocuments = new();
     private readonly RemoteImageLoader _imageLoader = new();
@@ -32,6 +33,7 @@ public sealed partial class MainPage : Page
     private bool _appNavigationRequested;
     private bool _renderVerified;
     private bool _preferRawAnswer;
+    private bool _clearingQwenKeyInputs;
     private long _renderRevision;
     private ulong? _answerNavigationId;
     private string? _renderStatusKey;
@@ -46,9 +48,14 @@ public sealed partial class MainPage : Page
         UpdateLanguage();
         ActualThemeChanged += (_, _) => _viewModel.RefreshTheme();
         _viewModel.PropertyChanged += OnViewModelChanged;
+        _viewModel.QwenSettingsEdited += _qwenAutoSave.Edited;
         _viewModel.TranscriptScrollRequested += () => TranscriptScroll.ChangeView(
             null, TranscriptScroll.ScrollableHeight, null);
-        _timer.Tick += (_, _) => _viewModel.Tick();
+        _timer.Tick += async (_, _) =>
+        {
+            _viewModel.Tick();
+            if (_qwenAutoSave.TryBegin(_viewModel.CanEditQwenSettings)) await SaveQwenDraftAsync(automatic: true);
+        };
         _timer.Start();
         RenderAnswer();
         Loaded += InitializeAnswerView;
@@ -57,6 +64,8 @@ public sealed partial class MainPage : Page
         {
             _timer.Stop();
             _pageCancellation.Cancel();
+            _viewModel.QwenSettingsEdited -= _qwenAutoSave.Edited;
+            ClearQwenKeyInputs();
             _answerDocuments.Clear();
             _imageLoader.Dispose();
             _viewModel.PropertyChanged -= OnViewModelChanged;
@@ -293,18 +302,41 @@ public sealed partial class MainPage : Page
     {
         var flyout = (Flyout)AssistantLayout.Resources["SettingsFlyout"];
         ((FrameworkElement)flyout.Content).DataContext = _viewModel;
-        QwenApiKeyBox.Password = "";
         flyout.ShowAt((FrameworkElement)sender);
+    }
+
+    private void QwenKey_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (!_clearingQwenKeyInputs) _viewModel?.MarkQwenSettingsEdited();
     }
 
     private async void SaveQwenSettings_Click(object sender, RoutedEventArgs e)
     {
-        if (await _viewModel.SaveQwenSettingsAsync(QwenApiKeyBox.Password)) QwenApiKeyBox.Password = "";
+        if (!_viewModel.CanEditQwenSettings) return;
+        _qwenAutoSave.Cancel();
+        await SaveQwenDraftAsync(automatic: false);
+    }
+
+    private async Task SaveQwenDraftAsync(bool automatic)
+    {
+        if (await _viewModel.SaveQwenSettingsAsync(QwenApiKeyBox.Password, QwenTokenPlanApiKeyBox.Password, automatic))
+            ClearQwenKeyInputs();
     }
 
     private async void TestQwen_Click(object sender, RoutedEventArgs e)
     {
-        await _viewModel.TestQwenAsync(QwenApiKeyBox.Password.Length > 0, _pageCancellation.Token);
+        await _viewModel.TestQwenAsync(_pageCancellation.Token);
+    }
+
+    private void ClearQwenKeyInputs()
+    {
+        _clearingQwenKeyInputs = true;
+        try
+        {
+            QwenApiKeyBox.Password = "";
+            QwenTokenPlanApiKeyBox.Password = "";
+        }
+        finally { _clearingQwenKeyInputs = false; }
     }
 
     private async Task ConfirmExternalLinkAsync(Uri uri)

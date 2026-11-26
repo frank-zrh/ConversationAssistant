@@ -14,9 +14,13 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
     private const int BytesPerSecond = 32000; // 16 kHz, mono, 16-bit PCM.
     private const int WireChunkBytes = BytesPerSecond / 10;
     private const int QueueCapacity = 32;
+    private const int TokenPlanSegmentBytes = 8 * BytesPerSecond;
+    private const int TokenPlanMaxQueuedBytes = 24 * BytesPerSecond;
+    private const int TokenPlanQueueCapacity = 240; // 24 seconds of capture at 100 ms per frame.
     private const int MaxEventBytes = 256 * 1024;
     private static readonly TimeSpan SetupTimeout = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan FinishTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan TokenPlanFinishTimeout = TimeSpan.FromSeconds(25);
     private static readonly TimeSpan CloseTimeout = TimeSpan.FromSeconds(1);
     private const string SetupFailure = "Could not start Qwen speech recognition. Check the pay-as-you-go API key, speech model, and network, then retry.";
     private const string StreamFailure = "Qwen speech recognition was interrupted. Check the network and retry.";
@@ -28,18 +32,21 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
     private readonly IQwenSettingsStore _settings;
     private readonly Func<IQwenSpeechSocket> _createSocket;
     private readonly TimeProvider _clock;
+    private readonly QwenTokenPlanSpeechClient? _tokenPlanClient;
     private readonly object _gate = new();
     private volatile Session? _session;
 
-    public QwenSpeechRecognitionService(IQwenSettingsStore settings)
-        : this(settings, static () => new QwenSpeechSocket(), TimeProvider.System) { }
+    public QwenSpeechRecognitionService(IQwenSettingsStore settings, HttpClient http)
+        : this(settings, static () => new QwenSpeechSocket(), TimeProvider.System, http) { }
 
-    internal QwenSpeechRecognitionService(IQwenSettingsStore settings, Func<IQwenSpeechSocket> createSocket, TimeProvider clock)
+    internal QwenSpeechRecognitionService(IQwenSettingsStore settings, Func<IQwenSpeechSocket> createSocket, TimeProvider clock,
+        HttpClient? http = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
         _settings = settings;
         _createSocket = createSocket;
         _clock = clock;
+        _tokenPlanClient = http is null ? null : new QwenTokenPlanSpeechClient(http, clock);
     }
 
     public event Action<SpeechText>? PartialTranscriptReceived;
@@ -57,8 +64,10 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
         lock (_gate)
         {
             if (_session is not null) throw new InvalidOperationException("Speech recognition already active.");
-            var (key, protocol) = LoadSettings(language);
-            _session = session = new Session(protocol);
+            var (settings, key) = LoadSettings();
+            var tokenPlanModel = settings.BillingMode == QwenBillingMode.TokenPlan ? settings.TokenPlanSpeechModel : null;
+            var protocol = tokenPlanModel is null ? new QwenSpeechProtocol(settings.SpeechModel, language) : null;
+            _session = session = new Session(protocol, tokenPlanModel, language);
             _ = Task.Run(() => RunAsync(session, key));
         }
 
@@ -82,6 +91,12 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
         }
         if (pcm16Mono16000.Length == 0) return;
 
+        if (session.TokenPlanModel is not null &&
+            Interlocked.Add(ref session.QueuedBytes, pcm16Mono16000.Length) > TokenPlanMaxQueuedBytes)
+        {
+            session.Abort.TrySetResult(AudioOverload);
+            return;
+        }
         var frame = new AudioFrame((byte[])pcm16Mono16000.Clone(), _clock.GetUtcNow());
         if (!session.Audio.Writer.TryWrite(frame) && !session.Stopping)
             session.Abort.TrySetResult(AudioOverload);
@@ -100,7 +115,8 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
 
         try
         {
-            var error = session.Completed.Task.WaitAsync(FinishTimeout, _clock).GetAwaiter().GetResult();
+            var timeout = session.TokenPlanModel is null ? FinishTimeout : TokenPlanFinishTimeout;
+            var error = session.Completed.Task.WaitAsync(timeout, _clock).GetAwaiter().GetResult();
             if (error is not null && !session.ErrorReported) throw error;
         }
         catch (TimeoutException)
@@ -120,7 +136,10 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
     public async Task TestAsync(ConversationLanguage language, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var (key, protocol) = LoadSettings(language);
+        var (settings, key) = LoadSettings();
+        if (settings.BillingMode == QwenBillingMode.TokenPlan)
+            throw new SpeechConnectionException("Token Plan transcription is tested during recording because its API requires audio.");
+        var protocol = new QwenSpeechProtocol(settings.SpeechModel, language);
         try
         {
             using var socket = _createSocket();
@@ -136,22 +155,25 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
         }
     }
 
-    private (string Key, QwenSpeechProtocol Protocol) LoadSettings(ConversationLanguage language)
+    private (QwenSettings Settings, string Key) LoadSettings()
     {
         QwenSettings settings;
         try { settings = _settings.Load(); }
         catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or CryptographicException)
         { throw new SpeechConnectionException("Qwen settings could not be read. Save the API key and models again."); }
         string key;
-        try { key = settings.RequireApiKey(); }
-        catch (InvalidOperationException error) { throw new SpeechConnectionException(error.Message); }
-        return (key, new QwenSpeechProtocol(settings.SpeechModel, language));
+        try { key = settings.RequireSpeechApiKey(); }
+        catch (Exception error) when (error is InvalidOperationException or InvalidDataException)
+        { throw new SpeechConnectionException(error.Message); }
+        return (settings, key);
     }
 
     private async Task RunAsync(Session session, string key)
     {
         using var lifetime = new CancellationTokenSource();
-        var work = RunSocketAsync(session, key, lifetime.Token);
+        var work = session.TokenPlanModel is { } model
+            ? RunTokenPlanAsync(session, model, key, lifetime.Token)
+            : RunSocketAsync(session, session.Protocol!, key, lifetime.Token);
         SpeechConnectionException? error = null;
         try
         {
@@ -161,7 +183,7 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
         }
         catch (Exception failure) when (failure is not OutOfMemoryException)
         {
-            error = new SpeechConnectionException(failure is SessionFailure ? failure.Message :
+            error = new SpeechConnectionException(failure is SessionFailure or SpeechConnectionException ? failure.Message :
                 session.Ready.Task.IsCompletedSuccessfully ? StreamFailure : SetupFailure);
         }
         finally
@@ -183,15 +205,55 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
         if (report) RecognitionError?.Invoke(error!);
     }
 
-    private async Task RunSocketAsync(Session session, string key, CancellationToken token)
+    private async Task RunTokenPlanAsync(Session session, string model, string key, CancellationToken token)
+    {
+        var client = _tokenPlanClient ?? throw new SpeechConnectionException(StreamFailure);
+        var buffer = new byte[TokenPlanSegmentBytes];
+        var written = 0;
+        var startTicks = -1L;
+        session.Ready.TrySetResult();
+
+        async Task PublishSegmentAsync()
+        {
+            var endTicks = Math.Min(startTicks + AudioTicks(written), DateTimeOffset.MaxValue.UtcTicks);
+            if (buffer.AsSpan(0, written).ContainsAnyExcept((byte)0))
+            {
+                var text = await client.TranscribeAsync(model, key, session.Language, buffer.AsMemory(0, written), token)
+                    .ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(text) && ReferenceEquals(_session, session) && !session.Abort.Task.IsCompleted)
+                    FinalTranscriptReceived?.Invoke(new SpeechText(text, new DateTimeOffset(startTicks, TimeSpan.Zero),
+                        new DateTimeOffset(endTicks, TimeSpan.Zero)));
+            }
+            startTicks = endTicks;
+            written = 0;
+        }
+
+        await foreach (var frame in session.Audio.Reader.ReadAllAsync(token).ConfigureAwait(false))
+        {
+            Interlocked.Add(ref session.QueuedBytes, -frame.Pcm.Length);
+            if (startTicks < 0) startTicks = Math.Max(0, frame.CapturedAt.UtcTicks - AudioTicks(frame.Pcm.Length));
+            for (var offset = 0; offset < frame.Pcm.Length;)
+            {
+                token.ThrowIfCancellationRequested();
+                var count = Math.Min(buffer.Length - written, frame.Pcm.Length - offset);
+                frame.Pcm.AsSpan(offset, count).CopyTo(buffer.AsSpan(written));
+                written += count;
+                offset += count;
+                if (written == buffer.Length) await PublishSegmentAsync().ConfigureAwait(false);
+            }
+        }
+        if (written > 0) await PublishSegmentAsync().ConfigureAwait(false);
+    }
+
+    private async Task RunSocketAsync(Session session, QwenSpeechProtocol protocol, string key, CancellationToken token)
     {
         using var socket = _createSocket();
-        await SetupAsync(socket, session.Protocol, key, token).ConfigureAwait(false);
+        await SetupAsync(socket, protocol, key, token).ConfigureAwait(false);
         session.Ready.TrySetResult();
 
         using var streaming = CancellationTokenSource.CreateLinkedTokenSource(token);
-        var sending = SendAsync(session, socket, streaming.Token);
-        var receiving = ReceiveAsync(session, socket, streaming.Token);
+        var sending = SendAsync(session, protocol, socket, streaming.Token);
+        var receiving = ReceiveAsync(session, protocol, socket, streaming.Token);
         try
         {
             var first = await Task.WhenAny(sending, receiving).ConfigureAwait(false);
@@ -223,7 +285,7 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
         }
     }
 
-    private static async Task SendAsync(Session session, IQwenSpeechSocket socket, CancellationToken token)
+    private static async Task SendAsync(Session session, QwenSpeechProtocol protocol, IQwenSpeechSocket socket, CancellationToken token)
     {
         await foreach (var frame in session.Audio.Reader.ReadAllAsync(token).ConfigureAwait(false))
         {
@@ -234,18 +296,18 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
                 token.ThrowIfCancellationRequested();
                 var part = frame.Pcm.AsMemory(offset, Math.Min(WireChunkBytes, frame.Pcm.Length - offset));
                 Interlocked.Add(ref session.BytesSent, part.Length);
-                await session.Protocol.SendAudioAsync(socket, part, token).ConfigureAwait(false);
+                await protocol.SendAudioAsync(socket, part, token).ConfigureAwait(false);
             }
         }
         session.FinishRequested = true;
-        await socket.SendAsync(session.Protocol.FinishMessage(), WebSocketMessageType.Text, token).ConfigureAwait(false);
+        await socket.SendAsync(protocol.FinishMessage(), WebSocketMessageType.Text, token).ConfigureAwait(false);
     }
 
-    private async Task ReceiveAsync(Session session, IQwenSpeechSocket socket, CancellationToken token)
+    private async Task ReceiveAsync(Session session, QwenSpeechProtocol protocol, IQwenSpeechSocket socket, CancellationToken token)
     {
         while (true)
         {
-            var response = await ReadEventAsync(socket, session.Protocol, token).ConfigureAwait(false);
+            var response = await ReadEventAsync(socket, protocol, token).ConfigureAwait(false);
             switch (response.Kind)
             {
                 case QwenSpeechProtocol.EventKind.Finished:
@@ -318,10 +380,13 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
         catch (Exception) { /* The owning task publishes the original failure as a safe error. */ }
     }
 
-    private sealed class Session(QwenSpeechProtocol protocol)
+    private sealed class Session(QwenSpeechProtocol? protocol, string? tokenPlanModel, ConversationLanguage language)
     {
-        internal QwenSpeechProtocol Protocol { get; } = protocol;
-        internal Channel<AudioFrame> Audio { get; } = Channel.CreateBounded<AudioFrame>(new BoundedChannelOptions(QueueCapacity)
+        internal QwenSpeechProtocol? Protocol { get; } = protocol;
+        internal string? TokenPlanModel { get; } = tokenPlanModel;
+        internal ConversationLanguage Language { get; } = language;
+        internal Channel<AudioFrame> Audio { get; } = Channel.CreateBounded<AudioFrame>(new BoundedChannelOptions(
+            tokenPlanModel is null ? QueueCapacity : TokenPlanQueueCapacity)
         {
             SingleReader = true,
             FullMode = BoundedChannelFullMode.Wait
@@ -334,6 +399,7 @@ public sealed class QwenSpeechRecognitionService : ISpeechRecognitionService, ID
         internal bool ErrorReported;
         internal long AudioStartTicks = -1;
         internal long BytesSent;
+        internal int QueuedBytes;
     }
 
     private sealed class SessionFailure(string message) : Exception(message);

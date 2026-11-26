@@ -95,7 +95,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Button x:Name="StartConversationButton" Style="{StaticResource TeamsPrimaryButtonStyle}"
-                    Content="{Binding Texts[StartConversation]}" IsEnabled="{Binding CanStart}" Click="Start_Click" />
+                    Content="{Binding StartConversationLabel}" IsEnabled="{Binding CanStart}" Click="Start_Click" />
             <Button x:Name="EndConversationButton" Grid.Column="1" Width="32" Padding="0"
                     IsEnabled="{Binding CanEnd}" Click="End_Click"
                     AutomationProperties.Name="{Binding Texts[EndConversation]}" ToolTipService.ToolTip="{Binding Texts[EndConversation]}">
@@ -456,28 +456,56 @@
                         <StackPanel Spacing="12" Padding="4,10">
                             <StackPanel Spacing="8">
                                 <TextBlock Text="{Binding Texts[QwenSection]}" FontWeight="SemiBold" />
-                                <TextBlock Text="{Binding Texts[QwenSetupHelp]}" TextWrapping="Wrap" />
+                                <ComboBox x:Name="QwenBillingPicker" Header="{Binding Texts[QwenBillingMode]}"
+                                          HorizontalAlignment="Stretch" IsEnabled="{Binding CanEditQwenSettings}"
+                                          AutomationProperties.Name="{Binding Texts[QwenBillingMode]}"
+                                          ItemsSource="{Binding QwenBillingOptions}" DisplayMemberPath="Label"
+                                          SelectedIndex="{Binding QwenBillingIndex, Mode=TwoWay}" />
+                                <TextBlock Text="{Binding QwenModeHelp}" TextWrapping="Wrap" />
                                 <HyperlinkButton Content="{Binding Texts[QwenGetApiKey]}"
                                                  NavigateUri="https://platform.qianwenai.com/home/api-keys" />
+                                <HyperlinkButton Content="{Binding Texts[QwenTokenPlanUsageGuide]}"
+                                                 Visibility="{Binding QwenTokenPlanVisibility}"
+                                                 NavigateUri="https://platform.qianwenai.com/docs/token-plan/token-plan-permissions-and-usage" />
                                 <TextBlock Text="{Binding Texts[QwenPrivacy]}" TextWrapping="Wrap" Opacity=".7" />
                                 <PasswordBox x:Name="QwenApiKeyBox" Header="{Binding Texts[QwenApiKey]}"
                                              AutomationProperties.Name="{Binding Texts[QwenApiKey]}"
                                              PlaceholderText="{Binding QwenKeyHint}" PasswordRevealMode="Hidden"
+                                             Visibility="{Binding QwenPayAsYouGoVisibility}" PasswordChanged="QwenKey_PasswordChanged"
+                                             IsEnabled="{Binding CanEditQwenSettings}" />
+                                <PasswordBox x:Name="QwenTokenPlanApiKeyBox" Header="{Binding Texts[QwenTokenPlanApiKey]}"
+                                             AutomationProperties.Name="{Binding Texts[QwenTokenPlanApiKey]}"
+                                             PlaceholderText="{Binding QwenTokenPlanKeyHint}" PasswordRevealMode="Hidden"
+                                             Visibility="{Binding QwenTokenPlanVisibility}" PasswordChanged="QwenKey_PasswordChanged"
                                              IsEnabled="{Binding CanEditQwenSettings}" />
                                 <ComboBox x:Name="QwenSpeechModelPicker" Header="{Binding Texts[QwenSpeechModel]}"
                                           HorizontalAlignment="Stretch" IsEnabled="{Binding CanEditQwenSettings}"
                                           AutomationProperties.Name="{Binding Texts[QwenSpeechModel]}"
+                                          Visibility="{Binding QwenPayAsYouGoVisibility}"
                                           ItemsSource="{Binding QwenSpeechModels}" SelectedItem="{Binding QwenSpeechModel, Mode=TwoWay}" />
+                                <ComboBox x:Name="QwenTokenPlanSpeechModelPicker" Header="{Binding Texts[QwenSpeechModel]}"
+                                          HorizontalAlignment="Stretch" IsEnabled="{Binding CanEditQwenSettings}"
+                                          AutomationProperties.Name="{Binding Texts[QwenSpeechModel]}"
+                                          Visibility="{Binding QwenTokenPlanVisibility}"
+                                          ItemsSource="{Binding QwenTokenPlanSpeechOptions}" DisplayMemberPath="Label"
+                                          SelectedIndex="{Binding QwenTokenPlanSpeechIndex, Mode=TwoWay}" />
                                 <ComboBox x:Name="QwenAnalysisModelPicker" Header="{Binding Texts[QwenAnalysisModel]}"
                                           HorizontalAlignment="Stretch" IsEnabled="{Binding CanEditQwenSettings}"
                                           AutomationProperties.Name="{Binding Texts[QwenAnalysisModel]}"
+                                          Visibility="{Binding QwenPayAsYouGoVisibility}"
                                           ItemsSource="{Binding QwenAnalysisModels}" SelectedItem="{Binding QwenAnalysisModel, Mode=TwoWay}" />
-                                <TextBlock Text="{Binding Texts[QwenSpeakerHint]}" TextWrapping="Wrap" Opacity=".7" />
+                                <ComboBox x:Name="QwenTokenPlanAnalysisModelPicker" Header="{Binding Texts[QwenAnalysisModel]}"
+                                          HorizontalAlignment="Stretch" IsEnabled="{Binding CanEditQwenSettings}"
+                                          AutomationProperties.Name="{Binding Texts[QwenAnalysisModel]}"
+                                          Visibility="{Binding QwenTokenPlanVisibility}"
+                                          ItemsSource="{Binding QwenTokenPlanAnalysisModels}" SelectedItem="{Binding QwenTokenPlanAnalysisModel, Mode=TwoWay}" />
+                                <TextBlock Text="{Binding Texts[QwenSpeakerHint]}" TextWrapping="Wrap" Opacity=".7"
+                                           Visibility="{Binding QwenPayAsYouGoVisibility}" />
                                 <TextBlock Text="{Binding Texts[ErrorQwenSettingsBusy]}" TextWrapping="Wrap"
                                            Visibility="{Binding QwenEditHintVisibility}" />
                                 <Button Content="{Binding Texts[QwenSave]}" Click="SaveQwenSettings_Click"
                                         IsEnabled="{Binding CanEditQwenSettings}" />
-                                <Button Content="{Binding Texts[QwenTest]}" Click="TestQwen_Click"
+                                <Button Content="{Binding QwenTestLabel}" Click="TestQwen_Click"
                                         IsEnabled="{Binding CanTestQwen}" />
                             </StackPanel>
                             <Grid RowSpacing="6" ColumnSpacing="12">
@@ -490,10 +518,12 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Text="{Binding Texts[ListeningLanguage]}" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Texts[ListeningLanguage]}" VerticalAlignment="Center"
+                                           Visibility="{Binding QwenSpeechSettingsVisibility}" />
                                 <ComboBox x:Name="LanguagePicker" Grid.Column="1" HorizontalAlignment="Stretch"
                                           ItemsSource="{Binding SpeechLanguageOptions}" DisplayMemberPath="Label"
                                           SelectedIndex="{Binding SpeechLanguageIndex, Mode=TwoWay}"
+                                          Visibility="{Binding QwenSpeechSettingsVisibility}"
                                           IsEnabled="{Binding CanChangeSpeechLanguage}"
                                           AutomationProperties.Name="{Binding Texts[ListeningLanguage]}"
                                           ToolTipService.ToolTip="{Binding Texts[LanguageHint]}" />
@@ -510,27 +540,29 @@
                                           AutomationProperties.Name="{Binding Texts[DisplayLanguage]}"
                                           ToolTipService.ToolTip="{Binding Texts[DisplayLanguageHint]}" />
                             </Grid>
-                            <Button Content="{Binding Texts[MicrophonePrivacy]}" Click="MicSettings_Click"
-                                    HorizontalAlignment="Left" />
-                            <ComboBox x:Name="AudioModePicker" Header="{Binding Texts[AudioSource]}"
-                                      HorizontalAlignment="Stretch" ItemsSource="{Binding AudioModeOptions}"
-                                      DisplayMemberPath="Label" SelectedIndex="{Binding AudioModeIndex, Mode=TwoWay}"
-                                      IsEnabled="{Binding CanChangeAudioSettings}" />
-                            <TextBlock Text="{Binding Texts[AudioSharedHint]}" TextWrapping="Wrap" Opacity=".7" />
-                            <TextBlock Text="{Binding Texts[SystemAudioNotice]}" TextWrapping="Wrap"
-                                       Visibility="{Binding SystemAudioNoticeVisibility}" />
-                            <TextBlock Text="{Binding Texts[InputDevice]}" />
-                            <ComboBox x:Name="InputDevicePicker" HorizontalAlignment="Stretch"
-                                      ItemsSource="{Binding AudioDevices}" DisplayMemberPath="Name"
-                                      SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
-                                      IsEnabled="{Binding CanChooseInputDevice}" />
-                            <TextBlock Text="{Binding Texts[OutputDevice]}" />
-                            <ComboBox x:Name="OutputDevicePicker" HorizontalAlignment="Stretch"
-                                      ItemsSource="{Binding OutputDevices}" DisplayMemberPath="Name"
-                                      SelectedItem="{Binding SelectedOutputDevice, Mode=TwoWay}"
-                                      IsEnabled="{Binding CanChooseOutputDevice}" />
-                            <Button Content="{Binding Texts[RefreshDevices]}" Click="RefreshDevices_Click"
-                                    IsEnabled="{Binding CanChangeAudioSettings}" />
+                            <StackPanel Spacing="12" Visibility="{Binding QwenSpeechSettingsVisibility}">
+                                <Button Content="{Binding Texts[MicrophonePrivacy]}" Click="MicSettings_Click"
+                                        HorizontalAlignment="Left" />
+                                <ComboBox x:Name="AudioModePicker" Header="{Binding Texts[AudioSource]}"
+                                          HorizontalAlignment="Stretch" ItemsSource="{Binding AudioModeOptions}"
+                                          DisplayMemberPath="Label" SelectedIndex="{Binding AudioModeIndex, Mode=TwoWay}"
+                                          IsEnabled="{Binding CanChangeAudioSettings}" />
+                                <TextBlock Text="{Binding Texts[AudioSharedHint]}" TextWrapping="Wrap" Opacity=".7" />
+                                <TextBlock Text="{Binding Texts[SystemAudioNotice]}" TextWrapping="Wrap"
+                                           Visibility="{Binding SystemAudioNoticeVisibility}" />
+                                <TextBlock Text="{Binding Texts[InputDevice]}" />
+                                <ComboBox x:Name="InputDevicePicker" HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding AudioDevices}" DisplayMemberPath="Name"
+                                          SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
+                                          IsEnabled="{Binding CanChooseInputDevice}" />
+                                <TextBlock Text="{Binding Texts[OutputDevice]}" />
+                                <ComboBox x:Name="OutputDevicePicker" HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding OutputDevices}" DisplayMemberPath="Name"
+                                          SelectedItem="{Binding SelectedOutputDevice, Mode=TwoWay}"
+                                          IsEnabled="{Binding CanChooseOutputDevice}" />
+                                <Button Content="{Binding Texts[RefreshDevices]}" Click="RefreshDevices_Click"
+                                        IsEnabled="{Binding CanChangeAudioSettings}" />
+                            </StackPanel>
                             <TextBlock Text="{Binding Texts[ContextWindow]}" />
                             <ComboBox x:Name="ContextPicker" ItemsSource="{Binding ContextOptions}" DisplayMemberPath="Label"
                                       SelectedIndex="{Binding ContextWindowIndex, Mode=TwoWay}" />
@@ -540,6 +572,7 @@
                             <TextBlock Text="{Binding Texts[GroundingNote]}"
                                        TextWrapping="Wrap" />
                             <ToggleSwitch Header="{Binding Texts[StoreAudio]}" IsOn="False" IsEnabled="False"
+                                          Visibility="{Binding QwenSpeechSettingsVisibility}"
                                           OnContent="{Binding Texts[On]}" OffContent="{Binding Texts[Off]}" />
                             <ToggleSwitch Header="{Binding Texts[StoreTranscript]}" IsOn="True" IsEnabled="False"
                                           OnContent="{Binding Texts[On]}" OffContent="{Binding Texts[Off]}" />

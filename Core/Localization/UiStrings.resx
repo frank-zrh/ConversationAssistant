@@ -3,32 +3,61 @@
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
   <data name="AppTitle" xml:space="preserve"><value>Conversation Assistant</value></data>
-  <data name="QwenSection" xml:space="preserve"><value>Qwen AI Platform · Pay-as-you-go</value></data>
-  <data name="QwenSetupHelp" xml:space="preserve"><value>Use one pay-as-you-go Qwen AI Platform key (sk-ws- or legacy sk-) for both models. Copy the full key shown at creation, not the masked one in the list. Token Plan keys are not supported.</value></data>
-  <data name="QwenGetApiKey" xml:space="preserve"><value>Create a pay-as-you-go API key</value></data>
+  <data name="QwenSection" xml:space="preserve"><value>Qwen AI Platform</value></data>
+  <data name="QwenSetupHelp" xml:space="preserve"><value>Pay-as-you-go uses this profile for live transcription, analysis, and Q&amp;A. Changes are saved automatically after three minutes without edits.</value></data>
+  <data name="QwenTokenPlanHelp" xml:space="preserve"><value>Token Plan uses only the subscription. Select a speech model to transcribe audio in 8-second segments, or leave transcription off for text-only conversations. The connection test checks analysis only. Changes are saved automatically after three minutes without edits.</value></data>
+  <data name="QwenTokenPlanSpeechOff" xml:space="preserve"><value>Off (text only)</value></data>
+  <data name="QwenTokenPlanSpeechFlash" xml:space="preserve"><value>qwen-audio-3.0-asr-flash (segmented)</value></data>
+  <data name="QwenGetApiKey" xml:space="preserve"><value>Manage Qwen API keys</value></data>
+  <data name="QwenTokenPlanUsageGuide" xml:space="preserve"><value>View Token Plan usage guidelines</value></data>
   <data name="QwenPrivacy" xml:space="preserve"><value>Selected audio, transcripts, and questions are sent to Alibaba Cloud. Get participant consent before recording. Usage charges may apply.</value></data>
+  <data name="QwenBillingMode" xml:space="preserve"><value>Qwen billing mode</value></data>
+  <data name="QwenPayAsYouGo" xml:space="preserve"><value>Pay-as-you-go</value></data>
+  <data name="QwenTokenPlan" xml:space="preserve"><value>Token Plan (experimental)</value></data>
   <data name="QwenApiKey" xml:space="preserve"><value>Pay-as-you-go API key</value></data>
-  <data name="QwenKeyPlaceholder" xml:space="preserve"><value>Paste the full key from Qwen AI Platform</value></data>
+  <data name="QwenTokenPlanApiKey" xml:space="preserve"><value>Token Plan API key</value></data>
+  <data name="QwenKeyPlaceholder" xml:space="preserve"><value>Full key starting with sk-ws- or legacy sk-</value></data>
+  <data name="QwenTokenPlanKeyPlaceholder" xml:space="preserve"><value>Full key starting with sk-sp-</value></data>
   <data name="QwenKeyStored" xml:space="preserve"><value>Key saved; leave blank to keep it</value></data>
   <data name="QwenSpeechModel" xml:space="preserve"><value>Speech transcription model</value></data>
   <data name="QwenAnalysisModel" xml:space="preserve"><value>Conversation analysis and Q&amp;A model</value></data>
   <data name="QwenSpeakerHint" xml:space="preserve"><value>These real-time transcription models do not identify speakers. Labels in older records are preserved.</value></data>
   <data name="QwenSave" xml:space="preserve"><value>Save Qwen settings</value></data>
   <data name="QwenTest" xml:space="preserve"><value>Test both models</value></data>
+  <data name="QwenTestTokenPlan" xml:space="preserve"><value>Test Token Plan analysis</value></data>
   <data name="QwenNotConfigured" xml:space="preserve"><value>Set up Qwen in Settings</value></data>
-  <data name="QwenReplaceTokenPlanKey" xml:space="preserve"><value>Replace the Token Plan key in Settings</value></data>
-  <data name="QwenConfigured" xml:space="preserve"><value>Qwen API key saved</value></data>
-  <data name="QwenUnsaved" xml:space="preserve"><value>Save the changed settings before testing.</value></data>
+  <data name="QwenConfigured" xml:space="preserve"><value>Qwen pay-as-you-go</value></data>
+  <data name="QwenTokenPlanConfigured" xml:space="preserve"><value>Qwen Token Plan</value></data>
+  <data name="QwenStartTextConversation" xml:space="preserve"><value>Start text conversation</value></data>
+  <data name="QwenUnsaved" xml:space="preserve"><value>Qwen settings have changed. Save them now or wait three minutes for autosave.</value></data>
+  <data name="QwenSaveBeforeTest" xml:space="preserve"><value>Save your changes before testing the connection.</value></data>
   <data name="QwenSaving" xml:space="preserve"><value>Encrypting and verifying the Qwen settings on this device...</value></data>
-  <data name="QwenSaved" xml:space="preserve"><value>Qwen settings saved for this Windows user. Test both models to verify access.</value></data>
+  <data name="QwenSaved" xml:space="preserve"><value>Qwen settings saved for this Windows user. Run the connection test to verify access.</value></data>
+  <data name="QwenSavedWithoutKey" xml:space="preserve"><value>Qwen settings saved. Add an API key to use this billing mode.</value></data>
+  <data name="QwenAutoSaved" xml:space="preserve"><value>Qwen settings saved automatically on this device.</value></data>
+  <data name="QwenAutoSavedWithoutKey" xml:space="preserve"><value>Qwen settings saved automatically. Add an API key to use this billing mode.</value></data>
   <data name="QwenTesting" xml:space="preserve"><value>Testing transcription and analysis without recording audio...</value></data>
   <data name="QwenTestSuccess" xml:space="preserve"><value>Both Qwen models passed the connection test. No audio or transcript was sent.</value></data>
+  <data name="QwenTokenPlanTesting" xml:space="preserve"><value>Testing Token Plan with a short text prompt…</value></data>
+  <data name="QwenTokenPlanTestSuccess" xml:space="preserve"><value>Token Plan analysis passed the connection test. No audio or transcript was sent.</value></data>
   <data name="StatusStartingQwen" xml:space="preserve"><value>◌ Connecting to Qwen speech...</value></data>
   <data name="MicrophoneQwen" xml:space="preserve"><value>Microphone · shared · Qwen</value></data>
   <data name="SystemAudioQwen" xml:space="preserve"><value>System audio · shared · Qwen</value></data>
   <data name="CombinedAudioQwen" xml:space="preserve"><value>Microphone + system · shared · Qwen</value></data>
   <data name="ErrorQwenKeyRequired" xml:space="preserve"><value>Save a Qwen AI Platform pay-as-you-go API key in Settings first.</value></data>
-  <data name="ErrorQwenTokenPlanKey" xml:space="preserve"><value>Token Plan keys are not supported in this app. Use a Qwen AI Platform pay-as-you-go API key.</value></data>
+  <data name="ErrorQwenTokenPlanKey" xml:space="preserve"><value>This is a Token Plan key. Paste it into the Token Plan API key field instead.</value></data>
+  <data name="ErrorQwenTokenPlanKeyRequired" xml:space="preserve"><value>Save a Qwen AI Platform Token Plan API key in Settings first.</value></data>
+  <data name="ErrorQwenTokenPlanKeyInvalid" xml:space="preserve"><value>Paste the full Token Plan API key (starts with sk-sp-). A pay-as-you-go or masked key will not work.</value></data>
+  <data name="ErrorQwenBillingMode" xml:space="preserve"><value>Select a supported Qwen analysis billing mode.</value></data>
+  <data name="ErrorQwenSpeechTokenPlan" xml:space="preserve"><value>Token Plan transcription is off. Select a Token Plan speech model in Settings to record audio.</value></data>
+  <data name="ErrorQwenTokenPlanSpeechProbe" xml:space="preserve"><value>Token Plan transcription is tested during recording because its API requires audio.</value></data>
+  <data name="ErrorQwenTokenPlanSpeechNetwork" xml:space="preserve"><value>Could not reach Token Plan transcription. Check the network and retry.</value></data>
+  <data name="ErrorQwenTokenPlanSpeechResponse" xml:space="preserve"><value>Token Plan returned an unexpected transcription response.</value></data>
+  <data name="ErrorQwenTokenPlanSpeechPermissions" xml:space="preserve"><value>Token Plan rejected the transcription request. Check the subscription, API key, and speech model access.</value></data>
+  <data name="ErrorQwenTokenPlanSpeechQuota" xml:space="preserve"><value>Token Plan transcription is rate limited or out of Credits. Check your subscription usage before retrying.</value></data>
+  <data name="ErrorQwenTokenPlanSpeechInput" xml:space="preserve"><value>Token Plan rejected the audio or speech model. Check the model and retry.</value></data>
+  <data name="ErrorQwenTokenPlanPermissions" xml:space="preserve"><value>Qwen rejected the Token Plan request. Check the subscription, Token Plan API key, and selected model access.</value></data>
+  <data name="ErrorQwenTokenPlanQuota" xml:space="preserve"><value>Qwen Token Plan is rate limited or out of Credits. Check your subscription usage before retrying.</value></data>
   <data name="ErrorQwenKeyInvalid" xml:space="preserve"><value>Paste the full pay-as-you-go API key from the Qwen AI Platform (starts with sk-ws- or sk-). A masked key or key ID will not work.</value></data>
   <data name="ErrorQwenModelInvalid" xml:space="preserve"><value>Select supported Qwen models for speech and analysis.</value></data>
   <data name="ErrorQwenSettingsRead" xml:space="preserve"><value>Qwen settings could not be read. Save the API key and models again.</value></data>
